@@ -22,4 +22,5 @@
     <button class="btn btn-primary" type="submit">Sign in</button>
   </form>
   <?php if (!$pwdAll): ?></details><?php endif; ?>
+  <p class="muted small" style="margin-top:1rem">New here? <a href="/about">What is Care Core?</a> · <a href="/docs">Documentation</a></p>
 </section>

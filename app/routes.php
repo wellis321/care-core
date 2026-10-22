@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use App\Modules\Admin\AdminController;
 use App\Modules\Care\CareController;
+use App\Modules\Docs\DocsController;
 use App\Modules\Identity\AuthController;
 use App\Modules\Identity\SsoController;
 use App\Modules\People\DashboardController;
@@ -15,6 +16,13 @@ use App\Modules\Staff\StaffRecordController;
 use App\Modules\Staff\TaskController;
 use App\Modules\Teams\TeamController;
 
+// Public information and documentation (no sign-in)
+$router->add('GET', '/about', [DocsController::class, 'about'], null, null, false, false);
+$router->add('GET', '/features', [DocsController::class, 'features'], null, null, false, false);
+$router->add('GET', '/security', [DocsController::class, 'trust'], null, null, false, false);
+$router->add('GET', '/docs', [DocsController::class, 'index'], null, null, false, false);
+$router->add('GET', '/docs/{slug}', [DocsController::class, 'page'], null, null, false, false);
+
 // Public
 $router->add('GET', '/login', [AuthController::class, 'loginForm'], null, null, false, false);
 $router->add('GET', '/login/entra', [SsoController::class, 'start'], null, null, false, false);
@@ -23,6 +31,10 @@ $router->add('POST', '/login', [AuthController::class, 'login'], null, null, tru
 $router->add('POST', '/logout', [AuthController::class, 'logout'], null, null, true, false);
 $router->add('GET', '/invite/{token}', [AuthController::class, 'inviteForm'], null, null, false, false);
 $router->add('POST', '/invite/{token}', [AuthController::class, 'invite'], null, null, true, false);
+
+// Your account
+$router->add('GET', '/account', [AuthController::class, 'accountForm']);
+$router->add('POST', '/account/password', [AuthController::class, 'changePassword']);
 
 // Dashboard
 $router->add('GET', '/', [DashboardController::class, 'index']);
@@ -89,6 +101,7 @@ $router->add('GET', '/activity', [AdminController::class, 'activity'], 'audit.vi
 $router->add('GET', '/admin', [AdminController::class, 'index'], '*');
 $router->add('GET', '/admin/users', [AdminController::class, 'users'], '*');
 $router->add('POST', '/admin/users', [AdminController::class, 'createUser'], '*');
+$router->add('POST', '/admin/users/reinvite', [AdminController::class, 'reinviteUser'], '*');
 $router->add('POST', '/admin/users/disable', [AdminController::class, 'disableUser'], '*');
 $router->add('GET', '/admin/integrations', [AdminController::class, 'integrations'], '*');
 $router->add('POST', '/admin/webhooks', [AdminController::class, 'addWebhook'], '*');

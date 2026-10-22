@@ -18,7 +18,7 @@ use App\Core\Session;
  * Every id token is checked in full: signature (RS256 against the tenant's published keys), issuer, audience, tenant,
  * expiry, and the nonce for this exact sign-in.
  *
- * Settings (.env): ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET, and ENTRA_REDIRECT_URI (or SITE_URL).
+ * Settings (.env): ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET, and ENTRA_REDIRECT_URI (or APP_URL).
  */
 final class Oidc
 {
@@ -42,7 +42,7 @@ final class Oidc
         if ($u) {
             return $u;
         }
-        $site = rtrim((string) Config::get('SITE_URL', ''), '/');
+        $site = Config::appUrl();
         return $site !== '' ? $site . '/login/entra/callback' : '';
     }
 

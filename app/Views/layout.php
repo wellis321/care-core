@@ -31,6 +31,15 @@ $flash = Session::takeFlash();
 <header class="topbar">
   <div class="topbar__in">
     <a class="brand" href="/"><span class="brand__mark" aria-hidden="true">C</span>Care Core</a>
+    <?php if (!$user): ?>
+    <nav class="topnav" aria-label="Main">
+      <a href="/about"<?= $active('/about') ?>>About</a>
+      <a href="/features"<?= $active('/features') ?>>Features</a>
+      <a href="/docs"<?= $active('/docs') ?>>Documentation</a>
+      <a href="/security"<?= $active('/security') ?>>Security</a>
+    </nav>
+    <div class="topbar__user"><a class="linkbtn" href="/login">Sign in</a></div>
+    <?php endif; ?>
     <?php if ($user): ?>
     <nav class="topnav" aria-label="Main">
       <a href="/"<?= $active('/') ?>>Dashboard</a>
@@ -41,9 +50,10 @@ $flash = Session::takeFlash();
       <?php $waiting = \App\Modules\Staff\ProfileChanges::queueFor($user); if ($waiting || Auth::can('staff.manage')): ?><a href="/approvals"<?= $active('/approvals') ?>>Approvals<?php if ($waiting): ?><span class="badge" aria-label="<?= count($waiting) ?> waiting"><?= count($waiting) ?></span><?php endif; ?></a><?php endif; ?>
       <?php if (Auth::can('audit.view')): ?><a href="/activity"<?= $active('/activity') ?>>Activity</a><?php endif; ?>
       <?php if (Auth::can('*')): ?><a href="/admin"<?= $active('/admin') ?>>Admin</a><?php endif; ?>
+      <a href="/docs"<?= $active('/docs') ?>>Help</a>
     </nav>
     <div class="topbar__user">
-      <span class="who"><?= View::e($user['email']) ?></span>
+      <a class="who" href="/account" title="Your account"><?= View::e($user['email']) ?></a>
       <form method="post" action="/logout"><?= Csrf::field() ?><button class="linkbtn" type="submit">Sign out</button></form>
     </div>
     <?php endif; ?>
@@ -57,6 +67,7 @@ $flash = Session::takeFlash();
 </main>
 <footer class="sitefoot"><div class="container">
   <p>Care Core: one record of your people, your teams and the people you support. Joiners, movers and leavers change everything in one go.</p>
+  <p class="footlinks"><a href="/about">About</a> · <a href="/features">Features</a> · <a href="/docs">Documentation</a> · <a href="/security">Security and privacy</a> · <a href="/docs/faq">Questions</a></p>
 </div></footer>
 </body>
 </html>

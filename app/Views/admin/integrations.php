@@ -7,8 +7,8 @@
   <div class="card">
     <p><?= $sso ? '<span class="chip chip--staff">On</span> Staff can sign in with their Microsoft work account.' : '<span class="chip chip--warn">Not set up</span> Staff sign in with a password.' ?></p>
     <p>In Entra, register an application (<strong>Accounts in this organisational directory only</strong>), add a <strong>Web</strong> redirect address of:</p>
-    <p class="secret"><?= $e(Oidc::redirectUri() ?: 'Set SITE_URL in the server settings first') ?></p>
-    <p class="muted small">Then add <code>ENTRA_TENANT_ID</code>, <code>ENTRA_CLIENT_ID</code> and <code>ENTRA_CLIENT_SECRET</code> to the server settings file (.env). Nobody is created by signing in: people are created by joining them here or by SCIM below, and Microsoft sign-in only works for them. Set <code>PASSWORD_LOGIN=false</code> to switch passwords off for everyone except administrators, who keep one in case Microsoft is unavailable.</p>
+    <p class="secret"><?= $e(Oidc::redirectUri() ?: 'Set APP_URL in the server settings first') ?></p>
+    <p class="muted small">Then add <code>ENTRA_TENANT_ID</code>, <code>ENTRA_CLIENT_ID</code> and <code>ENTRA_CLIENT_SECRET</code> to the server settings file (.env), with <code>APP_URL</code> set to this site’s address. Nobody is created by signing in: people are created by joining them here or by SCIM below, and Microsoft sign-in only works for them. Set <code>PASSWORD_LOGIN=false</code> to switch passwords off for everyone except administrators, who keep one in case Microsoft is unavailable.</p>
     <p class="muted small">Passwords are <?= Config::bool('PASSWORD_LOGIN', true) || !$sso ? 'currently allowed for everyone' : 'currently off for everyone except administrators' ?>.</p>
   </div>
 </section>

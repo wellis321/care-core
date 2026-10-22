@@ -48,7 +48,18 @@ final class AdminController extends Controller
         try {
             $personId = $r->input('person_id') !== '' ? (int) $r->input('person_id') : null;
             $res = UserRepo::create($this->orgId(), $personId, $r->input('email'), $r->input('role'), $this->actor(), true);
-            $this->ok('Login created. Invitation link (shown once, valid for 7 days): ' . rtrim((string) Config::get('APP_URL', ''), '/') . '/invite/' . $res['invite_token']);
+            $this->ok('Login created. Invitation link (shown once, valid for 7 days): ' . \App\Core\Config::appUrl() . '/invite/' . $res['invite_token']);
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/admin/users');
+    }
+
+    public function reinviteUser(Request $r, array $p = []): Response
+    {
+        try {
+            $token = UserRepo::reinvite($this->orgId(), (int) $r->input('id'), $this->actor());
+            $this->ok('New invitation (shown once, valid for 7 days, their old password no longer works): ' . \App\Core\Config::appUrl() . '/invite/' . $token);
         } catch (DomainException $e) {
             $this->fail($e->getMessage());
         }
@@ -79,7 +90,7 @@ final class AdminController extends Controller
             'webhooks' => DB::all('SELECT w.*, (SELECT COUNT(*) FROM webhook_deliveries d WHERE d.endpoint_id = w.id AND d.status = \'delivered\') AS delivered, (SELECT COUNT(*) FROM webhook_deliveries d WHERE d.endpoint_id = w.id AND d.status <> \'delivered\') AS undelivered FROM webhook_endpoints w WHERE w.organisation_id = ? ORDER BY w.id', [$org]),
             'tokens' => DB::all('SELECT id, name, active, last_used_at, created_at FROM scim_tokens WHERE organisation_id = ? ORDER BY id', [$org]),
             'events' => DB::all('SELECT type, occurred_at, fanned_out_at FROM outbox_events WHERE organisation_id = ? ORDER BY id DESC LIMIT 15', [$org]),
-            'scimUrl' => rtrim((string) Config::get('APP_URL', ''), '/') . '/scim/v2',
+            'scimUrl' => \App\Core\Config::appUrl() . '/scim/v2',
         ]);
     }
 

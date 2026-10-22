@@ -68,8 +68,7 @@ Delivery is one function, so a message broker (for example RabbitMQ) can replace
 
 `/scim/v2/Users` (bearer token). A SCIM user is a **person**; `active` means currently employed.
 `POST` runs the joiner process (or a rehire). `PATCH active=false` (Entra sends the string `"False"`) and `DELETE` run the
-leaver process and disable the login **now**. `active=true` rehires. Attributes this system owns (job, team, manager) are not
-overwritten by the identity provider.
+leaver process and disable the login **now**. `active=true` rehires. The provider may update the name and job title (a title change is recorded as a mover change); teams, line manager, hours and everything else are owned here and ignored if sent.
 
 ## Staff records and self-service
 

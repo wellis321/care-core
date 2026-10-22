@@ -40,6 +40,12 @@ final class Config
         return $v === null ? $default : filter_var($v, FILTER_VALIDATE_BOOLEAN);
     }
 
+    /** The public address of this installation, without a trailing slash: APP_URL, or SITE_URL as an alias. */
+    public static function appUrl(): string
+    {
+        return rtrim((string) (self::get('APP_URL') ?: self::get('SITE_URL', '')), '/');
+    }
+
     public static function demo(): bool
     {
         return self::bool('DEMO_MODE', false);

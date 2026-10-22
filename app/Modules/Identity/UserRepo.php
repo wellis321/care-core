@@ -80,6 +80,44 @@ final class UserRepo
         return $user;
     }
 
+    /** A fresh one-time invitation for an existing login (a forgotten password, or a lost invitation). Returns the token, shown once. */
+    public static function reinvite(int $orgId, int $userId, Actor $actor): string
+    {
+        $u = DB::one('SELECT id, uuid, email, status FROM users WHERE id = ? AND organisation_id = ?', [$userId, $orgId]) ?? throw new DomainException('Login not found.');
+        if ($u['status'] === 'disabled') {
+            throw new DomainException('That login is disabled. Disabled logins cannot be invited again.');
+        }
+        $token = bin2hex(random_bytes(24));
+        DB::transaction(function () use ($orgId, $u, $token, $actor) {
+            // Back to "invited": the old password stops working at once, and so does any session still open.
+            DB::update('users', ['status' => 'invited', 'password_hash' => null, 'invite_token_hash' => hash('sha256', $token), 'invite_expires_at' => gmdate('Y-m-d H:i:s', time() + 7 * 86400)], ['id' => $u['id']]);
+            Audit::record($orgId, $actor, 'user.reinvited', 'user', $u['uuid'], 'Issued a new invitation to ' . $u['email']);
+        });
+        return $token;
+    }
+
+    /** Change your own password: needs the current one. */
+    public static function changePassword(int $userId, string $current, string $new, Actor $actor): void
+    {
+        $u = DB::one('SELECT id, uuid, organisation_id, email, password_hash FROM users WHERE id = ?', [$userId]) ?? throw new DomainException('Login not found.');
+        if (!$u['password_hash']) {
+            throw new DomainException('This login signs in with Microsoft, so it has no password to change.');
+        }
+        if (!password_verify($current, (string) $u['password_hash'])) {
+            throw new DomainException('Your current password is not right.');
+        }
+        if ($m = self::passwordProblem($new)) {
+            throw new DomainException($m);
+        }
+        if (hash_equals($current, $new)) {
+            throw new DomainException('Choose a password you have not used just now.');
+        }
+        DB::transaction(function () use ($u, $new, $actor) {
+            DB::update('users', ['password_hash' => password_hash($new, PASSWORD_DEFAULT)], ['id' => $u['id']]);
+            Audit::record((int) $u['organisation_id'], $actor, 'user.password_changed', 'user', $u['uuid'], $u['email'] . ' changed their password');
+        });
+    }
+
     public static function setAccessEnd(int $orgId, int $personId, string $date, Actor $actor): int
     {
         $users = DB::all('SELECT id, uuid, email FROM users WHERE person_id = ? AND organisation_id = ? AND (access_ends_on IS NULL OR access_ends_on > ?)', [$personId, $orgId, $date]);

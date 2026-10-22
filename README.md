@@ -8,6 +8,13 @@ system, and nobody is sure which one is right when someone leaves.
 
 Plain PHP 8.1+ and MySQL 8 / MariaDB 10.5+. No framework, no Composer at runtime.
 
+## Documentation
+
+The full documentation is built in and public (no sign-in): **/docs** (36 pages: guides, administration, integrations, reference,
+running it), plus **/about**, **/features** and **/security**. The pages live in `app/Views/docs/pages/` and are listed in
+`app/Modules/Docs/Docs.php`; tests check that every page exists, every link works, search works, and every event the code can
+emit is in the event catalogue.
+
 ## The ideas
 
 1. **One person, many relationships.** A person is created once and never deleted. Being staff, being supported, being in a
@@ -63,7 +70,7 @@ python3 tests/http_flows.py                       # end-to-end through the web i
 
 1. Register an application in Entra: *Accounts in this organisational directory only*, with a **Web** redirect address of
    `https://YOUR-SITE/login/entra/callback`. Create a client secret.
-2. Put `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID` and `ENTRA_CLIENT_SECRET` in `.env` (and `SITE_URL`, or `ENTRA_REDIRECT_URI`).
+2. Put `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID` and `ENTRA_CLIENT_SECRET` in `.env` (and `APP_URL`, or `ENTRA_REDIRECT_URI`).
    A "Sign in with Microsoft" button appears. `PASSWORD_LOGIN=false` turns passwords off for everyone except administrators.
 3. For joiners and leavers, add an enterprise application with automatic provisioning using the SCIM address and a token from
    Admin → Integrations.
@@ -88,6 +95,6 @@ Also set `APP_KEY` (32 random bytes, base64). It encrypts National Insurance and
 
 ## Not built yet
 
-Email sending (invitations are links shown once, and approvals are not emailed), editing a compliance record in place (add and
+Email sending (invitations and password resets are links shown once to an administrator, and approvals are not emailed), editing a compliance record in place (add and
 remove only), documents and certificates (files), a leave calendar and booking, MFA for password sign-in, subject access
 export and retention tools, future-dated moves, import from the three older apps.

@@ -59,4 +59,28 @@ final class AuthController extends Controller
         $this->ok('Your password is set. You can sign in now.');
         return $this->redirect('/login');
     }
+
+    public function accountForm(Request $r, array $p = []): Response
+    {
+        $u = Auth::user();
+        return $this->view('auth/account', ['title' => 'Your account', 'hasPassword' => (bool) DB::value('SELECT password_hash FROM users WHERE id = ?', [$u['id']]), 'error' => null]);
+    }
+
+    public function changePassword(Request $r, array $p = []): Response
+    {
+        $u = Auth::user();
+        $hasPassword = (bool) DB::value('SELECT password_hash FROM users WHERE id = ?', [$u['id']]);
+        $new = (string) ($r->post['new_password'] ?? '');
+        try {
+            if ($new !== (string) ($r->post['new_password2'] ?? '')) {
+                throw new DomainException('The two new passwords do not match.');
+            }
+            UserRepo::changePassword((int) $u['id'], (string) ($r->post['current_password'] ?? ''), $new, $this->actor());
+        } catch (DomainException $e) {
+            return $this->view('auth/account', ['title' => 'Your account', 'hasPassword' => $hasPassword, 'error' => $e->getMessage()], 422);
+        }
+        session_regenerate_id(true);
+        $this->ok('Your password has been changed.');
+        return $this->redirect('/account');
+    }
 }

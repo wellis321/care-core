@@ -42,7 +42,7 @@ final class StaffController extends Controller
         }
         $this->ok(($res['rehire'] ? 'Rehired' : 'Added') . ' and onboarding started: ' . $res['tasks'] . ' task' . ($res['tasks'] === 1 ? '' : 's') . ' created.');
         if ($res['invite_token']) {
-            $this->ok('Invitation link (shown once, valid for 7 days): ' . rtrim((string) Config::get('APP_URL', ''), '/') . '/invite/' . $res['invite_token']);
+            $this->ok('Invitation link (shown once, valid for 7 days): ' . \App\Core\Config::appUrl() . '/invite/' . $res['invite_token']);
         }
         return $this->redirect('/people/' . $res['person_uuid']);
     }

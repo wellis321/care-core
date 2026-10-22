@@ -283,3 +283,37 @@ test('compliance: due-soon lists current staff only, flags overdue, and uses the
     eq(count($due), 2, implode(', ', $names));
     ok(in_array('Date:First aid:overdue', $names) && in_array('Date:SSSC:soon', $names), implode(', ', $names));
 });
+
+// ── Passwords ───────────────────────────────────────────────────────────────
+
+test('password: you can change your own with the current one; wrong, short, unchanged or Microsoft-only logins are refused', function () {
+    $org = Fx::org();
+    $email = 'pw' . bin2hex(random_bytes(3)) . '@example.test';
+    $u = App\Modules\Identity\UserRepo::create($org, null, $email, 'staff', Fx::actor(), false, 'first password here');
+    throws(fn() => App\Modules\Identity\UserRepo::changePassword($u['id'], 'wrong password', 'second password here', Fx::actor()), 'not right');
+    throws(fn() => App\Modules\Identity\UserRepo::changePassword($u['id'], 'first password here', 'short', Fx::actor()), 'at least 10');
+    throws(fn() => App\Modules\Identity\UserRepo::changePassword($u['id'], 'first password here', 'first password here', Fx::actor()), 'not used');
+    App\Modules\Identity\UserRepo::changePassword($u['id'], 'first password here', 'second password here', Fx::actor());
+    $hash = DB::value('SELECT password_hash FROM users WHERE id = ?', [$u['id']]);
+    ok(password_verify('second password here', $hash) && !password_verify('first password here', $hash));
+    eq(Fx::count('audit_log', "organisation_id = ? AND action = 'user.password_changed'", [$org]), 1);
+    $sso = App\Modules\Identity\UserRepo::create($org, null, 'sso' . bin2hex(random_bytes(3)) . '@example.test', 'staff', Fx::actor(), false);
+    throws(fn() => App\Modules\Identity\UserRepo::changePassword($sso['id'], 'x', 'some long password', Fx::actor()), 'Microsoft');
+});
+
+test('password: a new invitation replaces a forgotten password, stops the old one at once, and cannot be used twice', function () {
+    $org = Fx::org();
+    $email = 'fp' . bin2hex(random_bytes(3)) . '@example.test';
+    $u = App\Modules\Identity\UserRepo::create($org, null, $email, 'staff', Fx::actor(), false, 'old password here');
+    $token = App\Modules\Identity\UserRepo::reinvite($org, $u['id'], Fx::actor());
+    $row = DB::one('SELECT * FROM users WHERE id = ?', [$u['id']]);
+    eq($row['status'], 'invited');
+    eq($row['password_hash'], null);
+    ok(!App\Modules\Identity\UserRepo::canSignIn($row), 'the old password and any open session stop working');
+    App\Modules\Identity\UserRepo::acceptInvite($token, 'brand new password');
+    ok(password_verify('brand new password', DB::value('SELECT password_hash FROM users WHERE id = ?', [$u['id']])));
+    throws(fn() => App\Modules\Identity\UserRepo::acceptInvite($token, 'another password'), 'expired or has already');
+    DB::update('users', ['status' => 'disabled'], ['id' => $u['id']]);
+    throws(fn() => App\Modules\Identity\UserRepo::reinvite($org, $u['id'], Fx::actor()), 'disabled');
+    throws(fn() => App\Modules\Identity\UserRepo::reinvite(Fx::org(), $u['id'], Fx::actor()), 'not found');
+});

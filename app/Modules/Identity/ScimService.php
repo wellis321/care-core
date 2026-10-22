@@ -18,7 +18,8 @@ use App\Modules\Staff\Lifecycle;
  *   active=false   -> the leaver process runs (employment ends today; team places, key worker links and the login end)
  *   active=true    -> a returner is rehired (a NEW employment)
  *   POST           -> the joiner process runs (or a rehire, when the person already exists)
- * Everything else about the person is owned here, not by the identity provider.
+ * The provider may also update the name and job title (a title change is recorded as a mover change). Everything else
+ * about the person (teams, line manager, hours, records) is owned here and ignored if sent.
  */
 final class ScimService
 {
