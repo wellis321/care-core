@@ -59,6 +59,15 @@ main.container { flex: 1; padding-top: 2rem; padding-bottom: 3rem; }
 .stats dt { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted, #53686a); }
 .stats dd { margin: 0.2rem 0 0; font-family: var(--font-display, inherit); font-weight: 700; font-size: 2.2rem; line-height: 1; }
 .stats a { color: inherit; text-decoration: none; }
+/* The whole card is the link: the number's link is stretched over the card, so a click anywhere goes there. */
+.stats { overflow: hidden; }
+.stats > div { position: relative; transition: background-color 120ms ease; }
+.stats a::after { content: ""; position: absolute; inset: 0; }
+.stats > div:hover { background: rgba(14, 95, 90, 0.07); }
+.stats > div:hover dd { color: var(--brand, #0e5f5a); }
+.stats > div:focus-within { background: rgba(14, 95, 90, 0.07); outline: 3px solid var(--thistle, #7a5ea8); outline-offset: -3px; }
+.stats a:focus-visible { outline: none; }
+@media (prefers-reduced-motion: reduce) { .stats > div { transition: none; } }
 @media (max-width: 800px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stats > div:nth-child(3) { border-left: 0; } .stats > div:nth-child(n+3) { border-top: 1px solid var(--rule, #dcd8cd); } }
 .empty { max-width: 34rem; margin: 3rem auto; text-align: center; }
 

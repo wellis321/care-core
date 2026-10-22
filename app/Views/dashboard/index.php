@@ -11,10 +11,10 @@
 
 <?php if ($isManager): ?>
 <dl class="stats">
-  <div><dt>Staff</dt><dd><a href="/people?kind=staff"><?= (int) $stats['staff'] ?></a></dd></div>
-  <div><dt>People we support</dt><dd><a href="/people?kind=supported"><?= (int) $stats['supported'] ?></a></dd></div>
-  <div><dt>Open tasks</dt><dd><a href="/tasks"><?= (int) $stats['tasks'] ?></a></dd></div>
-  <div><dt>Overdue</dt><dd><a href="/tasks"><?= (int) $stats['overdue'] ?></a></dd></div>
+  <div><dt>Staff</dt><dd><a href="/people?kind=staff" aria-label="Staff: <?= (int) $stats['staff'] ?>, view"><?= (int) $stats['staff'] ?></a></dd></div>
+  <div><dt>People we support</dt><dd><a href="/people?kind=supported" aria-label="People we support: <?= (int) $stats['supported'] ?>, view"><?= (int) $stats['supported'] ?></a></dd></div>
+  <div><dt>Open tasks</dt><dd><a href="/tasks" aria-label="Open tasks: <?= (int) $stats['tasks'] ?>, view"><?= (int) $stats['tasks'] ?></a></dd></div>
+  <div><dt>Overdue</dt><dd><a href="/tasks" aria-label="Overdue: <?= (int) $stats['overdue'] ?>, view"><?= (int) $stats['overdue'] ?></a></dd></div>
 </dl>
 
 <?php if ($issues): ?>
