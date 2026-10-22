@@ -82,14 +82,14 @@ $secretNote = static fn(string $f) => ($profile[$f] ?? '') !== '' ? 'Currently '
   <h2 id="sg">Signature</h2>
   <?php if ($profile['signature_path']): ?><img class="sigimg" src="/files/signature/<?= $e($person['uuid']) ?>" alt="Your current signature"><p class="muted small">Added <?= View::date(substr((string) $profile['signature_at'], 0, 10)) ?>.</p><?php else: ?><p class="muted">You have not added a signature yet.</p><?php endif; ?>
   <?php if (isset($pendingBy['signature_path'])): ?><p><img class="sigimg" src="/files/pending/<?= $e($pendingBy['signature_path']['uuid']) ?>" alt="Your new signature, waiting for approval"><span class="hint">Waiting for approval</span></p><?php endif; ?>
-  <form method="post" action="/me/signature" enctype="multipart/form-data" class="form"><?= Csrf::field() ?>
+  <form method="post" action="/me/signature" enctype="multipart/form-data" class="form sigform"><?= Csrf::field() ?>
     <input type="hidden" name="signature_data" value="">
     <p><label for="sigpad"><strong>Draw it</strong> with your mouse, finger or a pen</label></p>
     <canvas id="sigpad" class="sigpad" role="img" aria-label="Signature drawing area"></canvas>
-    <p><button class="btn btn-secondary" type="button" id="sigclear">Clear</button></p>
-    <div class="form-group"><label for="signature_file">Or upload a picture of it</label><input id="signature_file" type="file" name="signature_file" accept="image/png,image/jpeg,image/webp,image/gif"><span class="hint">Up to 1 MB. Your line manager approves it.</span></div>
+    <p class="sig-actions"><button class="btn btn-secondary" type="button" id="sigclear">Clear</button></p>
+    <div class="form-group sig-upload"><label for="signature_file">Or upload a picture of it</label><input id="signature_file" type="file" name="signature_file" accept="image/png,image/jpeg,image/webp,image/gif"><span class="hint">Up to 1 MB. Your line manager approves it.</span></div>
     <p id="sigmsg" class="field-error" role="alert" hidden></p>
-    <button class="btn btn-primary" type="submit">Send signature</button>
+    <div class="actions"><button class="btn btn-primary" type="submit">Send signature</button></div>
   </form>
 </section>
 </div>
