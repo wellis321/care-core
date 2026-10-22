@@ -29,7 +29,7 @@ final class Auth
         }
         $user = Database::one('SELECT * FROM users WHERE email = ?', [$email]);
         $hash = $user['password_hash'] ?? password_hash('not-a-real-password', PASSWORD_DEFAULT);   // equal work whether or not the account exists
-        $ok = password_verify($password, (string) $hash) && $user && UserRepo::canSignIn($user);
+        $ok = password_verify($password, (string) $hash) && $user && UserRepo::canSignIn($user) && \App\Modules\Identity\Oidc::passwordAllowed((string) $user['role']);
         if (!$ok) {
             Database::insert('login_attempts', ['email' => mb_substr($email, 0, 190), 'ip' => mb_substr($ip, 0, 45), 'attempted_at' => gmdate('Y-m-d H:i:s')]);
             throw new DomainException('That email address or password is not right.');
@@ -40,6 +40,14 @@ final class Auth
         Session::set('user_id', (int) $user['id']);
         self::$user = null;
         return $user;
+    }
+
+    /** Start a session for a user who has already proved who they are elsewhere (single sign-on). */
+    public static function signInAs(array $user): void
+    {
+        session_regenerate_id(true);
+        Session::set('user_id', (int) $user['id']);
+        self::$user = null;
     }
 
     public static function logout(): void

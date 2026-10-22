@@ -21,7 +21,13 @@ Plain PHP 8.1+ and MySQL 8 / MariaDB 10.5+. No framework, no Composer at runtime
    not because a scheduled job remembered. Team places and key worker links end on the last day.
 5. **Events out, SCIM in.** Every change writes an outbox event (identifiers and dates only, never names or health details),
    delivered as signed webhooks. Microsoft Entra can push joiners and leavers in through SCIM.
-6. **A safety net.** `scripts/reconcile.php` proves the data is consistent and reports (or fixes) anything that is not.
+6. **Everything a staff record needs.** Address, emergency contact, National Insurance and bank details (encrypted), photo and
+   signature; terms of employment (TUPE, working time, apprenticeship, visa, leave); registrations, supervisions,
+   appraisals and learning. Staff keep their own details up to date from **My profile**: phone and emergency contact save at
+   once, everything else waits for their line manager (or HR) to approve, and a drawn or uploaded signature works the same way.
+7. **Sign in with Microsoft.** OpenID Connect against one Entra tenant (authorisation code with PKCE, tokens fully checked),
+   plus SCIM for joiners and leavers. Nobody is created by signing in.
+8. **A safety net.** `scripts/reconcile.php` proves the data is consistent and reports (or fixes) anything that is not.
 
 See `docs/ARCHITECTURE.md` for the data model and the rules.
 
@@ -53,6 +59,20 @@ python3 tests/http_flows.py                       # end-to-end through the web i
 15 3 * * * php /path/to/scripts/demo-reset.php           # demo only
 ```
 
+## Microsoft Entra
+
+1. Register an application in Entra: *Accounts in this organisational directory only*, with a **Web** redirect address of
+   `https://YOUR-SITE/login/entra/callback`. Create a client secret.
+2. Put `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID` and `ENTRA_CLIENT_SECRET` in `.env` (and `SITE_URL`, or `ENTRA_REDIRECT_URI`).
+   A "Sign in with Microsoft" button appears. `PASSWORD_LOGIN=false` turns passwords off for everyone except administrators.
+3. For joiners and leavers, add an enterprise application with automatic provisioning using the SCIM address and a token from
+   Admin → Integrations.
+
+People are matched by their Microsoft sign-in name the first time and by their stable object id after that, so changing an
+email address never moves an account to someone else. Care Core creates nobody at sign-in.
+
+Also set `APP_KEY` (32 random bytes, base64). It encrypts National Insurance and bank details.
+
 ## Security notes
 
 - Passwords: `password_hash`; sign-in is rate limited per account and per address; sessions are regenerated on sign-in and
@@ -61,10 +81,13 @@ python3 tests/http_flows.py                       # end-to-end through the web i
 - Every query is parameterised and every read is scoped by organisation. Tests prove one organisation cannot see another.
 - Webhook and integration addresses are checked (https only, no internal or metadata addresses).
 - SCIM tokens and invitation tokens are stored only as hashes and shown once.
+- National Insurance and bank details are encrypted in the database (libsodium) and only shown to people who manage staff and to the person themselves (masked). Audit rows and events name the fields changed, never the values.
+- Photos and signatures are stored outside the web root, checked as real images, and only served to people allowed to see them.
+- Self-service changes need approval from the line manager or HR, and nobody can approve their own.
 - Health and care information lives in its own tables and is only shown to roles with `care.view`.
 
 ## Not built yet
 
-Single sign-on login (OpenID Connect), email sending (invitations are links shown once), professional registrations,
-supervision and training (these belong in a Compliance module on the same person record), subject access export and
-retention tools, MFA, import from the three older apps.
+Email sending (invitations are links shown once, and approvals are not emailed), editing a compliance record in place (add and
+remove only), documents and certificates (files), a leave calendar and booking, MFA for password sign-in, subject access
+export and retention tools, future-dated moves, import from the three older apps.

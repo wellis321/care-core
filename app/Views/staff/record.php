@@ -27,10 +27,10 @@ $ucw = static fn(string $s) => ucwords(str_replace('_', ' ', $s));
   <div class="actions"><button class="btn btn-primary" type="submit">Save personal details</button></div>
 </form>
 <div class="grid cols-2" style="margin-top:1rem">
-  <div><h3>Photo</h3><?php if ($profile['photo_path']): ?><img class="avatar" src="/files/photo/<?= $e($person['uuid']) ?>" alt="Photo of <?= $e($name) ?>"><?php else: ?><div class="avatar avatar--empty">No photo</div><?php endif; ?>
+  <div><h2>Photo</h2><?php if ($profile['photo_path']): ?><img class="avatar" src="/files/photo/<?= $e($person['uuid']) ?>" alt="Photo of <?= $e($name) ?>"><?php else: ?><div class="avatar avatar--empty">No photo</div><?php endif; ?>
     <form method="post" action="<?= $e($base) ?>/record/file" enctype="multipart/form-data" class="form" style="margin-top:.6rem"><?= Csrf::field() ?><input type="hidden" name="field" value="photo">
       <div class="form-group"><label for="mphoto" class="sr">Photo file</label><input id="mphoto" type="file" name="file" accept="image/png,image/jpeg,image/webp,image/gif" required></div><button class="btn btn-secondary" type="submit">Set photo</button></form></div>
-  <div><h3>Signature</h3><?php if ($profile['signature_path']): ?><img class="sigimg" src="/files/signature/<?= $e($person['uuid']) ?>" alt="Signature of <?= $e($name) ?>"><?php else: ?><p class="muted">None yet. They can add it under My profile.</p><?php endif; ?>
+  <div><h2>Signature</h2><?php if ($profile['signature_path']): ?><img class="sigimg" src="/files/signature/<?= $e($person['uuid']) ?>" alt="Signature of <?= $e($name) ?>"><?php else: ?><p class="muted">None yet. They can add it under My profile.</p><?php endif; ?>
     <form method="post" action="<?= $e($base) ?>/record/file" enctype="multipart/form-data" class="form" style="margin-top:.6rem"><?= Csrf::field() ?><input type="hidden" name="field" value="signature">
       <div class="form-group"><label for="msig" class="sr">Signature file</label><input id="msig" type="file" name="file" accept="image/png,image/jpeg,image/webp,image/gif" required></div><button class="btn btn-secondary" type="submit">Set signature</button></form></div>
 </div></div></details>
@@ -58,7 +58,7 @@ $ucw = static fn(string $s) => ucwords(str_replace('_', ' ', $s));
     <td class="right"><form method="post" action="<?= $e($base) ?>/compliance/<?= $e($kind) ?>/remove" class="row-actions"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= $e($row['uuid']) ?>"><button class="btn btn-secondary" type="submit">Remove</button></form></td></tr><?php endforeach; ?></tbody></table></div>
 <?php else: ?><p class="muted">None recorded.</p><?php endif; ?>
 <?php if ($fe): ?><div class="alert alert-error" role="alert"><ul style="margin:0;padding-left:1.1rem"><?php foreach ($fe as $m): ?><li><?= $e($m) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
-<h3>Add</h3>
+<h2>Add</h2>
 <form class="form" method="post" action="<?= $e($base) ?>/compliance/<?= $e($kind) ?>"><?= Csrf::field() ?>
   <div class="formgrid">
   <?php foreach ($k['fields'] as $f => [$type, $label, $required]) {

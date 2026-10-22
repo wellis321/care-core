@@ -1,6 +1,17 @@
-<?php use App\Core\Csrf; use App\Core\View; $e = [View::class, 'e']; ?>
+<?php use App\Core\Config; use App\Core\Csrf; use App\Core\View; use App\Modules\Identity\Oidc; $e = [View::class, 'e']; $sso = Oidc::configured(); ?>
 <p class="crumbs"><a href="/admin">Admin</a> › Integrations</p>
 <div class="pagehead"><div><h1>Integrations</h1><p class="muted">Care Core announces every joiner, mover and leaver. Other systems listen, or push changes in.</p></div></div>
+
+<section class="section">
+  <div class="section__head"><h2>Microsoft Entra: sign in with Microsoft</h2></div>
+  <div class="card">
+    <p><?= $sso ? '<span class="chip chip--staff">On</span> Staff can sign in with their Microsoft work account.' : '<span class="chip chip--warn">Not set up</span> Staff sign in with a password.' ?></p>
+    <p>In Entra, register an application (<strong>Accounts in this organisational directory only</strong>), add a <strong>Web</strong> redirect address of:</p>
+    <p class="secret"><?= $e(Oidc::redirectUri() ?: 'Set SITE_URL in the server settings first') ?></p>
+    <p class="muted small">Then add <code>ENTRA_TENANT_ID</code>, <code>ENTRA_CLIENT_ID</code> and <code>ENTRA_CLIENT_SECRET</code> to the server settings file (.env). Nobody is created by signing in: people are created by joining them here or by SCIM below, and Microsoft sign-in only works for them. Set <code>PASSWORD_LOGIN=false</code> to switch passwords off for everyone except administrators, who keep one in case Microsoft is unavailable.</p>
+    <p class="muted small">Passwords are <?= Config::bool('PASSWORD_LOGIN', true) || !$sso ? 'currently allowed for everyone' : 'currently off for everyone except administrators' ?>.</p>
+  </div>
+</section>
 
 <section class="section">
   <div class="section__head"><h2>Microsoft Entra: joiners and leavers pushed in (SCIM)</h2></div>

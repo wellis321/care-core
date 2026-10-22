@@ -153,6 +153,7 @@ foreach ($staff as $i => $s) {
     [$clean] = StaffRecord::cleanProfile([
         'address_line1' => (10 + $i) . ' ' . $streets[$i % 8], 'address_city' => 'Inverness', 'address_county' => 'Highland', 'address_postcode' => 'IV' . (1 + $i % 3) . ' ' . (1 + $i % 9) . 'AA', 'address_country' => 'United Kingdom',
         'emergency_contact_name' => 'Family contact', 'emergency_contact_phone' => sprintf('07700 900%03d', 300 + $i),
+        'date_of_birth' => date('Y-m-d', strtotime('-' . (24 + ($i * 3) % 30) . ' years -' . (($i * 37) % 300) . ' days')),
         'ni_number' => 'JA' . sprintf('%06d', $i) . 'A', 'bank_sort_code' => '00-00-00', 'bank_account_number' => '00000000', 'bank_account_name' => $staffSpec[$i][0] . ' ' . $staffSpec[$i][1],
     ]);
     StaffRecord::applyProfile($org, $s['person_id'], $clean, $actor);

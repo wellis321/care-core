@@ -21,7 +21,7 @@ $secretNote = static fn(string $f) => ($profile[$f] ?? '') !== '' ? 'Currently '
 <section class="section card" aria-labelledby="waiting"><h2 id="waiting">Waiting for approval</h2>
   <p class="muted small">Your line manager has these. Until they approve them, your record keeps the old details.</p>
   <?php foreach ($pending as $c): ?>
-  <form method="post" action="/me/changes/withdraw" class="inlineform" style="margin:0 0 .6rem"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= $e($c['uuid']) ?>">
+  <form method="post" action="/me/changes/withdraw" class="inlineform" style="margin:0 0 .6rem;align-items:center"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= $e($c['uuid']) ?>">
     <span><strong><?= $e($c['label']) ?></strong>: <?= $c['field_type'] === 'file' ? 'a new picture' : '<span class="was">' . $e($c['current_value_shown'] ?: 'empty') . '</span> → ' . $e($c['proposed_value_shown'] ?: 'empty') ?></span>
     <button class="btn btn-secondary" type="submit">Withdraw</button></form>
   <?php endforeach; ?>

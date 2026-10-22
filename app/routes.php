@@ -6,6 +6,7 @@ declare(strict_types=1);
 use App\Modules\Admin\AdminController;
 use App\Modules\Care\CareController;
 use App\Modules\Identity\AuthController;
+use App\Modules\Identity\SsoController;
 use App\Modules\People\DashboardController;
 use App\Modules\People\PeopleController;
 use App\Modules\Staff\SelfServiceController;
@@ -16,6 +17,8 @@ use App\Modules\Teams\TeamController;
 
 // Public
 $router->add('GET', '/login', [AuthController::class, 'loginForm'], null, null, false, false);
+$router->add('GET', '/login/entra', [SsoController::class, 'start'], null, null, false, false);
+$router->add('GET', '/login/entra/callback', [SsoController::class, 'callback'], null, null, false, false);
 $router->add('POST', '/login', [AuthController::class, 'login'], null, null, true, false);
 $router->add('POST', '/logout', [AuthController::class, 'logout'], null, null, true, false);
 $router->add('GET', '/invite/{token}', [AuthController::class, 'inviteForm'], null, null, false, false);

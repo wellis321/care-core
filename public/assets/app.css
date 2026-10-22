@@ -145,3 +145,14 @@ table.list .btn, .row-actions .btn { min-height: 2.25rem; padding: 0.35rem 0.9re
 .changeset { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.25rem 1.25rem; }
 .changeset .was { color: var(--muted, #53686a); text-decoration: line-through; }
 .badge { display: inline-block; min-width: 1.3rem; padding: 0 0.4rem; margin-left: 0.3rem; border-radius: 999px; background: #e8cf86; color: #0d2b2e; font-size: 0.78rem; font-weight: 700; text-align: center; }
+
+/* The kit's "button.btn" rule is more specific than ".btn-secondary", which left secondary buttons with an invisible border. */
+a.btn.btn-secondary, button.btn.btn-secondary { border-color: var(--ink); }
+a.btn.btn-secondary:hover, button.btn.btn-secondary:hover { border-color: var(--ink); }
+
+/* Eight navigation items fit on one line */
+.topnav { flex-wrap: nowrap; gap: 0.1rem; }
+.topnav a { padding: 0.5rem 0.6rem; font-size: 0.95rem; white-space: nowrap; }
+.topbar__user { white-space: nowrap; }
+.topbar__user .who { display: inline-block; max-width: 13rem; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+@media (max-width: 1000px) { .topnav { flex-wrap: wrap; } .topbar__in { gap: 0.5rem 1rem; } }

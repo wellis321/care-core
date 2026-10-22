@@ -21,6 +21,10 @@ organisations ─┬─ organisation_modules          which modules are on
                │    ├─ key_worker_assignments    supported person ↔ staff person, valid_from / valid_to
                │    ├─ users                     a login; access_ends_on ends it on the right day
                │    └─ tasks                     onboarding / offboarding / reassign work
+               ├─ person_profiles (1:1 with persons)   address, emergency contact, NI/bank (encrypted), photo, signature
+               ├─ employment_details (1:1 with employments)   TUPE, working time, visa, apprenticeship, leave
+               ├─ profile_changes                       what staff asked to change, awaiting approval
+               ├─ registrations, supervisions, appraisals, learning_records
                ├─ teams                          hierarchy, staff_only flag
                ├─ checklist_templates (+ items)  what creates tasks
                ├─ outbox_events → webhook_deliveries ← webhook_endpoints
@@ -67,6 +71,23 @@ Delivery is one function, so a message broker (for example RabbitMQ) can replace
 leaver process and disable the login **now**. `active=true` rehires. Attributes this system owns (job, team, manager) are not
 overwritten by the identity provider.
 
+## Staff records and self-service
+
+`StaffRecord` holds the registry of fields: how each is checked, which are encrypted, and which a member of staff may change.
+`self: direct` fields (phone, emergency contact) apply at once; `self: approval` fields (name, date of birth, address, NI, bank,
+photo, signature) go into `profile_changes`. `ProfileChanges::canReview` allows the person's current line manager, a manager or
+an administrator, and never the person themselves. Approving re-checks the value, writes it, audits the field names only, and
+emits `person.updated` with field names (no values). Replacing a pending request withdraws the old one, and a rejected or
+withdrawn picture is deleted from disk.
+
+## Single sign-on
+
+`Oidc` implements the authorisation code flow with PKCE for one Entra tenant. The id token must have an RS256 signature that
+verifies against the tenant's published keys (cached for an hour), the right issuer, tenant and audience, be in date, and carry
+this sign-in's nonce. The first sign-in finds the login by sign-in name (never the unverified email claim) and links it to the
+object id (`tid:oid`); after that the object id decides. SCIM-created and invited logins become active when Microsoft confirms
+them. Administrators keep a password even with `PASSWORD_LOGIN=false`.
+
 ## Roles
 
 `admin` everything; `manager` people, staff lifecycle, teams, care, tasks, activity; `staff` colleagues, teams, their own tasks.
@@ -74,7 +95,7 @@ Care and health information requires `care.view`.
 
 ## Decisions to revisit
 
-- Single sign-on (OpenID Connect) so Entra also handles sign-in, not only provisioning.
-- A Compliance module (professional registrations, supervision, training) on the same person and employment records.
+- Email for invitations and approval notifications; editing compliance records in place; files for certificates and contracts.
+- Group-to-role mapping from Entra (today roles are set in Care Core).
 - Moves dated in the future, and a scheduled-change view.
 - Per-organisation encryption of the care tables, and read-access logging for care records.
