@@ -223,3 +223,7 @@ input[type="file"] { font: inherit; max-width: 100%; padding: 0.4rem 0; }
 input[type="file"]::file-selector-button { font: inherit; font-weight: 600; padding: 0.55rem 1.1rem; margin-right: 0.85rem; border: 1px solid var(--ink, #0d2b2e); border-radius: var(--radius, 6px); background: #fff; color: var(--ink, #0d2b2e); cursor: pointer; }
 input[type="file"]::file-selector-button:hover { background: var(--ink, #0d2b2e); color: #fff; }
 .form-group input[type="file"] + .hint { margin-top: 0.5rem; }
+
+/* The kit's generic "a:hover" turns links dark teal, which vanishes on the dark top bar. Keep everything in it light on hover. */
+.topbar a:hover, .topbar .linkbtn:hover, .topbar a:focus-visible { color: #fff; }
+.brand:hover .brand__mark { background: #f1dc9a; }
