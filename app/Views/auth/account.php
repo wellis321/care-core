@@ -3,7 +3,9 @@
 <?php if ($error): ?><div class="alert alert-error" role="alert"><?= $e($error) ?></div><?php endif; ?>
 <section class="section card" style="max-width:36rem">
   <h2>Password</h2>
-  <?php if (!$hasPassword): ?>
+  <?php if (!empty($demoLocked)): ?>
+    <p class="muted">This is a shared demo account. Everyone trying the demo signs in with it, so its password cannot be changed here. In your own installation you can change your password on this page.</p>
+  <?php elseif (!$hasPassword): ?>
     <p class="muted">You sign in with Microsoft, so there is no password to change here.</p>
   <?php else: ?>
   <form class="form" method="post" action="/account/password">

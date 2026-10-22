@@ -80,10 +80,24 @@ final class UserRepo
         return $user;
     }
 
+    /**
+     * The three shared sign-ins of the public demo. Everyone is told their password, so nobody may change it, re-issue it
+     * or switch it off: that would lock everyone else out until the nightly reset.
+     */
+    public static function isDemoAccount(string $email): bool
+    {
+        return \App\Core\Config::demo() && str_ends_with(strtolower($email), '@demo.lochview.test');
+    }
+
+    public const DEMO_LOCKED = 'This is a shared demo account, so it cannot be changed here: everyone who tries the demo uses it. Your own installation lets you change passwords and manage logins freely.';
+
     /** A fresh one-time invitation for an existing login (a forgotten password, or a lost invitation). Returns the token, shown once. */
     public static function reinvite(int $orgId, int $userId, Actor $actor): string
     {
         $u = DB::one('SELECT id, uuid, email, status FROM users WHERE id = ? AND organisation_id = ?', [$userId, $orgId]) ?? throw new DomainException('Login not found.');
+        if (self::isDemoAccount($u['email'])) {
+            throw new DomainException(self::DEMO_LOCKED);
+        }
         if ($u['status'] === 'disabled') {
             throw new DomainException('That login is disabled. Disabled logins cannot be invited again.');
         }
@@ -100,6 +114,9 @@ final class UserRepo
     public static function changePassword(int $userId, string $current, string $new, Actor $actor): void
     {
         $u = DB::one('SELECT id, uuid, organisation_id, email, password_hash FROM users WHERE id = ?', [$userId]) ?? throw new DomainException('Login not found.');
+        if (self::isDemoAccount($u['email'])) {
+            throw new DomainException(self::DEMO_LOCKED);
+        }
         if (!$u['password_hash']) {
             throw new DomainException('This login signs in with Microsoft, so it has no password to change.');
         }
@@ -131,6 +148,9 @@ final class UserRepo
     public static function disable(int $orgId, int $userId, Actor $actor): void
     {
         $u = DB::one('SELECT id, uuid, email FROM users WHERE id = ? AND organisation_id = ?', [$userId, $orgId]) ?? throw new DomainException('Login not found.');
+        if (self::isDemoAccount($u['email'])) {
+            throw new DomainException(self::DEMO_LOCKED);
+        }
         DB::transaction(function () use ($orgId, $u, $actor) {
             DB::update('users', ['status' => 'disabled', 'access_ends_on' => Clock::today()], ['id' => $u['id']]);
             Audit::record($orgId, $actor, 'user.disabled', 'user', $u['uuid'], 'Disabled the login for ' . $u['email']);

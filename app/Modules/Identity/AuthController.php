@@ -63,7 +63,7 @@ final class AuthController extends Controller
     public function accountForm(Request $r, array $p = []): Response
     {
         $u = Auth::user();
-        return $this->view('auth/account', ['title' => 'Your account', 'hasPassword' => (bool) DB::value('SELECT password_hash FROM users WHERE id = ?', [$u['id']]), 'error' => null]);
+        return $this->view('auth/account', ['title' => 'Your account', 'hasPassword' => (bool) DB::value('SELECT password_hash FROM users WHERE id = ?', [$u['id']]), 'demoLocked' => UserRepo::isDemoAccount($u['email']), 'error' => null]);
     }
 
     public function changePassword(Request $r, array $p = []): Response
@@ -77,7 +77,7 @@ final class AuthController extends Controller
             }
             UserRepo::changePassword((int) $u['id'], (string) ($r->post['current_password'] ?? ''), $new, $this->actor());
         } catch (DomainException $e) {
-            return $this->view('auth/account', ['title' => 'Your account', 'hasPassword' => $hasPassword, 'error' => $e->getMessage()], 422);
+            return $this->view('auth/account', ['title' => 'Your account', 'hasPassword' => $hasPassword, 'demoLocked' => UserRepo::isDemoAccount($u['email']), 'error' => $e->getMessage()], 422);
         }
         session_regenerate_id(true);
         $this->ok('Your password has been changed.');

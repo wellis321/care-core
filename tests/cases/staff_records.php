@@ -317,3 +317,19 @@ test('password: a new invitation replaces a forgotten password, stops the old on
     throws(fn() => App\Modules\Identity\UserRepo::reinvite($org, $u['id'], Fx::actor()), 'disabled');
     throws(fn() => App\Modules\Identity\UserRepo::reinvite(Fx::org(), $u['id'], Fx::actor()), 'not found');
 });
+
+test('demo: the shared demo accounts cannot have their password changed, re-issued or be disabled; ordinary users still can', function () {
+    $org = Fx::org();
+    putenv('DEMO_MODE=true');
+    $demo = App\Modules\Identity\UserRepo::create($org, null, 'x' . bin2hex(random_bytes(3)) . '@demo.lochview.test', 'staff', Fx::actor(), false, 'DemoPass2026!');
+    throws(fn() => App\Modules\Identity\UserRepo::changePassword($demo['id'], 'DemoPass2026!', 'something else entirely', Fx::actor()), 'shared demo account');
+    throws(fn() => App\Modules\Identity\UserRepo::reinvite($org, $demo['id'], Fx::actor()), 'shared demo account');
+    throws(fn() => App\Modules\Identity\UserRepo::disable($org, $demo['id'], Fx::actor()), 'shared demo account');
+    ok(password_verify('DemoPass2026!', DB::value('SELECT password_hash FROM users WHERE id = ?', [$demo['id']])), 'the shared password is untouched');
+    eq(DB::value('SELECT status FROM users WHERE id = ?', [$demo['id']]), 'active');
+    $other = App\Modules\Identity\UserRepo::create($org, null, 'y' . bin2hex(random_bytes(3)) . '@example.test', 'staff', Fx::actor(), false, 'first password here');
+    App\Modules\Identity\UserRepo::changePassword($other['id'], 'first password here', 'second password here', Fx::actor());
+    putenv('DEMO_MODE=false');
+    App\Modules\Identity\UserRepo::changePassword($demo['id'], 'DemoPass2026!', 'a real installation may', Fx::actor());   // outside demo mode nothing is locked
+    putenv('DEMO_MODE=true');
+});

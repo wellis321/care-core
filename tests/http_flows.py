@@ -385,6 +385,20 @@ s, h, _ = multipart(admin, '/admin/import', '/admin/import/preview', {}, {'bundl
 check('and a file in the wrong format too', 'not a Care Core import bundle' in ' '.join(Client.alerts(h)) or 'not a Care Core import bundle' in h)
 check('the preview step needs a signed-in administrator', Client(follow=False).req('/admin/import')[0] in (302, 303))
 
+print('--- the shared demo accounts are protected')
+s, h, _ = staff_c.get('/account')
+check('a demo account sees why it cannot change its password, and no form', s == 200 and 'shared demo account' in h and 'name="current_password"' not in h)
+s, h, _ = staff_c.post('/me', {'current_password': 'DemoPass2026!', 'new_password': 'something else entirely', 'new_password2': 'something else entirely'}, action='/account/password')
+check('changing a demo password is refused, even by posting directly', s == 422 and 'shared demo account' in h, h[:200])
+check('and the demo password still works', 'Dashboard' in Client('staff@demo.lochview.test').get('/')[1])
+users = admin.get('/admin/users')[1]
+sid = link(users, r'(?s)staff@demo\.lochview\.test.*?name="id" value="(\d+)"')
+s, h, _ = admin.post('/admin/users', {'id': sid}, action='/admin/users/reinvite')
+check('an administrator cannot re-issue a demo account', 'shared demo account' in ' '.join(Client.alerts(h)), Client.alerts(h))
+s, h, _ = admin.post('/admin/users', {'id': sid}, action='/admin/users/disable')
+check('or disable one', 'shared demo account' in ' '.join(Client.alerts(h)), Client.alerts(h))
+check('the staff demo account still signs in afterwards', 'Dashboard' in Client('staff@demo.lochview.test').get('/')[1])
+
 print('--- modules, escaping, headers')
 check('a name containing HTML is shown as text', '<script>' not in (lambda h: h)(admin.post('/staff/join', {'first_name': '<script>alert(1)</script>', 'last_name': 'X', 'job_title': 'T', 'start_date': '2026-01-05'}, action='/staff/join')[1]))
 s, h, _ = admin.get('/people?q=script')
