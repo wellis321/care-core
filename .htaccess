@@ -13,6 +13,8 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 # repository's own docs/ folder holds only .md files, which the rule below refuses.)
 RewriteRule ^(app|database|scripts|tests|vendor|storage)(/|$) - [F,L]
 RewriteRule (^|/)\.(?!well-known) - [F,L]
+# (the API serves /api/v1/openapi.json itself)
+RewriteCond %{REQUEST_URI} !^/api/v1/
 RewriteRule \.(md|sql|lock|json|sh|log|env|example)$ - [F,L]
 
 # Static files straight from public/, everything else to the front controller
