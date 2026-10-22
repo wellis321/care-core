@@ -108,6 +108,8 @@ $router->add('POST', '/admin/webhooks', [AdminController::class, 'addWebhook'], 
 $router->add('POST', '/admin/webhooks/toggle', [AdminController::class, 'toggleWebhook'], '*');
 $router->add('POST', '/admin/scim', [AdminController::class, 'createScimToken'], '*');
 $router->add('POST', '/admin/scim/revoke', [AdminController::class, 'revokeScimToken'], '*');
+$router->add('POST', '/admin/api-keys', [AdminController::class, 'createApiKey'], '*');
+$router->add('POST', '/admin/api-keys/revoke', [AdminController::class, 'revokeApiKey'], '*');
 $router->add('GET', '/admin/checklists', [AdminController::class, 'checklists'], '*');
 $router->add('POST', '/admin/checklists/items', [AdminController::class, 'addChecklistItem'], '*');
 $router->add('POST', '/admin/checklists/items/remove', [AdminController::class, 'removeChecklistItem'], '*');

@@ -28,7 +28,9 @@ if ($request->secure()) {
 }
 
 try {
-    if (str_starts_with($request->path, '/scim/')) {
+    if (App\Api\Api::handles($request->path)) {
+        $response = App\Api\Api::handle($request);   // API keys, no session, no cookies
+    } elseif (str_starts_with($request->path, '/scim/')) {
         $response = (new App\Modules\Identity\ScimController())->handle($request);   // token auth, no session
     } else {
         Session::start($request->secure());

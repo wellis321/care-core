@@ -13,6 +13,42 @@
   </div>
 </section>
 
+<section class="section" id="api">
+  <div class="section__head"><h2>API keys</h2></div>
+  <div class="card">
+    <p>Other systems use the <a href="/docs/api">Care Core API</a> with a key. Each key can only do what you tick, can be limited to the addresses it will be used from, and can expire. Base address: <span class="secret"><?= $e(\App\Core\Config::appUrl() . '/api/v1') ?></span></p>
+    <table class="list" style="margin:1rem 0"><thead><tr><th>Key</th><th>Can</th><th>Last used</th><th>Expires</th><th><span class="sr">Actions</span></th></tr></thead><tbody>
+      <?php foreach ($apiKeys as $k): ?><tr>
+        <td><?= $e($k['name']) ?><br><span class="muted small"><code><?= $e($k['key_prefix']) ?>…</code> · <?= (int) $k['rate_limit_per_minute'] ?>/min<?= $k['allowed_ips'] ? ' · ' . $e($k['allowed_ips']) : '' ?></span> <?= $k['active'] ? '' : '<span class="chip chip--bad">Revoked</span>' ?></td>
+        <td class="small"><?= $e(str_replace(',', ', ', $k['scopes'])) ?></td>
+        <td class="nowrap"><?= View::date($k['last_used_at'] ? substr($k['last_used_at'], 0, 10) : null, 'never') ?></td>
+        <td class="nowrap"><?= View::date($k['expires_at'] ? substr($k['expires_at'], 0, 10) : null, 'never') ?></td>
+        <td class="right"><?php if ($k['active']): ?><form method="post" action="/admin/api-keys/revoke" class="row-actions"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $k['id'] ?>"><button class="btn btn-secondary" type="submit">Revoke</button></form><?php endif; ?></td>
+      </tr><?php endforeach; ?>
+      <?php if (!$apiKeys): ?><tr class="empty-row"><td colspan="5">No API keys yet.</td></tr><?php endif; ?>
+    </tbody></table>
+    <form method="post" action="/admin/api-keys" class="form form--wide">
+      <?= Csrf::field() ?>
+      <h3>Create a key</h3>
+      <div class="formgrid">
+        <div class="form-group"><label for="kname">Name</label><input id="kname" name="name" type="text" required maxlength="100" placeholder="For example Payroll sync"><span class="hint">The system that will use it. It appears in the activity log.</span></div>
+        <div class="form-group"><label for="kips">Allowed addresses (optional)</label><input id="kips" name="allowed_ips" type="text" placeholder="203.0.113.5, 198.51.100.0/24"><span class="hint">Separated by commas. Empty means any address.</span></div>
+        <div class="form-group"><label for="kexp">Expires on (optional)</label><input id="kexp" name="expires_on" type="date"></div>
+        <div class="form-group"><label for="krate">Requests per minute</label><input id="krate" name="rate_limit" type="number" min="10" max="6000" value="120"></div>
+      </div>
+      <fieldset style="border:0;padding:0;margin:0 0 1rem"><legend><strong>What this key can do</strong></legend>
+        <p class="muted small">Give each key the least it needs. <strong>staff.sensitive</strong> is National Insurance and bank details.</p>
+        <div class="formgrid">
+        <?php foreach (\App\Api\Scopes::ALL as $scope => $desc): ?>
+          <div class="form-group"><label class="check" for="s_<?= $e($scope) ?>"><input id="s_<?= $e($scope) ?>" type="checkbox" name="scopes[<?= $e($scope) ?>]" value="1"> <span><strong><?= $e($scope) ?></strong><br><span class="muted small"><?= $e($desc) ?></span></span></label></div>
+        <?php endforeach; ?>
+        </div>
+      </fieldset>
+      <div class="actions"><button class="btn btn-primary" type="submit">Create API key</button></div>
+    </form>
+  </div>
+</section>
+
 <section class="section">
   <div class="section__head"><h2>Microsoft Entra: joiners and leavers pushed in (SCIM)</h2></div>
   <div class="card">

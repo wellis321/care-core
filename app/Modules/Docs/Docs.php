@@ -45,6 +45,15 @@ final class Docs
                 'webhooks'        => ['Events and webhooks', 'Telling other systems what changed, safely.'],
                 'event-catalogue' => ['Event catalogue', 'Every event, with its payload.'],
             ]],
+            'api' => ['title' => 'API', 'blurb' => 'For developers connecting other systems to Care Core.', 'pages' => [
+                'api'             => ['The Care Core API', 'Read and change everything Care Core holds, from your own systems.'],
+                'api-auth'        => ['API keys, scopes and authentication', 'Creating keys, what they may do, and keeping them safe.'],
+                'api-conventions' => ['API conventions', 'Formats, pagination, filtering, rate limits, idempotency and versioning.'],
+                'api-reference'   => ['API reference', 'Every endpoint, with its scope, parameters and fields.'],
+                'api-errors'      => ['API errors', 'The problem documents the API returns, and how to retry safely.'],
+                'api-recipes'     => ['API recipes', 'Worked examples: syncing staff, starting and ending employment, compliance, teams, care.'],
+                'api-clients'     => ['API client examples', 'Small, correct clients in PHP, Node.js and Python.'],
+            ]],
             'reference' => ['title' => 'Reference', 'blurb' => 'The detail, for when you need to be certain.', 'pages' => [
                 'data-model'      => ['Data model', 'The tables and how they relate.'],
                 'rules'           => ['Rules that are enforced', 'Every check Care Core makes before it lets a change through.'],

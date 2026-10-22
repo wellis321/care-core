@@ -41,6 +41,10 @@
 <p>Because the key worker left, or the person’s support ended. A task was created if a new key worker is needed.</p>
 
 <h2>Integrations</h2>
+<h3>Can another system read and change Care Core?</h3>
+<p>Yes, through the <a href="/docs/api">API</a>. An administrator creates a key with only the scopes it needs, and the system calls Care Core over HTTPS. The same rules, activity log and events apply as in the web interface.</p>
+<h3>Can the API create logins or approve a staff member’s request?</h3>
+<p>No. Access and approvals stay with people. The API can read the logins list and see what is waiting for approval.</p>
 <h3>Entra says provisioning failed.</h3>
 <p>Check the token has not been revoked, that the tenant URL ends in <code>/scim/v2</code>, and that <code>userName</code> is an email address. See <a href="/docs/scim">Provisioning from Entra</a>.</p>
 <h3>My webhook receiver sees the same event twice.</h3>

@@ -90,6 +90,7 @@ final class AdminController extends Controller
             'webhooks' => DB::all('SELECT w.*, (SELECT COUNT(*) FROM webhook_deliveries d WHERE d.endpoint_id = w.id AND d.status = \'delivered\') AS delivered, (SELECT COUNT(*) FROM webhook_deliveries d WHERE d.endpoint_id = w.id AND d.status <> \'delivered\') AS undelivered FROM webhook_endpoints w WHERE w.organisation_id = ? ORDER BY w.id', [$org]),
             'tokens' => DB::all('SELECT id, name, active, last_used_at, created_at FROM scim_tokens WHERE organisation_id = ? ORDER BY id', [$org]),
             'events' => DB::all('SELECT type, occurred_at, fanned_out_at FROM outbox_events WHERE organisation_id = ? ORDER BY id DESC LIMIT 15', [$org]),
+            'apiKeys' => \App\Api\ApiKeys::forOrg($org),
             'scimUrl' => \App\Core\Config::appUrl() . '/scim/v2',
         ]);
     }
@@ -141,6 +142,29 @@ final class AdminController extends Controller
     }
 
     // ── Checklists ──────────────────────────────────────────────────────────
+
+    public function createApiKey(Request $r, array $p = []): Response
+    {
+        try {
+            $scopes = array_keys(array_filter((array) ($r->post['scopes'] ?? []), static fn($v) => $v === '1' || $v === 'on'));
+            $res = \App\Api\ApiKeys::create($this->orgId(), $r->input('name'), $scopes, $r->input('allowed_ips'), $r->input('expires_on') ?: null, (int) ($r->input('rate_limit') ?: 120), (int) Auth::user()['id'], $this->actor());
+            $this->ok('API key created. Copy it now: it is not shown again. ' . $res['token']);
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/admin/integrations#api');
+    }
+
+    public function revokeApiKey(Request $r, array $p = []): Response
+    {
+        try {
+            \App\Api\ApiKeys::revoke($this->orgId(), (int) $r->input('id'), $this->actor());
+            $this->ok('API key revoked. It stops working immediately.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/admin/integrations#api');
+    }
 
     public function checklists(Request $r, array $p = []): Response
     {

@@ -42,7 +42,7 @@ final class Checklists
         ]);
     }
 
-    public static function setStatus(int $orgId, string $taskUuid, string $status, int $userId, Actor $actor): void
+    public static function setStatus(int $orgId, string $taskUuid, string $status, ?int $userId, Actor $actor): void
     {
         if (!in_array($status, ['done', 'skipped', 'open'], true)) {
             throw new DomainException('Choose a valid status.');
@@ -51,7 +51,7 @@ final class Checklists
         DB::transaction(function () use ($orgId, $t, $status, $userId, $actor) {
             DB::update('tasks', [
                 'status' => $status,
-                'completed_by_user_id' => $status === 'open' ? null : $userId,
+                'completed_by_user_id' => $status === 'open' || !$userId ? null : $userId,
                 'completed_at' => $status === 'open' ? null : gmdate('Y-m-d H:i:s'),
             ], ['id' => $t['id']]);
             Audit::record($orgId, $actor, 'task.' . $status, 'person', $t['person_uuid'], 'Task "' . $t['title'] . '" marked ' . $status);

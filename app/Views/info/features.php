@@ -56,6 +56,13 @@ $areas = [
     'Administrator, manager and staff roles; line managers can review their reports',
     'A leaver’s access ends on the day after their last day with no job to run',
   ]],
+  'The API' => ['api', [
+    'A versioned REST API (/api/v1) over HTTPS with 60+ endpoints covering people, staff, compliance, teams, care, tasks, events, webhooks and audit',
+    'Scoped API keys: least privilege, address allow-lists, expiry, per-key rate limits, instant revocation, shown once',
+    'The same rules, activity log and events as the web interface: a leaver is still one all-or-nothing transaction',
+    'Idempotent POSTs, cursor pagination, updated_since syncing, a pollable event feed, and RFC 9457 error documents',
+    'An OpenAPI 3.1 document generated from the code, plus recipes and client examples in PHP, Node.js and Python',
+  ]],
   'Integrations' => ['webhooks', [
     'Provision from Microsoft Entra with SCIM 2.0: creates joiners, ends leavers, handles returners',
     'Signed webhooks with filters and retries; events carry identifiers and dates only',

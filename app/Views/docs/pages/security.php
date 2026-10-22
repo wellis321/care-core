@@ -19,6 +19,15 @@
 <li><strong>HTTPS</strong> is required on a live site; the server tells browsers to insist on it.</li>
 </ul>
 
+<h2>The API</h2>
+<ul>
+<li>Every API key has <strong>scopes</strong> (the least it needs), an optional <strong>address allow-list</strong> and <strong>expiry</strong>, and its own <strong>rate limit</strong>. Only a hash of the key is stored; it is shown once.</li>
+<li>The API is <strong>HTTPS only</strong>, sets no cookies, has no session and sends no CORS headers: keys belong on servers.</li>
+<li>Without <code>care.read</code> a key cannot see people who only receive support; National Insurance and bank details need their own scope.</li>
+<li>Everything a key does is attributed to it in the <a href="/docs/admin-activity">activity log</a>, and the log never contains sensitive values.</li>
+<li>A refused request changes nothing, and unknown ids from another organisation look exactly like ids that do not exist.</li>
+</ul>
+
 <h2>Protecting access</h2>
 <ul>
 <li>Sign-in is rate limited and gives the same message whether or not an account exists.</li>

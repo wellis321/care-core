@@ -8,6 +8,8 @@
 </ol>
 <p>Events are delivered <strong>at least once</strong>. Your receiver must therefore tolerate seeing the same event twice, using the event id as an idempotency key.</p>
 
+<p>Prefer polling, or want to manage webhooks from your own deployment scripts? The <a href="/docs/api">API</a> has an event feed (<code>GET /events</code>) with the same events, and endpoints to create and inspect webhooks.</p>
+
 <h2>Adding a webhook</h2>
 <p>Administrators: <strong>Admin › Integrations › Webhooks</strong>. Enter the <strong>URL</strong> (must be <code>https://</code>) and the <strong>event types</strong> you want, then choose <strong>Add</strong>. Care Core shows the <strong>signing secret once</strong>: copy it and store it where your receiver can read it. You can <strong>pause</strong> and resume an endpoint, and the page shows, for each address, how many events were delivered and how many are waiting or failed, plus the latest events and whether each has been queued for delivery.</p>
 <h3>Choosing event types</h3>

@@ -169,7 +169,7 @@ final class CareRepo
     // ── Care needs and contacts ─────────────────────────────────────────────
 
     /** @param array<string,mixed> $d */
-    public static function addNeed(int $orgId, int $personId, array $d, Actor $actor): void
+    public static function addNeed(int $orgId, int $personId, array $d, Actor $actor): string
     {
         $msgs = Check::all([
             Check::required($d['category'] ?? null, 'Category'), Check::maxLen($d['category'] ?? null, 100, 'Category'),
@@ -181,12 +181,14 @@ final class CareRepo
             throw DomainException::of($msgs);
         }
         $person = DB::one('SELECT uuid FROM persons WHERE id = ? AND organisation_id = ?', [$personId, $orgId]) ?? throw new DomainException('Person not found.');
-        DB::transaction(function () use ($orgId, $personId, $d, $actor, $person) {
+        return DB::transaction(function () use ($orgId, $personId, $d, $actor, $person) {
+            $uuid = Uuid::v4();
             DB::insert('care_needs', [
-                'organisation_id' => $orgId, 'person_id' => $personId, 'category' => trim($d['category']), 'description' => trim($d['description']),
+                'uuid' => $uuid, 'organisation_id' => $orgId, 'person_id' => $personId, 'category' => trim($d['category']), 'description' => trim($d['description']),
                 'severity' => ($d['severity'] ?? '') ?: null, 'review_date' => ($d['review_date'] ?? '') ?: null,
             ]);
             Audit::record($orgId, $actor, 'careneed.added', 'person', $person['uuid'], 'Added a care need (' . trim($d['category']) . ')');
+            return $uuid;
         });
     }
 
@@ -200,7 +202,7 @@ final class CareRepo
     }
 
     /** @param array<string,mixed> $d */
-    public static function addContact(int $orgId, int $personId, array $d, Actor $actor): void
+    public static function addContact(int $orgId, int $personId, array $d, Actor $actor): string
     {
         $types = ['phone', 'email', 'address', 'next_of_kin', 'legal_guardian', 'social_worker', 'gp', 'other'];
         $type = $d['contact_type'] ?? '';
@@ -216,12 +218,14 @@ final class CareRepo
             throw DomainException::of($m);
         }
         $person = DB::one('SELECT uuid FROM persons WHERE id = ? AND organisation_id = ?', [$personId, $orgId]) ?? throw new DomainException('Person not found.');
-        DB::transaction(function () use ($orgId, $personId, $d, $type, $value, $actor, $person) {
+        return DB::transaction(function () use ($orgId, $personId, $d, $type, $value, $actor, $person) {
+            $uuid = Uuid::v4();
             DB::insert('person_contacts', [
-                'organisation_id' => $orgId, 'person_id' => $personId, 'contact_type' => $type,
+                'uuid' => $uuid, 'organisation_id' => $orgId, 'person_id' => $personId, 'contact_type' => $type,
                 'label' => trim((string) ($d['label'] ?? '')) ?: null, 'value' => $value, 'is_primary' => !empty($d['is_primary']) ? 1 : 0,
             ]);
             Audit::record($orgId, $actor, 'contact.added', 'person', $person['uuid'], 'Added a contact (' . $type . ')');
+            return $uuid;
         });
     }
 

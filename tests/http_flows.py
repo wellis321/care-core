@@ -302,6 +302,59 @@ s, h, _ = Client().post('/invite/' + inv2, {'password': 'third password here', '
 check('the new link lets them choose a new password', 'Dashboard' in Client('pw.test@example.test', 'third password here').get('/')[1])
 check('staff cannot issue invitations', staff_c.post('/me', {'id': uid}, action='/admin/users/reinvite')[0] == 403)
 
+print('--- the HTTP API')
+def apicall(method, path, token=None, body=None, headers=None):
+    h = {'Accept': 'application/json'}
+    if token:
+        h['Authorization'] = 'Bearer ' + token
+    data = None
+    if body is not None:
+        data = json.dumps(body).encode(); h['Content-Type'] = 'application/json'
+    h.update(headers or {})
+    rq = urllib.request.Request(BASE + '/api/v1' + path, data=data, method=method, headers=h)
+    try:
+        r = urllib.request.urlopen(rq, timeout=30)
+        raw = r.read(); return r.status, (json.loads(raw) if raw else None), r.headers
+    except urllib.error.HTTPError as e:
+        raw = e.read(); return e.code, (json.loads(raw) if raw else None), e.headers
+
+s, h, _ = admin.get('/admin/integrations')
+check('the integrations page has an API keys section with every scope', 'API keys' in h and 'name="scopes[people.read]"' in h and 'staff.sensitive' in h)
+scopes = {'scopes[%s]' % k: '1' for k in ['people.read', 'people.write', 'staff.read', 'staff.write', 'teams.read', 'teams.write', 'events.read']}
+s, h, _ = admin.post('/admin/integrations', {'name': 'HTTP test', 'allowed_ips': '', 'expires_on': '', 'rate_limit': '300', **scopes}, action='/admin/api-keys')
+token = link(' '.join(Client.alerts(h)), r'(cc_[0-9a-f]{8}_[0-9a-f]{48})')
+check('an administrator can create an API key; the secret is shown once', token is not None, Client.alerts(h))
+s, h, _ = admin.get('/admin/integrations')
+check('and it is listed by prefix only, never the secret', token[:11] in h and token not in h and 'HTTP test' in h)
+st, body, hd = apicall('GET', '/ping', token)
+check('the key works over HTTP', st == 200 and body['data']['key']['name'] == 'HTTP test' and body['data']['organisation']['name'], body)
+check('responses carry rate limit headers, a request id and no caching', hd['X-RateLimit-Limit'] == '300' and len(hd['X-Request-Id']) == 16 and hd['Cache-Control'] == 'no-store')
+check('no key, or a bad key, is a 401 problem document', apicall('GET', '/people')[0] == 401 and apicall('GET', '/people', 'cc_00000000_' + '0' * 48)[0] == 401)
+st, body, hd = apicall('POST', '/people', token, {'first_name': 'Api', 'last_name': 'Http', 'email': 'api.http@example.test'}, {'Idempotency-Key': 'http-1'})
+check('POST /people creates (201, Location)', st == 201 and hd['Location'].endswith('/people/' + body['data']['id']), body)
+pid = body['data']['id']
+st2, body2, hd2 = apicall('POST', '/people', token, {'first_name': 'Api', 'last_name': 'Http', 'email': 'api.http@example.test'}, {'Idempotency-Key': 'http-1'})
+check('a retry with the same Idempotency-Key replays the answer', st2 == 201 and body2 == body and hd2['Idempotent-Replayed'] == 'true')
+check('the new person is in the web interface too (one system of record)', 'Api Http' in admin.get('/people?q=Api+Http')[1])
+st, body, _ = apicall('POST', '/employments', token, {'person_id': pid, 'job_title': 'Support Worker', 'start_date': '2026-01-05', 'hours_per_week': 30})
+check('POST /employments runs the joiner process', st == 201 and body['data']['status'] == 'current' and body['data']['tasks_created'] == 7, body)
+eid = body['data']['id']
+check('the joiner appears on the web dashboard and in People > Staff', 'Api Http' in admin.get('/people?kind=staff&q=Api')[1])
+st, body, _ = apicall('POST', '/employments/' + eid + '/end', token, {'last_day': '2026-02-27', 'reason': 'Resigned'})
+check('POST /employments/{id}/end runs the leaver process', st == 200 and body['data']['employment']['end_date'] == '2026-02-27' and body['data']['offboarding_tasks_created'] == 5, body)
+st, body, _ = apicall('GET', '/events?types=employment.*', token)
+check('the event feed shows what the API did', st == 200 and any(e['type'] == 'employment.ended' for e in body['data']))
+st, body, _ = apicall('GET', '/audit', token)
+check('a key without audit.read cannot read the log (403 problem+json)', st == 403 and body['code'] == 'forbidden')
+st, body, hd = apicall('GET', '/openapi.json')
+check('the OpenAPI document is public and complete', st == 200 and body['openapi'].startswith('3.') and len(body['paths']) > 40)
+check('unknown endpoints and wrong methods are handled', apicall('GET', '/nonsense', token)[0] == 404 and apicall('PUT', '/people', token, {})[0] == 405)
+check('the API sets no cookies and starts no session', 'Set-Cookie' not in apicall('GET', '/ping', token)[2])
+kid = link(admin.get('/admin/integrations')[1], r'(?s)HTTP test.*?name="id" value="(\d+)"')
+s, h, _ = admin.post('/admin/integrations', {'id': kid}, action='/admin/api-keys/revoke')
+check('revoking a key stops it at once', 'revoked' in ' '.join(Client.alerts(h)).lower() and apicall('GET', '/ping', token)[0] == 401, Client.alerts(h))
+check('staff cannot manage API keys', staff_c.post('/me', {'name': 'x'}, action='/admin/api-keys')[0] == 403)
+
 print('--- modules, escaping, headers')
 check('a name containing HTML is shown as text', '<script>' not in (lambda h: h)(admin.post('/staff/join', {'first_name': '<script>alert(1)</script>', 'last_name': 'X', 'job_title': 'T', 'start_date': '2026-01-05'}, action='/staff/join')[1]))
 s, h, _ = admin.get('/people?q=script')

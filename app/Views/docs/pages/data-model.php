@@ -48,6 +48,8 @@
 <tr><td><code>webhook_endpoints</code>, <code>webhook_deliveries</code></td><td>Webhooks.</td><td>Address, secret, event filter, active; per-delivery attempts, status and last error.</td></tr>
 <tr><td><code>audit_log</code></td><td>Who did what.</td><td>Append-only.</td></tr>
 <tr><td><code>scim_tokens</code></td><td>SCIM credentials.</td><td>Only a SHA-256 hash of each token.</td></tr>
+<tr><td><code>api_keys</code></td><td>API keys.</td><td>Prefix, SHA-256 hash, scopes, allowed addresses, rate limit, expiry, last use.</td></tr>
+<tr><td><code>api_rate</code>, <code>api_idempotency</code></td><td>API rate limiting and replay protection.</td><td>Per key per minute; stored results of POSTs with an Idempotency-Key, kept 24 hours.</td></tr>
 <tr><td><code>login_attempts</code></td><td>Failed sign-ins.</td><td>For the lock-out rule.</td></tr>
 <tr><td><code>schema_migrations</code></td><td>Which upgrades have run.</td><td>See <a href="/docs/operations">Day-to-day operations</a>.</td></tr>
 </tbody></table></div>

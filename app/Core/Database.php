@@ -61,8 +61,14 @@ final class Database
     }
 
     /** @param array<string,mixed> $data */
+    /** Tables whose rows are exposed by public UUID: one is added when the caller does not supply it. */
+    private const UUID_TABLES = ['team_assignments', 'care_needs', 'person_contacts', 'key_worker_assignments', 'webhook_endpoints'];
+
     public static function insert(string $table, array $data): int
     {
+        if (in_array($table, self::UUID_TABLES, true) && !isset($data['uuid'])) {
+            $data['uuid'] = Uuid::v4();
+        }
         $cols = array_keys($data);
         $sql  = 'INSERT INTO `' . $table . '` (`' . implode('`,`', $cols) . '`) VALUES (' . implode(',', array_fill(0, count($cols), '?')) . ')';
         self::run($sql, array_values($data));

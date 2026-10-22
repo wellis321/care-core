@@ -8,6 +8,14 @@ system, and nobody is sure which one is right when someone leaves.
 
 Plain PHP 8.1+ and MySQL 8 / MariaDB 10.5+. No framework, no Composer at runtime.
 
+## API
+
+A versioned REST API under `/api/v1` (60+ endpoints: people, staff lifecycle and records, compliance, teams, care, tasks, events,
+webhooks, audit). Bearer API keys with scopes (created under Admin → Integrations), per-key rate limits, address allow-lists,
+expiry, idempotent POSTs, cursor pagination, problem+json errors. It calls the same domain services as the web interface, so the
+same rules, audit trail and events apply. The OpenAPI 3.1 document is generated from the route table at
+`/api/v1/openapi.json`; guides and a generated reference are at `/docs/api`. Code is in `app/Api/`.
+
 ## Documentation
 
 The full documentation is built in and public (no sign-in): **/docs** (36 pages: guides, administration, integrations, reference,

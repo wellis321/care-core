@@ -17,7 +17,7 @@ test('docs: every catalogued page exists, nothing is uncatalogued, and each has 
 });
 
 test('docs: every internal link on every docs and info page points at a page that exists', function () {
-    $known = ['/login', '/about', '/features', '/security', '/docs'];
+    $known = ['/login', '/about', '/features', '/security', '/docs', '/api/v1/openapi.json'];
     $pages = [];
     foreach (array_keys(Docs::flat()) as $slug) {
         $pages[$slug] = Docs::body($slug);
@@ -70,4 +70,36 @@ test('docs: the facts that matter are stated as the code behaves', function () {
     }
     $missing = array_filter(array_unique($types), static fn($t) => !str_contains($catalogue, "<code>$t</code>"));
     eq(array_values($missing), [], 'event types in the code but not in the catalogue');
+});
+
+test('docs: the API reference lists every endpoint the API serves, and the scope table lists every scope', function () {
+    $ref = strip_tags(Docs::body('api-reference'));
+    $missing = [];
+    foreach (App\Api\Api::routes() as $r) {
+        if (!str_contains($ref, $r['method'] . ' ' . $r['path'])) {
+            $missing[] = $r['method'] . ' ' . $r['path'];
+        }
+    }
+    eq($missing, []);
+    $auth = strip_tags(Docs::body('api-auth'));
+    foreach (array_keys(App\Api\Scopes::ALL) as $scope) {
+        ok(str_contains($auth, $scope), "scope $scope is not documented");
+    }
+    $errors = Docs::body('api-errors');
+    foreach (['bad_request', 'unauthorized', 'forbidden', 'https_required', 'not_found', 'method_not_allowed', 'request_in_progress', 'unsupported_media_type', 'validation_failed', 'idempotency_mismatch', 'rate_limited', 'internal_error'] as $code) {
+        ok(str_contains($errors, 'id="' . $code . '"'), "error code $code has no anchor in the errors page");
+    }
+});
+
+test('docs: every error code the API can emit is documented', function () {
+    $errors = Docs::body('api-errors');
+    $codes = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(ROOT_PATH . '/app/Api')) as $f) {
+        if (str_ends_with((string) $f, '.php') && preg_match_all("~(?:new ApiException\(\d+,\s*|ApiException\([^)]*?)'([a-z_]+)'~", (string) file_get_contents((string) $f), $m)) {
+            $codes = array_merge($codes, $m[1]);
+        }
+    }
+    $codes = array_merge($codes, ['not_found', 'validation_failed', 'bad_request', 'forbidden']);   // the ApiException helper constructors
+    $undocumented = array_filter(array_unique($codes), static fn($c) => !str_contains($errors, 'id="' . $c . '"'));
+    eq(array_values($undocumented), []);
 });

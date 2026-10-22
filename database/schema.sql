@@ -12,7 +12,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
+DROP TABLE IF EXISTS api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
     login_attempts, tasks, checklist_template_items, checklist_templates, key_worker_assignments, person_contacts,
     care_needs, support_episodes, team_assignments, teams, employment_changes, employments, users, persons,
     organisation_modules, organisations;
@@ -139,6 +139,7 @@ CREATE TABLE teams (
 -- Who is in which team, and when. Staff and people supported both live here (staff_only teams refuse the latter).
 CREATE TABLE team_assignments (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid            CHAR(36)     NOT NULL,
     organisation_id BIGINT UNSIGNED NOT NULL,
     team_id         BIGINT UNSIGNED NOT NULL,
     person_id       BIGINT UNSIGNED NOT NULL,
@@ -149,6 +150,7 @@ CREATE TABLE team_assignments (
     source          VARCHAR(30)  NOT NULL DEFAULT 'manual',
     notes           VARCHAR(500) NULL,
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_ta_uuid (uuid),
     KEY idx_ta_team (team_id, valid_to),
     KEY idx_ta_person (person_id, valid_to),
     CONSTRAINT fk_ta_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
@@ -177,6 +179,7 @@ CREATE TABLE support_episodes (
 
 CREATE TABLE care_needs (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid            CHAR(36)     NOT NULL,
     organisation_id BIGINT UNSIGNED NOT NULL,
     person_id       BIGINT UNSIGNED NOT NULL,
     category        VARCHAR(100) NOT NULL,
@@ -185,6 +188,7 @@ CREATE TABLE care_needs (
     review_date     DATE         NULL,
     ended_on        DATE         NULL,
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_need_uuid (uuid),
     KEY idx_need_person (person_id, ended_on),
     CONSTRAINT fk_need_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
     CONSTRAINT fk_need_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
@@ -192,6 +196,7 @@ CREATE TABLE care_needs (
 
 CREATE TABLE person_contacts (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid            CHAR(36)     NOT NULL,
     organisation_id BIGINT UNSIGNED NOT NULL,
     person_id       BIGINT UNSIGNED NOT NULL,
     contact_type    ENUM('phone','email','address','next_of_kin','legal_guardian','social_worker','gp','other') NOT NULL,
@@ -199,6 +204,7 @@ CREATE TABLE person_contacts (
     value           VARCHAR(500) NOT NULL,
     is_primary      TINYINT(1)   NOT NULL DEFAULT 0,
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_contact_uuid (uuid),
     KEY idx_contact_person (person_id),
     CONSTRAINT fk_contact_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
     CONSTRAINT fk_contact_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
@@ -207,6 +213,7 @@ CREATE TABLE person_contacts (
 -- A real foreign key to a real person: no copied names, no numbers that point at another database.
 CREATE TABLE key_worker_assignments (
     id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid            CHAR(36)     NOT NULL,
     organisation_id     BIGINT UNSIGNED NOT NULL,
     supported_person_id BIGINT UNSIGNED NOT NULL,
     staff_person_id     BIGINT UNSIGNED NOT NULL,
@@ -214,6 +221,7 @@ CREATE TABLE key_worker_assignments (
     valid_from          DATE         NOT NULL,
     valid_to            DATE         NULL,
     created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_kw_uuid (uuid),
     KEY idx_kw_supported (supported_person_id, valid_to),
     KEY idx_kw_staff (staff_person_id, valid_to),
     CONSTRAINT fk_kw_org       FOREIGN KEY (organisation_id)     REFERENCES organisations (id) ON DELETE CASCADE,
@@ -286,12 +294,14 @@ CREATE TABLE outbox_events (
 
 CREATE TABLE webhook_endpoints (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid            CHAR(36)     NOT NULL,
     organisation_id BIGINT UNSIGNED NOT NULL,
     url             VARCHAR(500) NOT NULL,
     secret          VARCHAR(100) NOT NULL,
     event_types     VARCHAR(500) NOT NULL DEFAULT '*',
     active          TINYINT(1)   NOT NULL DEFAULT 1,
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_wh_uuid (uuid),
     KEY idx_wh_org (organisation_id, active),
     CONSTRAINT fk_wh_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -541,6 +551,53 @@ CREATE TABLE learning_records (
     CONSTRAINT fk_lr_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+
+-- An API key. Only a hash of the secret is kept; key_prefix is shown so people can tell keys apart.
+CREATE TABLE api_keys (
+    id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid                  CHAR(36)     NOT NULL,
+    organisation_id       BIGINT UNSIGNED NOT NULL,
+    name                  VARCHAR(100) NOT NULL,
+    key_prefix            CHAR(12)     NOT NULL,
+    key_hash              CHAR(64)     NOT NULL,
+    scopes                VARCHAR(600) NOT NULL,
+    allowed_ips           VARCHAR(500) NULL,
+    rate_limit_per_minute SMALLINT UNSIGNED NOT NULL DEFAULT 120,
+    expires_at            DATETIME     NULL,
+    active                TINYINT(1)   NOT NULL DEFAULT 1,
+    last_used_at          DATETIME     NULL,
+    last_used_ip          VARCHAR(45)  NULL,
+    created_by_user_id    BIGINT UNSIGNED NULL,
+    created_at            DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revoked_at            DATETIME     NULL,
+    UNIQUE KEY uq_apikey_uuid (uuid),
+    UNIQUE KEY uq_apikey_prefix (key_prefix),
+    KEY idx_apikey_org (organisation_id),
+    CONSTRAINT fk_apikey_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Requests per key per minute, for rate limiting.
+CREATE TABLE api_rate (
+    key_id       BIGINT UNSIGNED NOT NULL,
+    window_start INT UNSIGNED    NOT NULL,
+    hits         INT UNSIGNED    NOT NULL DEFAULT 0,
+    PRIMARY KEY (key_id, window_start),
+    CONSTRAINT fk_apirate_key FOREIGN KEY (key_id) REFERENCES api_keys (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- The stored result of a POST that carried an Idempotency-Key, so a retry returns the same answer instead of doing it twice.
+CREATE TABLE api_idempotency (
+    id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    key_id        BIGINT UNSIGNED NOT NULL,
+    idem_key      VARCHAR(100) NOT NULL,
+    request_hash  CHAR(64)     NOT NULL,
+    status        SMALLINT UNSIGNED NULL,
+    response_body MEDIUMTEXT   NULL,
+    created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_idem (key_id, idem_key),
+    KEY idx_idem_created (created_at),
+    CONSTRAINT fk_idem_key FOREIGN KEY (key_id) REFERENCES api_keys (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 CREATE TABLE schema_migrations (
     version    VARCHAR(100) NOT NULL PRIMARY KEY,
