@@ -1,0 +1,5 @@
+.env
+.phpunit.cache/
+storage/
+*.log
+.DS_Store
