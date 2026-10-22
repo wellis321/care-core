@@ -198,5 +198,17 @@ if ($callumUser) {
 // History is complete: only recent and upcoming work is still open.
 DB::run("UPDATE tasks SET status = 'done', completed_at = UTC_TIMESTAMP() WHERE status = 'open' AND due_date < DATE_SUB(CURDATE(), INTERVAL 14 DAY)");
 
+// The owner's own administrator login survives the nightly reset. The server's .env holds OWNER_EMAIL and
+// OWNER_PASSWORD_HASH (a hash made on the owner's own computer: the password itself never appears anywhere here).
+$ownerEmail = strtolower(trim((string) Config::get('OWNER_EMAIL', '')));
+$ownerHash = trim((string) Config::get('OWNER_PASSWORD_HASH', ''));
+if ($ownerEmail !== '' || $ownerHash !== '') {
+    if (!filter_var($ownerEmail, FILTER_VALIDATE_EMAIL) || (password_get_info($ownerHash)['algo'] ?? null) === null) {
+        fwrite(STDERR, "OWNER_EMAIL or OWNER_PASSWORD_HASH is not valid, so the owner login was not created.\n");
+    } else {
+        DB::insert('users', ['uuid' => Uuid::v4(), 'organisation_id' => $org, 'person_id' => null, 'email' => $ownerEmail, 'role' => 'admin', 'status' => 'active', 'password_hash' => $ownerHash]);
+        echo "Kept the owner's administrator login: $ownerEmail\n";
+    }
+}
 echo 'Seeded 1 organisation, ' . DB::value('SELECT COUNT(DISTINCT person_id) FROM employments') . ' staff records, ' . DB::value('SELECT COUNT(*) FROM support_episodes') . " support episodes, 3 logins.\n";
 echo "Sign in as admin@demo.lochview.test, manager@demo.lochview.test or staff@demo.lochview.test (password " . DEMO_PASSWORD . ").\n";

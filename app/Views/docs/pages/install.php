@@ -35,6 +35,7 @@ It prints a one-time invitation link: open it to choose your own password, then 
 <tr><td><code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_NAME</code>, <code>DB_USER</code>, <code>DB_PASS</code></td><td>Database connection. On shared hosting use <code>127.0.0.1</code> and port <code>3306</code>.</td></tr>
 <tr><td><code>APP_KEY</code></td><td>32 random bytes, base64. Encrypts National Insurance and bank details. <strong>Back it up separately and never change it.</strong></td></tr>
 <tr><td><code>DEMO_MODE</code></td><td><code>true</code> shows a demo banner, enables the demo login help and allows the demo reset script. Never on a live installation.</td></tr>
+<tr><td><code>OWNER_EMAIL</code>, <code>OWNER_PASSWORD_HASH</code></td><td>Demo installations only: an administrator login of your own that is put back after every nightly reset. The hash is made on your own computer (see <code>.env.example</code>); the password itself is never stored in a file.</td></tr>
 <tr><td><code>ENTRA_TENANT_ID</code>, <code>ENTRA_CLIENT_ID</code>, <code>ENTRA_CLIENT_SECRET</code></td><td>Microsoft sign-in. See <a href="/docs/entra-signin">Sign in with Microsoft</a>.</td></tr>
 <tr><td><code>ENTRA_REDIRECT_URI</code></td><td>Optional. Defaults to <code>APP_URL/login/entra/callback</code>.</td></tr>
 <tr><td><code>PASSWORD_LOGIN</code></td><td><code>false</code> turns passwords off for everyone except administrators once Microsoft sign-in is configured. Default <code>true</code>.</td></tr>
