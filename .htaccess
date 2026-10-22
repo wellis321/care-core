@@ -9,8 +9,9 @@ RewriteCond %{HTTPS} off
 RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1) [NC]
 RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 
-# Never serve configuration, code, SQL, scripts, tests, docs or dotfiles
-RewriteRule ^(app|database|scripts|tests|docs|vendor|storage)(/|$) - [F,L]
+# Never serve configuration, code, SQL, scripts, tests or dotfiles. (/docs is the public documentation page; the
+# repository's own docs/ folder holds only .md files, which the rule below refuses.)
+RewriteRule ^(app|database|scripts|tests|vendor|storage)(/|$) - [F,L]
 RewriteRule (^|/)\.(?!well-known) - [F,L]
 RewriteRule \.(md|sql|lock|json|sh|log|env|example)$ - [F,L]
 
