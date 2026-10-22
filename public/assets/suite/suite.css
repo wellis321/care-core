@@ -1,0 +1,268 @@
+/* =============================================================================
+   Suite design kit v0.3.0  ("Survey sheet": loch ink + thistle)
+   Shared look for Find Care Scotland and its sister apps.
+
+   HOW IT WORKS
+   - Load it AFTER the app's own stylesheet:  <link rel="stylesheet" href="/assets/suite/suite.css">
+   - It restyles the class names the apps already use (.btn, .card, .form-group, .alert, .badge, .table,
+     .navbar, .footer-section …) so templates don't need rewriting.
+   - It only sets VISUAL properties (colour, type, border, radius, shadow, focus). It deliberately does not
+     touch layout (display, position, width, grid, flex), so each app's navigation, sidebars and responsive
+     behaviour keep working.
+   - Everything is driven by the tokens in :root. Change a token here, every app follows.
+   - WCAG 2.2 AA: every text/background pair below is >= 4.5:1; focus is a 3px ring; targets >= 44px on touch.
+   ============================================================================= */
+
+/* ── 1. Fonts (self-hosted; no third-party request) ─────────────────────────── */
+@font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 500 800; font-display: swap; src: url('fonts/bricolage-grotesque-500-800-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 500 800; font-display: swap; src: url('fonts/bricolage-grotesque-500-800-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400 600; font-display: swap; src: url('fonts/ibm-plex-sans-400-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400 600; font-display: swap; src: url('fonts/ibm-plex-sans-400-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+/* ── 2. Tokens ──────────────────────────────────────────────────────────────── */
+:root {
+  /* colour */
+  --ink: #0d2b2e;            /* text, primary buttons, header, footer */
+  --ink-soft: #2f484b;       /* secondary text */
+  --muted: #53686a;          /* tertiary text (5.4:1 on paper) */
+  --paper: #f7f5f0;          /* page background */
+  --surface: #ffffff;        /* cards, inputs */
+  --rule: #dcd8cd;           /* borders */
+  --rule-soft: #ebe8df;
+  --field-border: #857f6f;   /* form-field outline: 4.0:1 on white (WCAG 1.4.11 needs 3:1) */
+  --brand: #0e5f5a;          /* links, success, focus accents */
+  --brand-deep: #0a4440;
+  --brand-tint: #e6f1ef;
+  --thistle: #5b3a8c;        /* emphasis, focus ring, paid/upgrade */
+  --thistle-deep: #3f2766;
+  --thistle-tint: #f1ecf8;
+  --gold: #b8892b;
+  --gold-tint: #f8f0dc;
+  --gold-deep: #7a5a14;      /* warning text/icons: 6.4:1 on white (plain --gold is only 3.2:1) */
+  --danger: #8b1538;         /* destructive actions, errors (7.9:1 on white) */
+  --danger-tint: #f7e9ee;
+  --danger-border: #e3b9c7;
+  --warn-ink: #5a4313;       /* warning text on gold tint */
+  --info: #2f4a5a;
+  --info-tint: #e9eff3;
+  --info-border: #bccbd6;
+  /* shape + type */
+  --radius: 6px;
+  --radius-lg: 8px;
+  --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Bricolage Grotesque', 'IBM Plex Sans', system-ui, sans-serif;
+  --ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --focus-ring: 0 0 0 3px var(--surface), 0 0 0 6px var(--thistle);
+}
+
+/* ── 2b. Legacy variable bridge ───────────────────────────────────────────────
+   The apps define their own colour variables and use them in ~800 inline styles and in their stylesheets.
+   Re-pointing them at the kit tokens recolours all of that without touching a template.
+   (Set after the app's own :root, so these win.) */
+:root {
+  /* contracts + digital-id style names */
+  --primary-color: var(--brand);
+  --primary-color-light: var(--brand-tint);
+  --secondary-color: var(--brand-deep);
+  --success-color: var(--brand);
+  --danger-color: var(--danger);
+  --warning-color: var(--gold-deep);
+  --text-color: var(--ink);
+  --text-light: var(--muted);
+  --text-muted: var(--muted);
+  --bg-color: var(--surface);
+  --bg-light: var(--paper);
+  --border-color: var(--rule);
+  --border-color-strong: var(--field-border);
+  --shadow: none;
+  /* people-management-service style names */
+  --clr-nav: var(--ink);
+  --clr-primary: var(--brand);
+  --clr-primary-dk: var(--brand-deep);
+  --clr-secondary: var(--ink-soft);
+  --clr-secondary-dk: var(--ink);
+  --clr-bg: var(--paper);
+  --clr-text: var(--ink);
+  --clr-muted: var(--muted);
+  --clr-border: var(--rule);
+  --shadow-card: none;
+}
+
+/* ── 3. Base ────────────────────────────────────────────────────────────────── */
+html { -webkit-text-size-adjust: 100%; }
+body { font-family: var(--font-body); color: var(--ink); background: var(--paper); line-height: 1.55; -webkit-font-smoothing: antialiased; font-feature-settings: 'tnum' 1, 'lnum' 1; }
+h1, h2, h3, h4 { font-family: var(--font-display); color: var(--ink); letter-spacing: -0.015em; line-height: 1.2; }
+h1 { font-weight: 700; letter-spacing: -0.025em; }
+h2, h3 { font-weight: 600; }
+a { color: var(--brand); text-underline-offset: 0.18em; }
+a:hover { color: var(--brand-deep); }
+hr { border: 0; border-top: 1px solid var(--rule); }
+code, kbd, pre { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 0.92em; }
+code { background: var(--brand-tint); color: var(--brand-deep); padding: 0.1em 0.35em; border-radius: 4px; }
+::selection { background: var(--thistle); color: #fff; }
+:focus-visible { outline: 3px solid var(--thistle); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.skip-link { position: absolute; left: 0.75rem; top: -4rem; z-index: 1000; background: var(--ink); color: #fff; padding: 0.6rem 1rem; border-radius: var(--radius); font-weight: 600; text-decoration: none; }
+.skip-link:focus { top: 0.75rem; }
+.text-light, .text-muted { color: var(--muted) !important; }
+.text-small, small { font-size: 0.875em; }
+
+/* ── 4. Buttons  (.btn .btn-primary .btn-secondary .btn-danger .btn-success .btn-sm) ── */
+.btn, button.btn, a.btn, input[type="submit"].btn {
+  font-family: var(--font-body); font-size: 0.95rem; line-height: 1.2; font-weight: 600; border-radius: var(--radius); border: 1px solid transparent;
+  min-height: 44px; transition: background 150ms var(--ease), color 150ms var(--ease), border-color 150ms var(--ease), transform 100ms var(--ease);
+  text-decoration: none; cursor: pointer;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+.btn-primary:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--ink); }
+.btn-secondary:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+.btn-success { background: var(--brand); color: #fff; border-color: var(--brand); }
+.btn-success:hover { background: var(--brand-deep); border-color: var(--brand-deep); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-danger:hover { background: #6e0f2b; border-color: #6e0f2b; color: #fff; }
+.btn-sm { min-height: 36px; font-size: 0.875rem; }
+.btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.btn:disabled, .btn[aria-disabled="true"], .btn.disabled { background: var(--rule-soft); color: var(--muted); border-color: var(--rule); cursor: not-allowed; transform: none; }
+@media (pointer: coarse) { .btn-sm { min-height: 44px; } }
+
+/* ── 5. Forms  (.form-group .form-control .field-name) ──────────────────────── */
+.form-group label, label { color: var(--ink-soft); font-weight: 500; }
+.form-control, .form-group input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]),
+.form-group select, .form-group textarea {
+  font-family: var(--font-body); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--field-border); border-radius: var(--radius); min-height: 44px;
+  transition: border-color 150ms var(--ease), box-shadow 150ms var(--ease);
+}
+.form-group textarea, textarea.form-control { min-height: 6rem; }
+.form-control:hover, .form-group input:hover, .form-group select:hover, .form-group textarea:hover { border-color: var(--ink-soft); }
+.form-control:focus, .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: var(--thistle); box-shadow: 0 0 0 3px rgba(91, 58, 140, 0.28);
+}
+.form-control::placeholder, .form-group input::placeholder, .form-group textarea::placeholder { color: var(--muted); opacity: 1; }
+.form-control:disabled, .form-group input:disabled, .form-group select:disabled { background: var(--rule-soft); color: var(--muted); }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }
+.form-group small, .form-help, .help-text { color: var(--muted); }
+.field-name { color: var(--ink); font-weight: 600; }
+.field-error, .form-error, .invalid-feedback { color: var(--danger); font-weight: 600; }
+.form-control.is-invalid, .form-group input.is-invalid { border-color: var(--danger); }
+
+/* ── 6. Cards  (.card .card-header) ─────────────────────────────────────────── */
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-lg); box-shadow: none; color: var(--ink); }
+.card:hover { border-color: var(--ink-soft); box-shadow: none; }
+.card-header { border-bottom: 1px solid var(--rule); }
+.card-header h1, .card-header h2, .card-header h3, .card-header i { color: var(--ink); }
+.card-header h1 { font-size: 1.5rem; margin: 0; }   /* a card's title may be the page's <h1>, e.g. sign-in */
+
+/* ── 7. Alerts and message boxes ────────────────────────────────────────────── */
+.alert { border-radius: var(--radius); border: 1px solid var(--rule); border-left-width: 1px; background: var(--surface); color: var(--ink); }
+.alert-success, .success-box { background: var(--brand-tint); border: 1px solid #b4d6d1; color: var(--brand-deep); border-radius: var(--radius); }
+.alert-error, .alert-danger { background: var(--danger-tint); border: 1px solid var(--danger-border); color: #5e0f26; }
+.alert-warning, .callout-box--warning { background: var(--gold-tint); border: 1px solid #ecdcb0; color: var(--warn-ink); }
+.alert-warning a, .callout-box--warning a { color: var(--warn-ink); }
+.alert-info, .info-box, .callout-box { background: var(--info-tint); border: 1px solid var(--info-border); color: var(--info); border-radius: var(--radius); }
+.alert a, .info-box a, .success-box a { font-weight: 600; }
+.callout-box h3, .callout-box h4, .info-box h3, .info-box h4 { color: inherit; }
+
+/* ── 8. Badges  (.badge + -success -danger -warning -secondary -blue -green -grey -teal) ── */
+/* House rule: no single thick edge on a rounded box. A left/right accent border with rounded corners
+   curls round the top and bottom, so such elements are always square. This catches inline styles,
+   which beat any class; app stylesheets must follow the same rule at source. */
+[style*="border-left"], [style*="border-right"], [style*="border-inline"] { border-radius: 0 !important; }
+
+.badge { font-family: var(--font-body); font-weight: 600; border-radius: 999px; background: var(--rule-soft); color: var(--ink-soft); border: 1px solid var(--rule); }
+.badge-success, .badge-green, .badge-teal { background: var(--brand-tint); color: var(--brand-deep); border-color: #b4d6d1; }
+.badge-danger { background: var(--danger-tint); color: var(--danger); border-color: var(--danger-border); }
+.badge-warning { background: var(--gold-tint); color: var(--warn-ink); border-color: #ecdcb0; }
+.badge-secondary, .badge-grey { background: var(--rule-soft); color: var(--ink-soft); border-color: var(--rule); }
+.badge-blue, .badge-info, .badge-type, .badge-api { background: var(--info-tint); color: var(--info); border-color: var(--info-border); }
+.badge-premium, .badge-paid { background: var(--thistle-tint); color: var(--thistle-deep); border-color: #ddd1ee; }
+
+/* ── 9. Tables  (.table) ────────────────────────────────────────────────────── */
+.table, table.table { color: var(--ink); background: var(--surface); border-collapse: collapse; }
+.table th { background: var(--paper); color: var(--ink-soft); font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; border-bottom: 2px solid var(--rule); text-align: left; }
+.table td { border-bottom: 1px solid var(--rule-soft); }
+.table tbody tr:hover td { background: var(--brand-tint); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--radius-lg); background: var(--surface); }
+.table-wrap .table { border: 0; }
+
+/* ── 10. Header, navigation, footer (visual only: layout stays with the app) ── */
+header, .navbar { background: var(--ink); color: #fff; border-bottom: 0; box-shadow: none; }
+.navbar a, header a { color: #fff; }
+.navbar .logo, .navbar .nav-brand a, .logo, .logo-text { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+.nav-menu a, .nav-dropdown-toggle { color: rgba(255,255,255,0.88); border-radius: var(--radius); transition: background 150ms var(--ease), color 150ms var(--ease); }
+.nav-menu a:hover, .nav-dropdown-toggle:hover, .nav-dropdown:hover > .nav-dropdown-toggle { background: rgba(255,255,255,0.12); color: #fff; }
+.nav-menu a.active, .nav-menu a[aria-current="page"] { color: #fff; box-shadow: inset 0 -2px 0 #fff; border-radius: 0; }
+.nav-dropdown-menu { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-lg); box-shadow: 0 12px 28px rgba(13, 43, 46, 0.18); }
+.nav-dropdown-menu a { color: var(--ink); }
+.nav-dropdown-menu a:hover, .nav-dropdown-menu a.active { background: var(--brand-tint); color: var(--brand-deep); }
+.nav-dropdown-menu a i { color: var(--brand); }
+.nav-badge { background: var(--thistle); color: #fff; border-radius: 999px; }
+.nav-toggle, .mobile-menu-toggle { color: #fff; }
+.navbar a:focus-visible, header a:focus-visible, .nav-toggle:focus-visible, .mobile-menu-toggle:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 6px var(--thistle); }
+footer, .site-footer { background: var(--ink); color: rgba(255,255,255,0.78); border-top: 0; }
+.footer-section h3, .footer-section h2.footer-heading { font-family: var(--font-body); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,0.65); }
+.footer-section a, footer a { color: #fff; }
+.footer-section a:hover, footer a:hover { color: #fff; text-decoration: underline; }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.16); color: rgba(255,255,255,0.68); }
+.footer-social a { color: #fff; }
+
+/* ── 11. Sidebar / docs navigation ──────────────────────────────────────────── */
+.sidebar-nav-link, .docs-sidebar-link { color: var(--ink-soft); border-radius: var(--radius); }
+.sidebar-nav-link:hover, .docs-sidebar-link:hover { background: var(--brand-tint); color: var(--brand-deep); }
+.sidebar-nav-link.active, .docs-sidebar-link.active, .sidebar-nav-link[aria-current="page"] { background: var(--ink); color: #fff; }
+
+/* ── 12. Cookie notice (light surface: the apps' inline text colours assume a light background) ── */
+.cookie-banner, #cookie-banner, #cookieBanner { background: var(--surface); color: var(--ink); border-top: 1px solid var(--ink); box-shadow: none; }
+.cookie-banner h4, #cookie-banner h4, .cookie-banner strong { color: var(--ink); font-family: var(--font-display); }
+.cookie-banner a, #cookie-banner a { color: var(--brand); }
+.cookie-btn-primary, .cookie-banner-btn-accept { background: var(--ink); color: #fff; border: 1px solid var(--ink); border-radius: var(--radius); font-weight: 600; }
+.cookie-btn-primary:hover, .cookie-banner-btn-accept:hover { background: var(--brand); border-color: var(--brand); }
+.cookie-btn-secondary, .cookie-banner-btn-reject { background: var(--surface); color: var(--ink); border: 1px solid var(--ink); border-radius: var(--radius); font-weight: 600; }
+.cookie-btn-link { color: var(--brand); }
+
+/* ── 13. Kit-only components (use these in new work) ────────────────────────── */
+.page-hero { background: var(--ink); color: #fff; padding: clamp(1.25rem, 4vw, 2.25rem) 0; }
+.page-hero h1 { color: #fff; font-size: clamp(1.7rem, 4vw, 2.6rem); margin: 0; max-width: 26ch; }
+.page-hero p { color: rgba(255,255,255,0.82); max-width: 62ch; }
+.eyebrow { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.5rem; }
+.page-hero .eyebrow { color: rgba(255,255,255,0.72); }
+.stat { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-lg); padding: 1rem 1.2rem; }
+.stat__value { display: block; font-family: var(--font-display); font-size: clamp(1.8rem, 3.5vw, 2.4rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1; color: var(--ink); }
+.stat__label { display: block; margin-top: 0.5rem; font-size: 0.86rem; color: var(--muted); }
+.empty-state { text-align: center; padding: 2.5rem 1rem; background: var(--surface); border: 1px dashed #cfcdc4; border-radius: var(--radius-lg); }
+.empty-state h2, .empty-state h3 { margin-top: 0; }
+.pill { display: inline-block; padding: 0.15rem 0.7rem; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--rule); border-radius: 999px; background: var(--paper); color: var(--ink-soft); }
+
+/* ── 14. Motion ─────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* ── 12. Solid look (v0.3) ────────────────────────────────────────────────────
+   Restraint reads as reliable: one brand colour, flat surfaces, ruled structure, no gradients, no
+   decorative shadows, no pastel panels. Colour is reserved for meaning (status) and for the primary action. */
+.demo-banner { background: var(--ink-soft); color: #fff; border-bottom: 1px solid rgba(255,255,255,0.12); }
+.demo-banner strong { color: #e8cf86; }
+/* The notice wraps into a short block instead of one long line. */
+body .demo-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.2rem 1.25rem; padding: 0.6rem 1rem; text-align: left; }
+body .demo-banner strong { margin-right: 0; }
+body .demo-banner__text { flex: 0 1 40rem; min-width: 0; line-height: 1.45; }
+body .demo-banner a { margin-left: 0; }
+.demo-login-help { background: var(--surface); border: 1px solid var(--rule); color: var(--ink); }
+.demo-login-help h2 { color: var(--ink); }
+/* a first card sitting hard against the header looks unfinished */
+main > .card:first-child, main > .container > .card:first-child { margin-top: clamp(1rem, 3vw, 2rem); }
+/* no gradients or decorative shadows anywhere */
+[style*="gradient"] { background-image: none !important; }
+.card, .alert, .stat, .table-wrap, .btn, .btn-primary, .btn-secondary { box-shadow: none; }
+/* the only place a shadow belongs: floating menus */
+.nav-dropdown-menu { box-shadow: 0 8px 20px rgba(13, 43, 46, 0.14); }
+/* tables: quiet header, ruled rows, no tinted rows (status is shown in text, not paint) */
+tr[style*="background"] { background: transparent !important; }
+/* Footer and other dark bands: light text, whatever the app stylesheet says (apps set greys for light pages) */
+footer, .footer, .site-footer { color: rgba(255,255,255,0.8); }
+footer p, footer li, footer span, footer .footer-section p, footer .footer-section li, .footer-bottom, .footer-bottom p { color: rgba(255,255,255,0.8); }
+footer a, footer .footer-section a, .footer-bottom a { color: #fff; }
+footer a:hover { color: #e8cf86; }

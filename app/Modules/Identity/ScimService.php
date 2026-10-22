@@ -203,12 +203,21 @@ final class ScimService
             $last = $emp['start_date'];
         }
         Lifecycle::leave($orgId, (int) $emp['id'], $last, 'deprovisioned by identity provider', $actor);
+        // The identity provider has removed them: sign-in stops now, whatever their last day was.
+        foreach (DB::all("SELECT id, uuid, email FROM users WHERE person_id = ? AND status <> 'disabled'", [$person['id']]) as $u) {
+            DB::update('users', ['status' => 'disabled'], ['id' => $u['id']]);
+            \App\Core\Audit::record($orgId, $actor, 'user.disabled', 'user', $u['uuid'], 'Disabled the login for ' . $u['email'] . ' (identity provider)');
+        }
         return $isDelete ? [204, null] : [200, self::resource(PersonRepo::byId($orgId, (int) $person['id']))];
     }
 
     /** @param array<string,mixed> $person */
     private static function reprovision(int $orgId, array $person, Actor $actor): ?array
     {
+        if (Lifecycle::currentEmployment((int) $person['id']) && !DB::value("SELECT 1 FROM users WHERE person_id = ? AND status = 'disabled' LIMIT 1", [$person['id']])) {
+            return null;
+        }
+        DB::run("UPDATE users SET status = 'active', access_ends_on = NULL WHERE person_id = ? AND status = 'disabled'", [$person['id']]);
         if (Lifecycle::currentEmployment((int) $person['id'])) {
             return null;
         }
@@ -228,7 +237,7 @@ final class ScimService
             'userName' => $p['email'], 'name' => ['givenName' => $p['first_name'], 'familyName' => $p['last_name'], 'formatted' => PersonRepo::displayName($p)],
             'displayName' => PersonRepo::displayName($p), 'title' => $emp['job_title'] ?? ($last['job_title'] ?? null),
             'emails' => $p['email'] ? [['value' => $p['email'], 'type' => 'work', 'primary' => true]] : [],
-            'active' => $emp !== null,
+            'active' => $emp !== null && !DB::value("SELECT 1 FROM users WHERE person_id = ? AND status = 'disabled' LIMIT 1", [$p['id']]),
             'meta' => ['resourceType' => 'User', 'created' => str_replace(' ', 'T', (string) $p['created_at']) . 'Z', 'lastModified' => str_replace(' ', 'T', (string) $p['updated_at']) . 'Z'],
         ];
     }

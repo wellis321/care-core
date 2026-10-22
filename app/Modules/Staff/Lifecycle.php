@@ -42,7 +42,7 @@ final class Lifecycle
         $start = ($d['start_date'] ?? '') ?: Clock::today();
         $msgs = Check::all([
             Check::required($d['job_title'] ?? null, 'Job title'), Check::maxLen($d['job_title'] ?? null, 150, 'Job title'),
-            Check::oneOf($d['contract_type'] ?? 'permanent', self::CONTRACTS, 'a contract type'),
+            Check::oneOf(($d['contract_type'] ?? '') ?: 'permanent', self::CONTRACTS, 'a contract type'),
             Check::date($start, 'Start date', true),
             Check::maxLen($d['employee_ref'] ?? null, 50, 'Employee reference'),
             self::hoursProblem($d['hours_per_week'] ?? null),
@@ -83,7 +83,7 @@ final class Lifecycle
             $empUuid = Uuid::v4();
             $empId = DB::insert('employments', [
                 'uuid' => $empUuid, 'organisation_id' => $orgId, 'person_id' => $personId, 'employee_ref' => $ref,
-                'job_title' => trim($d['job_title']), 'contract_type' => $d['contract_type'] ?? 'permanent',
+                'job_title' => trim($d['job_title']), 'contract_type' => ($d['contract_type'] ?? '') ?: 'permanent',
                 'hours_per_week' => ($d['hours_per_week'] ?? '') !== '' ? (float) $d['hours_per_week'] : null,
                 'start_date' => $start, 'line_manager_person_id' => $managerId,
             ]);
