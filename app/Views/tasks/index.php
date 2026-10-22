@@ -1,7 +1,7 @@
 <?php use App\Core\Clock; use App\Core\Csrf; use App\Core\View; $e = [View::class, 'e']; $today = Clock::today(); ?>
 <div class="pagehead"><div><p class="eyebrow">Work to do</p><h1>Tasks</h1><p class="muted">Onboarding, role changes and offboarding create these automatically.</p></div></div>
 <div class="tablewrap"><table class="list">
-  <thead><tr><th>Task</th><th>About</th><th>Due</th><th></th></tr></thead>
+  <thead><tr><th>Task</th><th>About</th><th>Due</th><th><span class="sr">Actions</span></th></tr></thead>
   <tbody>
   <?php foreach ($tasks as $t): ?>
     <tr>

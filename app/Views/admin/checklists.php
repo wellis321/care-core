@@ -5,7 +5,7 @@
 <section class="section">
   <div class="section__head"><h2><?= $e($labels[$t['kind']] ?? $t['kind']) ?></h2></div>
   <div class="tablewrap"><table class="list">
-    <thead><tr><th>Task</th><th>Who</th><th>Due</th><th></th></tr></thead>
+    <thead><tr><th>Task</th><th>Who</th><th>Due</th><th><span class="sr">Actions</span></th></tr></thead>
     <tbody>
     <?php foreach ($t['items'] as $i): ?>
       <tr><td><?= $e($i['title']) ?></td><td><?= $e(ucfirst($i['owner_role'])) ?></td><td><?= (int) $i['due_offset_days'] === 0 ? 'On the day' : ((int) $i['due_offset_days'] > 0 ? (int) $i['due_offset_days'] . ' days after' : abs((int) $i['due_offset_days']) . ' days before') ?></td><td class="right"><form method="post" action="/admin/checklists/items/remove" class="row-actions"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $i['id'] ?>"><button class="btn btn-secondary" type="submit">Remove</button></form></td></tr>

@@ -1,0 +1,27 @@
+# Care Core on shared hosting where the document root is the repository root: serve public/ at the site root
+# and refuse everything else.
+Options -Indexes
+RewriteEngine On
+
+# https and one host, in production only
+RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1) [NC]
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# Never serve configuration, code, SQL, scripts, tests, docs or dotfiles
+RewriteRule ^(app|database|scripts|tests|docs|vendor|storage)(/|$) - [F,L]
+RewriteRule (^|/)\.(?!well-known) - [F,L]
+RewriteRule \.(md|sql|lock|json|sh|log|env|example)$ - [F,L]
+
+# Static files straight from public/, everything else to the front controller
+RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
+RewriteRule ^(.*)$ public/$1 [L]
+RewriteRule ^$ public/index.php [L]
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/index.php [L,QSA]
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+</IfModule>

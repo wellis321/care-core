@@ -1,0 +1,8 @@
+# When the document root is public/ itself.
+Options -Indexes
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L,QSA]
+<IfModule mod_php.c>
+    php_flag display_errors off
+</IfModule>

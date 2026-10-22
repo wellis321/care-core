@@ -8,7 +8,7 @@
 <section class="section">
   <div class="section__head"><h2>Members (<?= count($members) ?>)</h2></div>
   <div class="tablewrap"><table class="list">
-    <thead><tr><th>Name</th><th>Role</th><th>Joined</th><?php if ($canManage): ?><th></th><?php endif; ?></tr></thead>
+    <thead><tr><th>Name</th><th>Role</th><th>Joined</th><?php if ($canManage): ?><th><span class="sr">Actions</span></th><?php endif; ?></tr></thead>
     <tbody>
     <?php foreach ($members as $m): ?>
       <tr>

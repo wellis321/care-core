@@ -83,7 +83,7 @@ $types = ['phone' => 'Phone', 'email' => 'Email', 'address' => 'Address', 'next_
 <section class="section">
   <div class="section__head"><h2>Key workers</h2></div>
   <div class="tablewrap"><table class="list">
-    <thead><tr><th>Key worker</th><th>From</th><th>To</th><?php if ($canCare): ?><th></th><?php endif; ?></tr></thead>
+    <thead><tr><th>Key worker</th><th>From</th><th>To</th><?php if ($canCare): ?><th><span class="sr">Actions</span></th><?php endif; ?></tr></thead>
     <tbody>
     <?php foreach ($keyworkers as $k): ?>
       <tr><td><a href="/people/<?= $e($k['staff_uuid']) ?>"><?= $e($k['first_name'] . ' ' . $k['last_name']) ?></a><?= $k['role_label'] ? '<br><span class="muted small">' . $e($k['role_label']) . '</span>' : '' ?></td><td class="nowrap"><?= View::date($k['valid_from']) ?></td><td class="nowrap"><?= $k['valid_to'] ? View::date($k['valid_to']) : '<span class="chip chip--staff">Current</span>' ?></td>
@@ -143,7 +143,7 @@ $types = ['phone' => 'Phone', 'email' => 'Email', 'address' => 'Address', 'next_
 <?php if ($careOn && $episodes): ?>
 <section class="section">
   <div class="section__head"><h2>Care needs</h2></div>
-  <div class="tablewrap"><table class="list"><thead><tr><th>Need</th><th>Severity</th><th>Review</th><?php if ($canCare): ?><th></th><?php endif; ?></tr></thead><tbody>
+  <div class="tablewrap"><table class="list"><thead><tr><th>Need</th><th>Severity</th><th>Review</th><?php if ($canCare): ?><th><span class="sr">Actions</span></th><?php endif; ?></tr></thead><tbody>
     <?php foreach ($needs as $n): ?>
     <tr><td><strong><?= $e($n['category']) ?></strong><br><span class="muted small"><?= $e($n['description']) ?></span></td><td><?= $n['severity'] ? '<span class="chip' . ($n['severity'] === 'high' ? ' chip--bad' : ($n['severity'] === 'medium' ? ' chip--warn' : '')) . '">' . $e(ucfirst($n['severity'])) . '</span>' : '—' ?></td><td class="nowrap"><?= $n['ended_on'] ? 'Closed ' . View::date($n['ended_on']) : View::date($n['review_date']) ?></td>
     <?php if ($canCare): ?><td class="right"><?php if (!$n['ended_on']): ?><form method="post" action="<?= $e($base) ?>/needs/end" class="row-actions"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $n['id'] ?>"><button class="btn btn-secondary" type="submit">Close</button></form><?php endif; ?></td><?php endif; ?></tr>
@@ -164,7 +164,7 @@ $types = ['phone' => 'Phone', 'email' => 'Email', 'address' => 'Address', 'next_
 
 <section class="section">
   <div class="section__head"><h2>Contacts</h2></div>
-  <div class="tablewrap"><table class="list"><thead><tr><th>Type</th><th>Contact</th><?php if ($canCare): ?><th></th><?php endif; ?></tr></thead><tbody>
+  <div class="tablewrap"><table class="list"><thead><tr><th>Type</th><th>Contact</th><?php if ($canCare): ?><th><span class="sr">Actions</span></th><?php endif; ?></tr></thead><tbody>
     <?php foreach ($contacts as $c): ?>
     <tr><td><?= $e($types[$c['contact_type']] ?? $c['contact_type']) ?><?= $c['label'] ? '<br><span class="muted small">' . $e($c['label']) . '</span>' : '' ?></td><td><?= $e($c['value']) ?><?= $c['is_primary'] ? ' <span class="chip chip--staff">Primary</span>' : '' ?></td>
     <?php if ($canCare): ?><td class="right"><form method="post" action="<?= $e($base) ?>/contacts/remove" class="row-actions"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $c['id'] ?>"><button class="btn btn-secondary" type="submit">Remove</button></form></td><?php endif; ?></tr>

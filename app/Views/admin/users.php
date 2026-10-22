@@ -2,7 +2,7 @@
 <p class="crumbs"><a href="/admin">Admin</a> › Logins</p>
 <div class="pagehead"><div><h1>Logins</h1><p class="muted">When someone leaves, their login stops working after their last day without anyone having to remember.</p></div></div>
 <div class="tablewrap"><table class="list">
-  <thead><tr><th>Login</th><th>Person</th><th>Role</th><th>Status</th><th></th></tr></thead>
+  <thead><tr><th>Login</th><th>Person</th><th>Role</th><th>Status</th><th><span class="sr">Actions</span></th></tr></thead>
   <tbody>
   <?php foreach ($users as $u): ?>
     <tr>

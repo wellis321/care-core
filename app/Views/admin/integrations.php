@@ -8,7 +8,7 @@
     <p>In Entra, add an enterprise application with <strong>automatic provisioning</strong>. Use this tenant URL and a token from below:</p>
     <p class="secret"><?= $e($scimUrl) ?></p>
     <p class="muted small">When Entra disables a user, Care Core runs the whole leaver process: their employment ends, team places and key worker links end, their login stops, and offboarding tasks are created.</p>
-    <table class="list" style="margin:1rem 0"><thead><tr><th>Token</th><th>Created</th><th>Last used</th><th></th></tr></thead><tbody>
+    <table class="list" style="margin:1rem 0"><thead><tr><th>Token</th><th>Created</th><th>Last used</th><th><span class="sr">Actions</span></th></tr></thead><tbody>
       <?php foreach ($tokens as $t): ?><tr><td><?= $e($t['name']) ?> <?= $t['active'] ? '' : '<span class="chip chip--bad">Revoked</span>' ?></td><td class="nowrap"><?= View::date($t['created_at']) ?></td><td class="nowrap"><?= View::date($t['last_used_at'], 'never') ?></td><td class="right"><?php if ($t['active']): ?><form method="post" action="/admin/scim/revoke" class="row-actions"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $t['id'] ?>"><button class="btn btn-secondary" type="submit">Revoke</button></form><?php endif; ?></td></tr><?php endforeach; ?>
       <?php if (!$tokens): ?><tr class="empty-row"><td colspan="4">No tokens yet.</td></tr><?php endif; ?>
     </tbody></table>
@@ -19,7 +19,7 @@
 <section class="section">
   <div class="section__head"><h2>Webhooks: events sent out</h2></div>
   <div class="tablewrap"><table class="list">
-    <thead><tr><th>Address</th><th>Events</th><th>Delivered</th><th>Waiting or failed</th><th></th></tr></thead>
+    <thead><tr><th>Address</th><th>Events</th><th>Delivered</th><th>Waiting or failed</th><th><span class="sr">Actions</span></th></tr></thead>
     <tbody>
     <?php foreach ($webhooks as $w): ?>
       <tr><td class="small" style="word-break:break-all"><?= $e($w['url']) ?> <?= $w['active'] ? '' : '<span class="chip chip--warn">Paused</span>' ?></td><td><?= $e($w['event_types']) ?></td><td><?= (int) $w['delivered'] ?></td><td><?= (int) $w['undelivered'] ?></td><td class="right"><form method="post" action="/admin/webhooks/toggle" class="row-actions"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $w['id'] ?>"><button class="btn btn-secondary" type="submit"><?= $w['active'] ? 'Pause' : 'Resume' ?></button></form></td></tr>
