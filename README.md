@@ -81,7 +81,7 @@ Also set `APP_KEY` (32 random bytes, base64). It encrypts National Insurance and
 - Every query is parameterised and every read is scoped by organisation. Tests prove one organisation cannot see another.
 - Webhook and integration addresses are checked (https only, no internal or metadata addresses).
 - SCIM tokens and invitation tokens are stored only as hashes and shown once.
-- National Insurance and bank details are encrypted in the database (libsodium) and only shown to people who manage staff and to the person themselves (masked). Audit rows and events name the fields changed, never the values.
+- National Insurance and bank details are encrypted in the database (AES-256-GCM) and only shown to people who manage staff and to the person themselves (masked). Audit rows and events name the fields changed, never the values.
 - Photos and signatures are stored outside the web root, checked as real images, and only served to people allowed to see them.
 - Self-service changes need approval from the line manager or HR, and nobody can approve their own.
 - Health and care information lives in its own tables and is only shown to roles with `care.view`.

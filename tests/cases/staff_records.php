@@ -44,7 +44,7 @@ test('profile: National Insurance and bank details are encrypted at rest and rea
     [$c] = StaffRecord::cleanProfile(['ni_number' => 'JA000001A', 'bank_account_number' => '12345678', 'address_city' => 'Inverness']);
     StaffRecord::applyProfile($org, $s['person_id'], $c, Fx::actor());
     $raw = DB::one('SELECT * FROM person_profiles WHERE person_id = ?', [$s['person_id']]);
-    ok(str_starts_with($raw['ni_number'], 'enc1:') && str_starts_with($raw['bank_account_number'], 'enc1:'), 'secrets must be encrypted');
+    ok(str_starts_with($raw['ni_number'], 'enc2:') && str_starts_with($raw['bank_account_number'], 'enc2:'), 'secrets must be encrypted');
     ok(!str_contains($raw['ni_number'], 'JA000001A'));
     eq($raw['address_city'], 'Inverness');
     $p = StaffRecord::profile($s['person_id']);
@@ -102,7 +102,7 @@ test('self-service: phone saves at once, address and bank wait for approval, not
     eq(StaffRecord::profile($s['person_id'])['address_line1'], null, 'the live record is unchanged');
     eq(Fx::count('profile_changes', "person_id = ? AND status = 'pending'", [$s['person_id']]), 2);
     $raw = DB::value("SELECT proposed_value FROM profile_changes WHERE person_id = ? AND field = 'bank_account_number'", [$s['person_id']]);
-    ok(str_starts_with($raw, 'enc1:'), 'a pending secret is encrypted too');
+    ok(str_starts_with($raw, 'enc2:'), 'a pending secret is encrypted too');
 });
 
 test('self-service: a field that is not allowed cannot be requested', function () {
