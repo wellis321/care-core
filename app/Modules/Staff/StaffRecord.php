@@ -184,7 +184,7 @@ final class StaffRecord
             if ($prof) {
                 self::upsertProfile($orgId, $personId, $prof);
             }
-            Audit::record($orgId, $actor, 'person.profile_' . $how, 'person', $person['uuid'], 'Staff record ' . $how . ': ' . implode(', ', array_map(static fn($f) => self::FIELDS[$f]['label'], array_keys($clean))), ['fields' => array_keys($clean)]);
+            Audit::record($orgId, $actor, 'person.profile_' . $how, 'person', $person['uuid'], 'Staff record ' . (['updated_by_self' => 'changed by the person', 'approved' => 'change approved', 'imported' => 'imported', 'updated' => 'updated'][$how] ?? $how) . ': ' . implode(', ', array_map(static fn($f) => self::FIELDS[$f]['label'], array_keys($clean))), ['fields' => array_keys($clean)]);
             Events::emit($orgId, 'person.updated', $person['uuid'], ['fields' => array_keys($clean)]);
         });
     }
@@ -261,7 +261,7 @@ final class StaffRecord
             }
             DB::update('employment_details', $clean, ['employment_id' => $employment['id']]);
             $person = DB::one('SELECT uuid FROM persons WHERE id = ?', [$employment['person_id']]);
-            Audit::record($orgId, $actor, 'employment.details_updated', 'person', $person['uuid'] ?? null, 'Updated ' . strtolower(self::SECTIONS[$section][0]) . ' for ' . $employment['job_title'], ['section' => $section]);
+            Audit::record($orgId, $actor, 'employment.details_updated', 'person', $person['uuid'] ?? null, 'Updated ' . str_ireplace('tupe', 'TUPE', strtolower(self::SECTIONS[$section][0])) . ' for ' . $employment['job_title'], ['section' => $section]);
             Events::emit($orgId, 'employment.changed', $employment['uuid'], ['section' => $section]);
         });
     }
