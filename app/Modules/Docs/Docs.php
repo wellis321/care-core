@@ -38,6 +38,9 @@ final class Docs
                 'admin-checklists' => ['Checklists', 'Editing the tasks that onboarding, role changes and offboarding create.'],
                 'admin-reconcile'  => ['Consistency checks', 'The safety net, and how to fix what it finds.'],
                 'admin-activity'   => ['The activity log', 'The audit trail of every change.'],
+                'import'           => ['Importing data', 'Bringing people, staff and teams in from other systems, safely and repeatably.'],
+                'import-format'    => ['The import format', 'The JSON file that describes what to import.'],
+                'import-migrating' => ['Moving from the older Staff, People and Team services', 'A step-by-step runbook, with what maps to what.'],
             ]],
             'integrations' => ['title' => 'Integrations', 'blurb' => 'Connecting Care Core to the rest of your systems.', 'pages' => [
                 'entra-signin'    => ['Sign in with Microsoft', 'Setting up Entra single sign-on.'],

@@ -8,6 +8,13 @@ system, and nobody is sure which one is right when someone leaves.
 
 Plain PHP 8.1+ and MySQL 8 / MariaDB 10.5+. No framework, no Composer at runtime.
 
+## Importing
+
+`scripts/export-old-systems.php` reads the older Staff, People or Team service database (read only) and writes an import file;
+`scripts/import.php` (or Admin → Import data) checks it with a dry run, then imports. The importer uses the application's own
+services, matches existing people, never overwrites, keeps history, and is safe to run again. Format and runbook: `/docs/import`,
+`/docs/import-format`, `/docs/import-migrating`. Code is in `app/Modules/Import/`.
+
 ## API
 
 A versioned REST API under `/api/v1` (60+ endpoints: people, staff lifecycle and records, compliance, teams, care, tasks, events,

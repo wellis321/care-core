@@ -203,3 +203,4 @@ a.btn.btn-secondary:hover, button.btn.btn-secondary:hover { border-color: var(--
 .topbar__user a.who:hover { color: #fff; text-decoration: underline; }
 .cols3 > div h2 { font-size: 1.05rem; margin-top: 0; }
 .prose pre:focus-visible { outline: 3px solid var(--thistle, #7a5ea8); outline-offset: 2px; }
+.alert + .section, .alert + .alert { margin-top: 1.25rem; }

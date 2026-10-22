@@ -5,7 +5,7 @@
 <thead><tr><th>Area</th><th>Today</th></tr></thead>
 <tbody>
 <tr><td><strong>Email</strong></td><td>Care Core sends none. Invitation links are shown once on screen and passed on by hand; there is no “email me a reset link”; approvals and due dates are not emailed. <em>Planned.</em></td></tr>
-<tr><td><strong>Importing existing data</strong></td><td>There is no import from the earlier Staff, People and Team services or from spreadsheets yet. People are added one at a time or provisioned from Entra. <em>Planned, and needed before retiring other systems.</em></td></tr>
+<tr><td><strong>Ongoing synchronisation with older systems</strong></td><td>Importing is one-way and meant for a migration (re-runs pick up new people, not changes to people already imported). There is no CSV import: build a JSON file from a spreadsheet with a short script (see <a href="/docs/import-format">the import format</a>). Photos and signatures come across only from the command line.</td></tr>
 <tr><td><strong>Editing compliance records in place</strong></td><td>Registrations, supervisions, appraisals and learning can be added and removed, not edited. Remove and re-add. <em>Planned.</em></td></tr>
 <tr><td><strong>Documents and certificates</strong></td><td>No file storage for contracts, certificates or other documents (only photos and signatures). <em>Planned.</em></td></tr>
 <tr><td><strong>Future-dated moves</strong></td><td>A change of role or team must take effect today or earlier. <em>Planned.</em></td></tr>

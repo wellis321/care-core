@@ -103,3 +103,23 @@ test('docs: every error code the API can emit is documented', function () {
     $undocumented = array_filter(array_unique($codes), static fn($c) => !str_contains($errors, 'id="' . $c . '"'));
     eq(array_values($undocumented), []);
 });
+
+test('docs: the complete example in the import format page really imports, without errors or warnings', function () {
+    $page = Docs::body('import-format');
+    ok(preg_match('~A complete small example</h2>\s*<pre[^>]*><code>(.*?)</code></pre>~s', $page, $m) === 1, 'example not found');
+    $bundle = App\Modules\Import\Bundle::parse(html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5));
+    $org = Fx::org();
+    $dry = (new App\Modules\Import\Importer($org, true))->run($bundle, 'docs example');
+    eq([$dry['errors'], $dry['warnings']], [[], []], json_encode([$dry['errors'], $dry['warnings']]));
+    $r = (new App\Modules\Import\Importer($org, false))->run($bundle, 'docs example');
+    eq($r['counts']['people']['created'], 3);
+    eq([$r['counts']['team_places']['created'], $r['counts']['key_workers']['created'], $r['counts']['employments']['created']], [1, 1, 2]);
+});
+
+test('docs: every script and command the import pages mention exists', function () {
+    $text = Docs::body('import') . Docs::body('import-migrating') . Docs::body('import-format') . Docs::body('install');
+    preg_match_all('~scripts/([a-z-]+\.php)~', $text, $m);
+    foreach (array_unique($m[1]) as $script) {
+        ok(is_file(ROOT_PATH . '/scripts/' . $script), "scripts/$script is mentioned but does not exist");
+    }
+});

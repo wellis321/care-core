@@ -5,6 +5,7 @@
   <a class="card" href="/admin/checklists" style="text-decoration:none;color:inherit"><h2>Checklists</h2><p class="muted">The onboarding, role-change and offboarding lists.</p></a>
   <a class="card" href="/admin/reconcile" style="text-decoration:none;color:inherit"><h2>Consistency checks</h2><p class="muted">Finds anything that should have ended and has not.</p></a>
   <a class="card" href="/admin/integrations" style="text-decoration:none;color:inherit"><h2>Integrations</h2><p class="muted">Webhooks out, and SCIM in from Microsoft Entra.</p></a>
+  <a class="card" href="/admin/import" style="text-decoration:none;color:inherit"><h2>Import data</h2><p class="muted">Bring people, staff and teams across from the older systems.</p></a>
   <a class="card" href="/admin/modules" style="text-decoration:none;color:inherit"><h2>Modules</h2><p class="muted">Switch Staff, Teams and Care on or off.</p></a>
   <a class="card" href="/activity" style="text-decoration:none;color:inherit"><h2>Activity</h2><p class="muted">Who did what, and when.</p></a>
 </div>

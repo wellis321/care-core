@@ -355,6 +355,36 @@ s, h, _ = admin.post('/admin/integrations', {'id': kid}, action='/admin/api-keys
 check('revoking a key stops it at once', 'revoked' in ' '.join(Client.alerts(h)).lower() and apicall('GET', '/ping', token)[0] == 401, Client.alerts(h))
 check('staff cannot manage API keys', staff_c.post('/me', {'name': 'x'}, action='/admin/api-keys')[0] == 403)
 
+print('--- importing data through the admin pages')
+bundle = {'format': 'carecore-import', 'version': 1, 'source': 'HTTP test', 'teams': [{'ref': 'h:t1', 'name': 'Imported Team'}], 'people': [
+    {'ref': 'h:p1', 'first_name': 'Imp', 'last_name': 'Orted', 'email': 'imp.orted@example.test', 'employments': [{'ref': 'h:e1', 'job_title': 'Cook', 'start_date': '2023-03-01'}], 'profile': {'address_postcode': 'NOTAPC', 'address_city': 'Elgin'}},
+    {'ref': 'h:p2', 'first_name': '', 'last_name': 'Nameless'}],
+    'team_places': [{'ref': 'h:tp1', 'team_ref': 'h:t1', 'person_ref': 'h:p1', 'start_date': '2023-03-01', 'primary': True}], 'key_workers': []}
+s, h, _ = admin.get('/admin/import')
+check('the import page explains and offers an upload', s == 200 and 'Import data' in h and 'name="bundles[]"' in h and '/docs/import-format' in h)
+check('staff cannot open it', staff_c.get('/admin/import')[0] == 403)
+s, h, _ = multipart(admin, '/admin/import', '/admin/import/preview', {}, {'bundles[]': ('bundle.json', json.dumps(bundle).encode(), 'application/json')})
+check('a dry run shows what would happen and says nothing has changed', s == 200 and 'What would happen' in h and 'Nothing has been changed yet' in h or 'cannot be imported' in h, re.sub('<[^>]+>', ' ', h)[:300])
+check('it reports the record that cannot be imported, and the dropped postcode', 'first and last name' in h and 'Postcode' in h and 'h:p2' in h)
+check('and changed nothing', 'Imp Orted' not in admin.get('/people?q=Orted')[1])
+token = link(h, r'name="token" value="([0-9a-f]{32})"')
+check('it offers to import for real, and to skip the bad record', token is not None and 'name="skip_errors"' in h)
+s, h, _ = admin.post('/admin/import', {'token': token}, action='/admin/import/commit')
+check('all-or-nothing refuses when there are errors', 'Nothing was imported' in h and 'Imp Orted' not in admin.get('/people?q=Orted')[1])
+s, h, _ = multipart(admin, '/admin/import', '/admin/import/preview', {}, {'bundles[]': ('bundle.json', json.dumps(bundle).encode(), 'application/json')})
+token = link(h, r'name="token" value="([0-9a-f]{32})"')
+s, h, _ = admin.post('/admin/import', {'token': token, 'skip_errors': '1'}, action='/admin/import/commit')
+check('importing the records that are fine works', s == 200 and 'Imported' in h and 'Imp Orted' in admin.get('/people?q=Orted')[1], re.sub('<[^>]+>', ' ', h)[:300])
+check("the imported person is listed as staff", "Orted" in admin.get("/people?kind=staff&q=Orted")[1])
+s, h, _ = admin.get('/admin/import')
+check('the history lists the checks and the import', 'Check only' in h and 'Imported' in h)
+check('the same token cannot be used twice', 'no longer available' in ' '.join(Client.alerts(admin.post('/admin/import', {'token': token}, action='/admin/import/commit')[1])))
+s, h, _ = multipart(admin, '/admin/import', '/admin/import/preview', {}, {'bundles[]': ('bad.json', b'not json at all', 'application/json')})
+check('a file that is not JSON is refused with a clear message', 'not valid JSON' in ' '.join(Client.alerts(h)) or 'not valid JSON' in h)
+s, h, _ = multipart(admin, '/admin/import', '/admin/import/preview', {}, {'bundles[]': ('x.json', b'{"format":"other","version":1}', 'application/json')})
+check('and a file in the wrong format too', 'not a Care Core import bundle' in ' '.join(Client.alerts(h)) or 'not a Care Core import bundle' in h)
+check('the preview step needs a signed-in administrator', Client(follow=False).req('/admin/import')[0] in (302, 303))
+
 print('--- modules, escaping, headers')
 check('a name containing HTML is shown as text', '<script>' not in (lambda h: h)(admin.post('/staff/join', {'first_name': '<script>alert(1)</script>', 'last_name': 'X', 'job_title': 'T', 'start_date': '2026-01-05'}, action='/staff/join')[1]))
 s, h, _ = admin.get('/people?q=script')

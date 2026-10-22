@@ -21,6 +21,8 @@
 <p>For safety, it never shows the stored number. Leave it empty to keep it; type a number to request a change.</p>
 
 <h2>Sign-in</h2>
+<h3>Can I bring in the data from the old Staff, People and Team services?</h3>
+<p>Yes. Exporters read the old databases and an importer checks everything first (a dry run changes nothing), then brings it in through the same rules as typed data. See <a href="/docs/import-migrating">Moving from the older Staff, People and Team services</a>.</p>
 <h3>I forgot my password.</h3>
 <p>Ask an administrator for a <strong>New invitation</strong> (Admin › Logins). They give you a link to choose a new one. To change a password you know, click your email address at the top right.</p>
 <h3>I never received my invitation.</h3>

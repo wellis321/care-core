@@ -56,6 +56,13 @@ $areas = [
     'Administrator, manager and staff roles; line managers can review their reports',
     'A leaver’s access ends on the day after their last day with no job to run',
   ]],
+  'Moving in' => ['import', [
+    'Exporters for the older Staff, People and Team services (read only) and a documented import format for anything else',
+    'A dry run that does all the work and rolls it back, so the report is exactly what an import would do',
+    'The same rules as typed data; bad values are dropped with a warning, not allowed to break a record',
+    'Matches people who are already there, fills blanks, never overwrites; safe to run again',
+    'History stays history, and nothing outlives the people in it; no webhook flood, no onboarding tasks for long-serving staff',
+  ]],
   'The API' => ['api', [
     'A versioned REST API (/api/v1) over HTTPS with 60+ endpoints covering people, staff, compliance, teams, care, tasks, events, webhooks and audit',
     'Scoped API keys: least privilege, address allow-lists, expiry, per-key rate limits, instant revocation, shown once',

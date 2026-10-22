@@ -7,6 +7,7 @@ use App\Modules\Admin\AdminController;
 use App\Modules\Care\CareController;
 use App\Modules\Docs\DocsController;
 use App\Modules\Identity\AuthController;
+use App\Modules\Import\ImportController;
 use App\Modules\Identity\SsoController;
 use App\Modules\People\DashboardController;
 use App\Modules\People\PeopleController;
@@ -110,6 +111,9 @@ $router->add('POST', '/admin/scim', [AdminController::class, 'createScimToken'],
 $router->add('POST', '/admin/scim/revoke', [AdminController::class, 'revokeScimToken'], '*');
 $router->add('POST', '/admin/api-keys', [AdminController::class, 'createApiKey'], '*');
 $router->add('POST', '/admin/api-keys/revoke', [AdminController::class, 'revokeApiKey'], '*');
+$router->add('GET', '/admin/import', [ImportController::class, 'index'], '*');
+$router->add('POST', '/admin/import/preview', [ImportController::class, 'preview'], '*');
+$router->add('POST', '/admin/import/commit', [ImportController::class, 'commit'], '*');
 $router->add('GET', '/admin/checklists', [AdminController::class, 'checklists'], '*');
 $router->add('POST', '/admin/checklists/items', [AdminController::class, 'addChecklistItem'], '*');
 $router->add('POST', '/admin/checklists/items/remove', [AdminController::class, 'removeChecklistItem'], '*');

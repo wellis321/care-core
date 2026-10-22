@@ -14,10 +14,16 @@ final class Events
     /** @var array<int,string> */
     private static array $orgUuids = [];
 
+    /** While true, emit() records nothing. Used when importing history, so a migration does not flood webhooks with old news. */
+    public static bool $muted = false;
+
     /** @param array<string,mixed> $data */
     public static function emit(int $orgId, string $type, ?string $subjectUuid, array $data = []): string
     {
         $id  = Uuid::v4();
+        if (self::$muted) {
+            return $id;
+        }
         $now = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s.v');
         $envelope = [
             'id'           => $id,

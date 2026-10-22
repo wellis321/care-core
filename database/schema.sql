@@ -12,7 +12,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
+DROP TABLE IF EXISTS import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
     login_attempts, tasks, checklist_template_items, checklist_templates, key_worker_assignments, person_contacts,
     care_needs, support_episodes, team_assignments, teams, employment_changes, employments, users, persons,
     organisation_modules, organisations;
@@ -597,6 +597,34 @@ CREATE TABLE api_idempotency (
     UNIQUE KEY uq_idem (key_id, idem_key),
     KEY idx_idem_created (created_at),
     CONSTRAINT fk_idem_key FOREIGN KEY (key_id) REFERENCES api_keys (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE import_refs (
+    id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    organisation_id BIGINT UNSIGNED NOT NULL,
+    entity          VARCHAR(30)  NOT NULL,
+    source_ref      VARCHAR(120) NOT NULL,
+    target_uuid     CHAR(36)     NOT NULL,
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_import_ref (organisation_id, entity, source_ref),
+    KEY idx_import_target (target_uuid),
+    CONSTRAINT fk_impref_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE import_runs (
+    id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid            CHAR(36)     NOT NULL,
+    organisation_id BIGINT UNSIGNED NOT NULL,
+    label           VARCHAR(200) NULL,
+    mode            ENUM('dry_run','import') NOT NULL,
+    status          ENUM('completed','rolled_back','failed') NOT NULL,
+    skip_errors     TINYINT(1)   NOT NULL DEFAULT 0,
+    summary         LONGTEXT     NULL,
+    actor_label     VARCHAR(190) NULL,
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_import_uuid (uuid),
+    KEY idx_import_org (organisation_id, id),
+    CONSTRAINT fk_imprun_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE schema_migrations (
