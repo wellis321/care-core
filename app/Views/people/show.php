@@ -17,6 +17,7 @@ $types = ['phone' => 'Phone', 'email' => 'Email', 'address' => 'Address', 'next_
   </div>
   <div class="actions">
     <?php if ($full && \App\Core\Auth::can('people.edit')): ?><a class="btn btn-secondary" href="/people/<?= $e($person['uuid']) ?>/edit">Edit details</a><?php endif; ?>
+    <?php if ($canManage && ($isStaff || $wasStaff)): ?><a class="btn btn-secondary" href="/people/<?= $e($person['uuid']) ?>/record">Staff record</a><?php endif; ?>
     <?php if ($canManage && $isStaff): ?>
       <a class="btn btn-secondary" href="/staff/<?= $e($current['uuid']) ?>/move">Change role or team</a>
       <?php if (!$current['end_date']): ?><a class="btn btn-danger" href="/staff/<?= $e($current['uuid']) ?>/leave">Record leaving</a><?php endif; ?>

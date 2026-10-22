@@ -26,6 +26,12 @@ final class Response
         return new self($status, $data === null ? '' : (string) json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), ['Content-Type' => $type . '; charset=utf-8']);
     }
 
+    /** A private file (an image the person is allowed to see). Never cached by shared caches, never sniffed. */
+    public static function file(string $body, string $mime): self
+    {
+        return new self(200, $body, ['Content-Type' => $mime, 'Cache-Control' => 'private, max-age=300', 'X-Content-Type-Options' => 'nosniff', 'Content-Disposition' => 'inline']);
+    }
+
     public function send(): void
     {
         http_response_code($this->status);

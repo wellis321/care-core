@@ -17,7 +17,10 @@ use App\Modules\Care\CareRepo;
 use App\Modules\Identity\UserRepo;
 use App\Modules\People\PersonRepo;
 use App\Modules\Staff\Checklists;
+use App\Modules\Staff\Compliance;
 use App\Modules\Staff\Lifecycle;
+use App\Modules\Staff\ProfileChanges;
+use App\Modules\Staff\StaffRecord;
 use App\Modules\Teams\AssignmentRepo;
 use App\Modules\Teams\TeamRepo;
 
@@ -32,6 +35,9 @@ if (!Config::demo() || stripos((string) Config::get('DB_NAME'), 'demo') === fals
 
 DB::pdo()->exec(file_get_contents(dirname(__DIR__) . '/database/schema.sql'));
 DB::run('INSERT INTO schema_migrations (version) VALUES (?)', ['0001_initial']);
+foreach (glob(dirname(__DIR__) . '/database/migrations/*.sql') ?: [] as $f) {
+    DB::run('INSERT INTO schema_migrations (version) VALUES (?)', [basename($f, '.sql')]);
+}
 echo "Schema rebuilt.\n";
 
 const DEMO_PASSWORD = 'DemoPass2026!';
@@ -139,6 +145,54 @@ CareRepo::startSupport($org, $moved['id'], ['start_date' => $day(-1000), 'refere
 AssignmentRepo::assign($org, $home, $moved['id'], 'Service user', false, $day(-1000), $actor);
 CareRepo::assignKeyWorker($org, $moved['id'], $staff[3]['person_id'], 'Key worker', $day(-900), $actor);
 CareRepo::endSupport($org, $moved['id'], $day(-120), $actor);
+
+
+// ── Staff records: profile, terms, registrations, supervisions, appraisals, learning ──
+$streets = ['Ness Walk', 'Church Street', 'Academy Street', 'High Street', 'Lochaber Road', 'Glen Road', 'Harbour Road', 'Station Road'];
+foreach ($staff as $i => $s) {
+    [$clean] = StaffRecord::cleanProfile([
+        'address_line1' => (10 + $i) . ' ' . $streets[$i % 8], 'address_city' => 'Inverness', 'address_county' => 'Highland', 'address_postcode' => 'IV' . (1 + $i % 3) . ' ' . (1 + $i % 9) . 'AA', 'address_country' => 'United Kingdom',
+        'emergency_contact_name' => 'Family contact', 'emergency_contact_phone' => sprintf('07700 900%03d', 300 + $i),
+        'ni_number' => 'JA' . sprintf('%06d', $i) . 'A', 'bank_sort_code' => '00-00-00', 'bank_account_number' => '00000000', 'bank_account_name' => $staffSpec[$i][0] . ' ' . $staffSpec[$i][1],
+    ]);
+    StaffRecord::applyProfile($org, $s['person_id'], $clean, $actor);
+    $emp = DB::one('SELECT * FROM employments WHERE id = ?', [$s['employment_id']]);
+    $terms = ['place_of_work' => $i % 2 ? 'Loch View Care Home' : 'Care at Home base'];
+    [$c] = StaffRecord::cleanSection('terms', $terms + ['is_bank_staff' => $i === 9 ? '1' : '']);
+    StaffRecord::saveSection($org, $emp, 'terms', $c, $actor);
+    [$c] = StaffRecord::cleanSection('wtd', ['wtd_agreed' => '1', 'wtd_agreement_date' => $day(-300), 'wtd_agreement_version' => '2025.1', 'wtd_opt_out' => $i === 4 ? '1' : '', 'wtd_opt_out_date' => $i === 4 ? $day(-200) : '', 'wtd_opt_out_expiry_date' => $i === 4 ? $day(165) : '']);
+    StaffRecord::saveSection($org, $emp, 'wtd', $c, $actor);
+    [$c] = StaffRecord::cleanSection('leave', ['leave_year_start_date' => date('Y') . '-04-01', 'leave_year_end_date' => (date('Y') + 1) . '-03-31', 'annual_leave_allocation' => '33', 'annual_leave_used' => (string) (6 + $i % 9), 'annual_leave_carry_over' => '2']);
+    StaffRecord::saveSection($org, $emp, 'leave', $c, $actor);
+    // Registrations: most are comfortably in date, a few are due soon, one has lapsed.
+    $expiry = [$day(410), $day(380), $day(25), $day(540), $day(-12), $day(300), $day(48), $day(700), $day(260), $day(500), $day(35), $day(610)][$i % 12];
+    if ($i >= 1) {
+        [$c] = Compliance::clean($org, 'registration', ['registration_type' => $i < 2 ? 'SSSC registered manager' : 'SSSC support worker', 'registration_body' => 'Scottish Social Services Council', 'registration_number' => sprintf('SSSC-DEMO-%04d', 2000 + $i), 'issue_date' => $day(-900), 'expiry_date' => $expiry, 'is_required_for_role' => '1']);
+        Compliance::add($org, ['id' => $s['person_id'], 'uuid' => $s['person_uuid']], 'registration', $c, $actor);
+    }
+    $mgr = $staffSpec[$i][7];
+    $sup = $mgr !== null ? $staff[$mgr]['person_uuid'] : '';
+    [$c] = Compliance::clean($org, 'supervision', ['supervision_date' => $day(-20 - $i * 4), 'supervisor_person_id' => $sup, 'supervision_type' => 'individual', 'duration_minutes' => '60', 'outcome' => 'Wellbeing good. Training plan agreed.', 'next_due_date' => $day(10 + $i * 5 - 20)]);
+    Compliance::add($org, ['id' => $s['person_id'], 'uuid' => $s['person_uuid']], 'supervision', $c, $actor);
+    [$c] = Compliance::clean($org, 'appraisal', ['appraisal_date' => $day(-200), 'appraiser_person_id' => $sup, 'appraisal_type' => 'annual', 'outcome' => 'meets_expectations', 'next_due_date' => $day(165 + $i * 7)]);
+    Compliance::add($org, ['id' => $s['person_id'], 'uuid' => $s['person_uuid']], 'appraisal', $c, $actor);
+    foreach ([['Moving and handling', $day(-100), $day(265 - $i * 20), 1], ['Safeguarding adults', $day(-60), $day(305), 1], ['Medication awareness', $day(-400), $day($i % 3 === 0 ? 20 : 330), 1]] as [$t, $done, $exp, $m]) {
+        [$c] = Compliance::clean($org, 'learning', ['title' => $t, 'record_type' => 'training', 'provider' => 'Highland Care Training (demo)', 'completion_date' => $done, 'expiry_date' => $exp, 'status' => 'completed', 'is_mandatory' => '1']);
+        Compliance::add($org, ['id' => $s['person_id'], 'uuid' => $s['person_uuid']], 'learning', $c, $actor);
+    }
+}
+// One TUPE transfer and one visa, so those sections show real content.
+foreach ([[6, 'tupe', ['is_tupe' => '1', 'tupe_transfer_date' => $day(-700), 'tupe_previous_organisation' => 'Glen Care Services (demo)', 'tupe_previous_employer_ref' => 'GCS-114', 'tupe_contract_type' => 'permanent', 'tupe_hours_per_week' => '37.5', 'tupe_notes' => 'Terms protected under TUPE.']],
+          [8, 'visa', ['has_visa' => '1', 'visa_type' => 'Health and Care Worker', 'visa_number' => 'DEMO-VISA-0008', 'visa_issue_date' => $day(-600), 'visa_expiry_date' => $day(75), 'visa_sponsor' => 'Loch View Care (Demo)']]] as [$i, $sec, $vals]) {
+    [$c] = StaffRecord::cleanSection($sec, $vals);
+    StaffRecord::saveSection($org, DB::one('SELECT * FROM employments WHERE id = ?', [$staff[$i]['employment_id']]), $sec, $c, $actor);
+}
+// A request from Callum (a "staff" login) waiting for his line manager Isla ("manager" login): shows the approval flow.
+$callumUser = DB::one('SELECT id FROM users WHERE email = ?', ['staff@demo.lochview.test']);
+if ($callumUser) {
+    [$c] = StaffRecord::cleanProfile(['address_line1' => '4 Millburn Road', 'address_postcode' => 'IV2 3PS', 'phone' => '07700 900555']);
+    ProfileChanges::submit($org, (int) $staff[2]['person_id'], (int) $callumUser['id'], $c, Actor::system('demo'));
+}
 
 // History is complete: only recent and upcoming work is still open.
 DB::run("UPDATE tasks SET status = 'done', completed_at = UTC_TIMESTAMP() WHERE status = 'open' AND due_date < DATE_SUB(CURDATE(), INTERVAL 14 DAY)");

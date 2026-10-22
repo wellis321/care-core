@@ -18,6 +18,11 @@ final class Clock
         self::$fixed = $date;
     }
 
+    public static function addDays(string $date, int $days): string
+    {
+        return (new \DateTimeImmutable($date))->modify(($days >= 0 ? '+' : '') . $days . ' days')->format('Y-m-d');
+    }
+
     public static function valid(?string $date): bool
     {
         if ($date === null || $date === '') {

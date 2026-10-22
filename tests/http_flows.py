@@ -64,7 +64,31 @@ def link(h, pattern):
     return m.group(1) if m else None
 
 
+import base64, uuid as _uuid
+PNG = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==')
+
+
+def multipart(client, page, action, fields, files):
+    """POST a form with file uploads."""
+    h = client.get(page)[1]
+    b = '----cc' + _uuid.uuid4().hex
+    body = b''
+    for k, v in {'_csrf': client.tok(h), **fields}.items():
+        body += ('--%s\r\nContent-Disposition: form-data; name="%s"\r\n\r\n%s\r\n' % (b, k, v)).encode()
+    for k, (name, data, mime) in files.items():
+        body += ('--%s\r\nContent-Disposition: form-data; name="%s"; filename="%s"\r\nContent-Type: %s\r\n\r\n' % (b, k, name, mime)).encode() + data + b'\r\n'
+    body += ('--%s--\r\n' % b).encode()
+    rq = urllib.request.Request(BASE + action, data=body, headers={'Content-Type': 'multipart/form-data; boundary=' + b})
+    try:
+        r = client.op.open(rq, timeout=30)
+        return r.status, r.read().decode('utf8', 'replace'), r.geturl()
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode('utf8', 'replace'), e.headers.get('Location', action)
+
+
 admin = Client('admin@demo.lochview.test')
+staff_c = Client('staff@demo.lochview.test')      # Callum Reid: reports to Isla (manager login)
+mgr_c = Client('manager@demo.lochview.test')
 print('--- sign-in and access')
 check('unauthenticated visitors are sent to sign in', Client(follow=False).req('/people')[0] in (302, 303))
 s, h, _ = Client().post('/login', {'email': 'admin@demo.lochview.test', 'password': 'wrong'})
@@ -174,6 +198,72 @@ check('SCIM create runs the joiner process', st == 201 and u['active'] is True, 
 st, u2 = scim('PATCH', '/Users/' + u['id'], {'Operations': [{'op': 'Replace', 'path': 'active', 'value': 'False'}]})
 check('SCIM "active: False" runs the leaver process', st == 200 and u2['active'] is False, u2)
 check('and the login shows as disabled in the web interface', re.search(r'scim\.person@example\.test.*?Disabled', admin.get('/admin/users')[1], re.S) is not None)
+
+print('--- staff records, self-service and approvals')
+s, h, _ = staff_c.get('/me')
+check('a member of staff sees My profile', s == 200 and 'My details' in h and 'Callum' in h)
+check('and a request from the demo is already waiting', 'Waiting for approval' in h and '4 Millburn Road' in h)
+check('another member of staff cannot use the manager record page', staff_c.get('/people/' + link(admin.get('/people?q=Callum')[1], r'/people/([0-9a-f-]{36})') + '/record')[0] == 403)
+s, h, _ = staff_c.post('/me', {'first_name': 'Callum', 'last_name': 'Reid', 'phone': 'not a phone', 'address_postcode': 'IV2 3PS'})
+check('a bad phone number is refused with a message next to the field', s == 422 and 'Phone number can only have numbers' in h and 'field-error' in h, h[:200])
+s, h, _ = staff_c.post('/me', {'first_name': 'Callum', 'last_name': 'Reid', 'phone': '07700 900999', 'address_postcode': 'IV2 3PS', 'ni_number': '', 'emergency_contact_name': 'Pat Reid'})
+check('phone and emergency contact save straight away', 'saved straight away' in ' '.join(Client.alerts(h)).lower() and '07700 900999' in staff_c.get('/me')[1], Client.alerts(h))
+s, h, _ = staff_c.post('/me', {'first_name': 'Callum', 'last_name': 'Reid', 'ni_number': 'qq 12 34 56 c'})
+check('an impossible National Insurance number is refused', s == 422 and 'National Insurance number does not look right' in h)
+s, h, _ = staff_c.post('/me', {'first_name': 'Callum', 'last_name': 'Reid', 'bank_sort_code': '12 34 56', 'bank_account_number': '12345678', 'bank_account_name': 'C Reid'})
+check('bank details are held for approval', 'sent to your line manager' in ' '.join(Client.alerts(h)), Client.alerts(h))
+h = staff_c.get('/me')[1]
+check('pending secrets are masked for the person themselves', '••••5678' in h and '12345678' not in h)
+check('Callum has no way to approve anything', staff_c.get('/approvals')[0] == 200 and 'Nothing is waiting' in staff_c.get('/approvals')[1])
+s, h, _ = staff_c.post('/me', {'first_name': 'Callum'}, action='/approvals/' + (link(h, r'name="id" value="([0-9a-f-]{36})"') or 'x'))
+check('and cannot approve by posting directly', 'Approved' not in ' '.join(Client.alerts(h)))
+s, h, _ = multipart(staff_c, '/me', '/me/photo', {}, {'photo': ('p.png', PNG, 'image/png')})
+check('a photo can be sent for approval', 'sent to your line manager' in ' '.join(Client.alerts(h)), Client.alerts(h))
+s, h, _ = multipart(staff_c, '/me', '/me/photo', {}, {'photo': ('evil.png', b'<?php system($_GET[1]); ?>', 'image/png')})
+check('a script disguised as a photo is refused', 'Only PNG' in ' '.join(Client.alerts(h)), Client.alerts(h))
+s, h, _ = multipart(staff_c, '/me', '/me/signature', {'signature_data': 'data:image/png;base64,' + base64.b64encode(PNG).decode()}, {})
+check('a drawn signature can be sent for approval', 'signature was sent' in ' '.join(Client.alerts(h)).lower(), Client.alerts(h))
+pend_sig = link(staff_c.get('/me')[1], r'/files/pending/([0-9a-f-]{36})')
+check('Callum can see his pending picture', pend_sig is not None and staff_c.get('/files/pending/' + pend_sig)[0] == 200)
+
+s, h, _ = mgr_c.get('/approvals')
+check('Isla (his line manager) sees the requests', s == 200 and 'Callum Reid' in h and '4 Millburn Road' in h and 'Approve' in h)
+check('and sees the real bank number to check it', '12345678' in h)
+check('Isla can fetch the pending picture', mgr_c.get('/files/pending/' + pend_sig)[0] == 200)
+check('a stranger cannot fetch the pending picture', Client().get('/files/pending/' + pend_sig)[0] in (200, 302, 303) and 'image' not in (Client().req('/files/pending/' + pend_sig)[1][:20]))
+rows = re.findall(r'action="/approvals/([0-9a-f-]{36})"', h)
+check('there are several requests to decide', len(rows) >= 5, len(rows))
+done = 0
+for u in rows:
+    s, hh, _ = mgr_c.post('/approvals', {'decision': 'approve'}, action='/approvals/' + u)
+    done += 'Approved and applied' in ' '.join(Client.alerts(hh))
+check('approving applies them', done == len(rows), (done, len(rows)))
+h = staff_c.get('/me')[1]
+check('Callum now sees the approved address, signature and photo', '4 Millburn Road' in h and 'alt="Your current signature"' in h and 'alt="Your current photo"' in h)
+sig_uuid = link(h, r'/files/signature/([0-9a-f-]{36})')
+check('Callum can see his own signature file', staff_c.get('/files/signature/' + sig_uuid)[0] == 200)
+check('a colleague cannot read his signature', Client().get('/files/signature/' + sig_uuid)[0] in (302, 303, 200) and 'image' not in Client().req('/files/signature/' + sig_uuid)[1][:20])
+
+print('--- the manager view of a staff record')
+cal = link(admin.get('/people?q=Callum')[1], r'/people/([0-9a-f-]{36})')
+s, h, _ = admin.get('/people/' + cal + '/record')
+check('HR sees the full staff record', s == 200 and 'Personal details' in h and 'TUPE transfer' in h and 'Working time' in h and 'Registrations' in h)
+check('with the decrypted bank details for editing', '12345678' in h and 'JA000002A' in h)
+s, h, _ = admin.post('/people/' + cal + '/record', {'section': 'visa', 'has_visa': '1'}, action='/people/' + cal + '/record/section')
+check('a section with a missing expiry shows the error beside the field', s == 422 and 'Enter when the visa expires' in h)
+s, h, _ = admin.post('/people/' + cal + '/record', {'section': 'tupe', 'is_tupe': '1', 'tupe_transfer_date': '2025-03-01', 'tupe_previous_organisation': 'Glen Care'}, action='/people/' + cal + '/record/section')
+check('a section saves', 'TUPE transfer saved' in ' '.join(Client.alerts(h)), Client.alerts(h))
+check('and the other sections are untouched', 'value="2025.1"' in admin.get('/people/' + cal + '/record')[1])
+s, h, _ = admin.post('/people/' + cal + '/record', {'registration_type': 'First aid', 'expiry_date': '2020-01-01', 'issue_date': '2021-01-01'}, action='/people/' + cal + '/compliance/registration')
+check('a registration that expires before it was issued is refused', s == 422 and 'cannot expire before' in h)
+s, h, _ = admin.post('/people/' + cal + '/record', {'registration_type': 'First aid', 'expiry_date': '2030-01-01'}, action='/people/' + cal + '/compliance/registration')
+check('a registration can be added', 'Saved.' in ' '.join(Client.alerts(h)), Client.alerts(h))
+rid = link(admin.get('/people/' + cal + '/record')[1], r'name="id" value="([0-9a-f-]{36})"')
+s, h, _ = admin.post('/people/' + cal + '/record', {'id': rid}, action='/people/' + cal + '/compliance/registration/remove')
+check('and removed', 'Removed.' in ' '.join(Client.alerts(h)), Client.alerts(h))
+check('staff cannot add compliance records to anyone', staff_c.post('/me', {'registration_type': 'x'}, action='/people/' + cal + '/compliance/registration')[0] == 403)
+check('an unknown kind of record is a 404', admin.post('/people/' + cal + '/record', {}, action='/people/' + cal + '/compliance/bogus')[0] == 404)
+check('a manager who opens their own staff record is sent to My profile (no approving their own changes)', mgr_c.get('/people/' + link(admin.get('/people?q=Isla')[1], r'/people/([0-9a-f-]{36})') + '/record')[2].endswith('/me'))
 
 print('--- modules, escaping, headers')
 check('a name containing HTML is shown as text', '<script>' not in (lambda h: h)(admin.post('/staff/join', {'first_name': '<script>alert(1)</script>', 'last_name': 'X', 'job_title': 'T', 'start_date': '2026-01-05'}, action='/staff/join')[1]))

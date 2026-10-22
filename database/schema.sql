@@ -12,7 +12,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
+DROP TABLE IF EXISTS learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
     login_attempts, tasks, checklist_template_items, checklist_templates, key_worker_assignments, person_contacts,
     care_needs, support_episodes, team_assignments, teams, employment_changes, employments, users, persons,
     organisation_modules, organisations;
@@ -63,6 +63,7 @@ CREATE TABLE users (
     organisation_id   BIGINT UNSIGNED NOT NULL,
     person_id         BIGINT UNSIGNED NULL,
     email             VARCHAR(190) NOT NULL,
+    oidc_subject      VARCHAR(100) NULL,
     password_hash     VARCHAR(255) NULL,
     role              ENUM('admin','manager','staff') NOT NULL DEFAULT 'staff',
     status            ENUM('active','invited','disabled') NOT NULL DEFAULT 'active',
@@ -73,6 +74,7 @@ CREATE TABLE users (
     created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uq_user_uuid (uuid),
     UNIQUE KEY uq_user_email (email),
+    UNIQUE KEY uq_user_oidc (oidc_subject),
     KEY idx_user_person (person_id),
     KEY idx_user_invite (invite_token_hash),
     CONSTRAINT fk_user_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
@@ -350,6 +352,195 @@ CREATE TABLE scim_tokens (
     UNIQUE KEY uq_scim_hash (token_hash),
     CONSTRAINT fk_scim_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- Staff records: personal profile, employment details, self-service approvals, and the compliance records
+-- (registrations, supervisions, appraisals, learning). Everything hangs off the one persons / employments rows.
+
+-- Personal details that belong to the human, not to one job. One row per person.
+-- ni_number and the bank columns hold encrypted text (see App\Core\Crypto), hence the width.
+CREATE TABLE person_profiles (
+    person_id               BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    organisation_id         BIGINT UNSIGNED NOT NULL,
+    address_line1           VARCHAR(190) NULL,
+    address_line2           VARCHAR(190) NULL,
+    address_city            VARCHAR(100) NULL,
+    address_county          VARCHAR(100) NULL,
+    address_postcode        VARCHAR(12)  NULL,
+    address_country         VARCHAR(100) NULL,
+    emergency_contact_name  VARCHAR(150) NULL,
+    emergency_contact_phone VARCHAR(40)  NULL,
+    ni_number               VARCHAR(255) NULL,
+    bank_sort_code          VARCHAR(255) NULL,
+    bank_account_number     VARCHAR(255) NULL,
+    bank_account_name       VARCHAR(255) NULL,
+    photo_path              VARCHAR(190) NULL,
+    signature_path          VARCHAR(190) NULL,
+    signature_method        ENUM('draw','upload') NULL,
+    signature_at            DATETIME     NULL,
+    updated_at              DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pp_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE,
+    CONSTRAINT fk_pp_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Terms of one stint of employment (a rehire gets its own row). TUPE, working time, visas, apprenticeships, leave.
+CREATE TABLE employment_details (
+    employment_id              BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    organisation_id            BIGINT UNSIGNED NOT NULL,
+    place_of_work              VARCHAR(190) NULL,
+    external_job_description_url VARCHAR(500) NULL,
+    external_job_description_ref VARCHAR(100) NULL,
+    is_bank_staff              TINYINT(1)   NOT NULL DEFAULT 0,
+    is_tupe                    TINYINT(1)   NOT NULL DEFAULT 0,
+    tupe_transfer_date         DATE         NULL,
+    tupe_previous_organisation VARCHAR(190) NULL,
+    tupe_previous_employer_ref VARCHAR(100) NULL,
+    tupe_contract_type         VARCHAR(40)  NULL,
+    tupe_hours_per_week        DECIMAL(5,2) NULL,
+    tupe_salary                DECIMAL(10,2) NULL,
+    tupe_notes                 TEXT         NULL,
+    wtd_agreed                 TINYINT(1)   NOT NULL DEFAULT 0,
+    wtd_agreement_date         DATE         NULL,
+    wtd_agreement_version      VARCHAR(50)  NULL,
+    wtd_opt_out                TINYINT(1)   NOT NULL DEFAULT 0,
+    wtd_opt_out_date           DATE         NULL,
+    wtd_opt_out_expiry_date    DATE         NULL,
+    wtd_notes                  TEXT         NULL,
+    is_apprentice              TINYINT(1)   NOT NULL DEFAULT 0,
+    apprenticeship_start_date  DATE         NULL,
+    apprenticeship_end_date    DATE         NULL,
+    apprenticeship_level       VARCHAR(50)  NULL,
+    apprenticeship_provider    VARCHAR(190) NULL,
+    has_visa                   TINYINT(1)   NOT NULL DEFAULT 0,
+    visa_type                  VARCHAR(100) NULL,
+    visa_number                VARCHAR(100) NULL,
+    visa_issue_date            DATE         NULL,
+    visa_expiry_date           DATE         NULL,
+    visa_sponsor               VARCHAR(190) NULL,
+    leave_year_start_date      DATE         NULL,
+    leave_year_end_date        DATE         NULL,
+    annual_leave_allocation    DECIMAL(5,2) NULL,
+    annual_leave_used          DECIMAL(5,2) NOT NULL DEFAULT 0,
+    annual_leave_carry_over    DECIMAL(5,2) NOT NULL DEFAULT 0,
+    time_in_lieu_hours         DECIMAL(5,2) NOT NULL DEFAULT 0,
+    time_in_lieu_used          DECIMAL(5,2) NOT NULL DEFAULT 0,
+    lying_time_hours           DECIMAL(5,2) NOT NULL DEFAULT 0,
+    lying_time_used            DECIMAL(5,2) NOT NULL DEFAULT 0,
+    notes                      TEXT         NULL,
+    updated_at                 DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_ed_visa (organisation_id, visa_expiry_date),
+    CONSTRAINT fk_ed_emp FOREIGN KEY (employment_id)   REFERENCES employments (id)   ON DELETE CASCADE,
+    CONSTRAINT fk_ed_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- A change a member of staff asked for on their own record, waiting for their line manager (or HR) to approve.
+CREATE TABLE profile_changes (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid              CHAR(36)     NOT NULL,
+    organisation_id   BIGINT UNSIGNED NOT NULL,
+    person_id         BIGINT UNSIGNED NOT NULL,
+    submitted_by_user_id BIGINT UNSIGNED NULL,
+    field             VARCHAR(60)  NOT NULL,
+    label             VARCHAR(100) NOT NULL,
+    field_type        ENUM('text','date','file') NOT NULL DEFAULT 'text',
+    current_value     TEXT         NULL,
+    proposed_value    TEXT         NULL,
+    status            ENUM('pending','approved','rejected','withdrawn') NOT NULL DEFAULT 'pending',
+    reviewer_user_id  BIGINT UNSIGNED NULL,
+    rejection_reason  VARCHAR(300) NULL,
+    submitted_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at       DATETIME     NULL,
+    seen_at           DATETIME     NULL,
+    UNIQUE KEY uq_pc_uuid (uuid),
+    KEY idx_pc_person (person_id, status),
+    KEY idx_pc_org_status (organisation_id, status),
+    CONSTRAINT fk_pc_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_pc_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE registrations (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid               CHAR(36)     NOT NULL,
+    organisation_id    BIGINT UNSIGNED NOT NULL,
+    person_id          BIGINT UNSIGNED NOT NULL,
+    registration_type  VARCHAR(100) NOT NULL,
+    registration_body  VARCHAR(150) NULL,
+    registration_number VARCHAR(100) NULL,
+    issue_date         DATE         NULL,
+    expiry_date        DATE         NOT NULL,
+    is_required_for_role TINYINT(1) NOT NULL DEFAULT 1,
+    notes              TEXT         NULL,
+    created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_reg_uuid (uuid),
+    KEY idx_reg_person (person_id),
+    KEY idx_reg_expiry (organisation_id, expiry_date),
+    CONSTRAINT fk_reg_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_reg_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE supervisions (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid               CHAR(36)     NOT NULL,
+    organisation_id    BIGINT UNSIGNED NOT NULL,
+    person_id          BIGINT UNSIGNED NOT NULL,
+    supervision_date   DATE         NOT NULL,
+    supervisor_person_id BIGINT UNSIGNED NULL,
+    supervision_type   ENUM('individual','group','peer','other') NOT NULL DEFAULT 'individual',
+    duration_minutes   SMALLINT UNSIGNED NULL,
+    outcome            TEXT         NULL,
+    next_due_date      DATE         NULL,
+    notes              TEXT         NULL,
+    created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_sup_uuid (uuid),
+    KEY idx_sup_person (person_id, supervision_date),
+    KEY idx_sup_due (organisation_id, next_due_date),
+    CONSTRAINT fk_sup_org    FOREIGN KEY (organisation_id)      REFERENCES organisations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_sup_person FOREIGN KEY (person_id)            REFERENCES persons (id)       ON DELETE CASCADE,
+    CONSTRAINT fk_sup_by     FOREIGN KEY (supervisor_person_id) REFERENCES persons (id)       ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE appraisals (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid               CHAR(36)     NOT NULL,
+    organisation_id    BIGINT UNSIGNED NOT NULL,
+    person_id          BIGINT UNSIGNED NOT NULL,
+    appraisal_date     DATE         NOT NULL,
+    appraiser_person_id BIGINT UNSIGNED NULL,
+    appraisal_type     ENUM('annual','probationary','interim','return_to_work','other') NOT NULL DEFAULT 'annual',
+    outcome            ENUM('pending','outstanding','exceeds_expectations','meets_expectations','requires_improvement','unsatisfactory','not_completed') NOT NULL DEFAULT 'pending',
+    next_due_date      DATE         NULL,
+    notes              TEXT         NULL,
+    created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_apr_uuid (uuid),
+    KEY idx_apr_person (person_id, appraisal_date),
+    KEY idx_apr_due (organisation_id, next_due_date),
+    CONSTRAINT fk_apr_org    FOREIGN KEY (organisation_id)       REFERENCES organisations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_apr_person FOREIGN KEY (person_id)             REFERENCES persons (id)       ON DELETE CASCADE,
+    CONSTRAINT fk_apr_by     FOREIGN KEY (appraiser_person_id)   REFERENCES persons (id)       ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE learning_records (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid               CHAR(36)     NOT NULL,
+    organisation_id    BIGINT UNSIGNED NOT NULL,
+    person_id          BIGINT UNSIGNED NOT NULL,
+    record_type        VARCHAR(40)  NOT NULL DEFAULT 'training',
+    title              VARCHAR(190) NOT NULL,
+    provider           VARCHAR(190) NULL,
+    qualification_level VARCHAR(100) NULL,
+    completion_date    DATE         NULL,
+    expiry_date        DATE         NULL,
+    certificate_number VARCHAR(100) NULL,
+    status             ENUM('completed','in_progress','pending','expired') NOT NULL DEFAULT 'completed',
+    is_mandatory       TINYINT(1)   NOT NULL DEFAULT 0,
+    notes              TEXT         NULL,
+    created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_lr_uuid (uuid),
+    KEY idx_lr_person (person_id),
+    KEY idx_lr_expiry (organisation_id, expiry_date),
+    CONSTRAINT fk_lr_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_lr_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 
 CREATE TABLE schema_migrations (
     version    VARCHAR(100) NOT NULL PRIMARY KEY,

@@ -8,7 +8,9 @@ use App\Modules\Care\CareController;
 use App\Modules\Identity\AuthController;
 use App\Modules\People\DashboardController;
 use App\Modules\People\PeopleController;
+use App\Modules\Staff\SelfServiceController;
 use App\Modules\Staff\StaffController;
+use App\Modules\Staff\StaffRecordController;
 use App\Modules\Staff\TaskController;
 use App\Modules\Teams\TeamController;
 
@@ -35,6 +37,24 @@ $router->add('GET', '/staff/{uuid}/move', [StaffController::class, 'moveForm'], 
 $router->add('POST', '/staff/{uuid}/move', [StaffController::class, 'move'], 'staff.manage', 'staff');
 $router->add('GET', '/staff/{uuid}/leave', [StaffController::class, 'leaveForm'], 'staff.manage', 'staff');
 $router->add('POST', '/staff/{uuid}/leave', [StaffController::class, 'leave'], 'staff.manage', 'staff');
+
+// Staff record (managers and HR)
+$router->add('GET', '/people/{uuid}/record', [StaffRecordController::class, 'show'], 'staff.manage', 'staff');
+$router->add('POST', '/people/{uuid}/record/profile', [StaffRecordController::class, 'saveProfile'], 'staff.manage', 'staff');
+$router->add('POST', '/people/{uuid}/record/section', [StaffRecordController::class, 'saveSection'], 'staff.manage', 'staff');
+$router->add('POST', '/people/{uuid}/record/file', [StaffRecordController::class, 'saveFile'], 'staff.manage', 'staff');
+$router->add('POST', '/people/{uuid}/compliance/{kind}', [StaffRecordController::class, 'addCompliance'], 'staff.manage', 'staff');
+$router->add('POST', '/people/{uuid}/compliance/{kind}/remove', [StaffRecordController::class, 'removeCompliance'], 'staff.manage', 'staff');
+
+// Self-service, approvals and private pictures (every signed-in person)
+$router->add('GET', '/me', [SelfServiceController::class, 'me']);
+$router->add('POST', '/me', [SelfServiceController::class, 'saveDetails']);
+$router->add('POST', '/me/photo', [SelfServiceController::class, 'savePhoto']);
+$router->add('POST', '/me/signature', [SelfServiceController::class, 'saveSignature']);
+$router->add('POST', '/me/changes/withdraw', [SelfServiceController::class, 'withdraw']);
+$router->add('GET', '/approvals', [SelfServiceController::class, 'approvals']);
+$router->add('POST', '/approvals/{uuid}', [SelfServiceController::class, 'decide']);
+$router->add('GET', '/files/{kind}/{uuid}', [SelfServiceController::class, 'file']);
 
 // Tasks
 $router->add('GET', '/tasks', [TaskController::class, 'index'], 'tasks.view');

@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 putenv('DB_NAME=' . (getenv('DB_NAME') ?: 'care_core_test'));
 putenv('DEMO_MODE=true');
+putenv('APP_KEY=' . base64_encode(str_repeat('k', 32)));
 require dirname(__DIR__) . '/app/bootstrap.php';
 
 use App\Core\Database as DB;

@@ -37,6 +37,8 @@ $flash = Session::takeFlash();
       <?php if (Auth::can('people.view') || Auth::can('people.view_staff')): ?><a href="/people"<?= $active('/people') ?>>People</a><?php endif; ?>
       <?php if (Modules::enabled($org, 'teams') && Auth::can('teams.view')): ?><a href="/teams"<?= $active('/teams') ?>>Teams</a><?php endif; ?>
       <?php if (Auth::can('tasks.view')): ?><a href="/tasks"<?= $active('/tasks') ?>>Tasks</a><?php endif; ?>
+      <?php if (Auth::user()['person_id']): ?><a href="/me"<?= $active('/me') ?>>My profile</a><?php endif; ?>
+      <?php $waiting = \App\Modules\Staff\ProfileChanges::queueFor($user); if ($waiting || Auth::can('staff.manage')): ?><a href="/approvals"<?= $active('/approvals') ?>>Approvals<?php if ($waiting): ?><span class="badge" aria-label="<?= count($waiting) ?> waiting"><?= count($waiting) ?></span><?php endif; ?></a><?php endif; ?>
       <?php if (Auth::can('audit.view')): ?><a href="/activity"<?= $active('/activity') ?>>Activity</a><?php endif; ?>
       <?php if (Auth::can('*')): ?><a href="/admin"<?= $active('/admin') ?>>Admin</a><?php endif; ?>
     </nav>
