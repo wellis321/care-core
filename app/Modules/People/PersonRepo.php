@@ -15,6 +15,9 @@ use App\Core\Uuid;
 /** The people register: one permanent identity per human. What they ARE to the organisation is a relationship, held elsewhere. */
 final class PersonRepo
 {
+    /** The structured details beyond name, date of birth, email and phone. Only the ones present in the data are changed. */
+    public const DETAILS = ['sex', 'nhs_number', 'employment_status', 'gp_practice', 'address_line1', 'address_line2', 'town', 'area', 'postcode'];
+
     /** @param array<string,mixed> $d @return list<string> */
     public static function problems(array $d): array
     {
@@ -28,7 +31,48 @@ final class PersonRepo
             (($d['date_of_birth'] ?? '') !== '' && Clock::valid($d['date_of_birth']) && $d['date_of_birth'] > Clock::today()) ? 'Date of birth cannot be in the future.' : null,
             Check::email($d['email'] ?? null),
             Check::maxLen($d['phone'] ?? null, 40, 'Phone'),
+            Check::oneOf(self::nullable($d['sex'] ?? null), ['M', 'F', 'X'], 'sex (M, F or X)', false),
+            Check::nhsNumber(self::nullable($d['nhs_number'] ?? null)),
+            Check::maxLen($d['employment_status'] ?? null, 100, 'Employment status'),
+            Check::maxLen($d['gp_practice'] ?? null, 255, 'GP practice'),
+            Check::maxLen($d['address_line1'] ?? null, 190, 'Address'),
+            Check::maxLen($d['address_line2'] ?? null, 190, 'Address line 2'),
+            Check::maxLen($d['town'] ?? null, 100, 'Town'),
+            Check::maxLen($d['area'] ?? null, 100, 'Area'),
+            Check::maxLen($d['postcode'] ?? null, 12, 'Postcode'),
         ]);
+    }
+
+    /** The details to write: only those present in the data, cleaned (empty becomes null, the NHS number loses spaces, sex is upper case). @param array<string,mixed> $d @return array<string,?string> */
+    private static function detailColumns(array $d): array
+    {
+        $out = [];
+        foreach (self::DETAILS as $k) {
+            if (!array_key_exists($k, $d)) {
+                continue;
+            }
+            $v = self::nullable($d[$k]);
+            if ($v !== null && $k === 'nhs_number') {
+                $v = preg_replace('/[\s-]/', '', $v);
+            }
+            if ($v !== null && $k === 'sex') {
+                $v = strtoupper($v);
+            }
+            $out[$k] = $v;
+        }
+        return $out;
+    }
+
+    /** One NHS/CHI number belongs to one person. */
+    private static function checkNhsFree(int $orgId, ?string $nhs, ?int $exceptPersonId): void
+    {
+        if ($nhs === null) {
+            return;
+        }
+        $other = DB::one('SELECT id FROM persons WHERE organisation_id = ? AND nhs_number = ?' . ($exceptPersonId ? ' AND id <> ' . (int) $exceptPersonId : ''), [$orgId, $nhs]);
+        if ($other) {
+            throw DomainException::of(['Another person already has that NHS number.']);
+        }
     }
 
     /** @param array<string,mixed> $d @return array{id:int,uuid:string} */
@@ -37,9 +81,11 @@ final class PersonRepo
         if ($p = self::problems($d)) {
             throw DomainException::of($p);
         }
-        return DB::transaction(function () use ($orgId, $d, $actor) {
+        $details = self::detailColumns($d);
+        self::checkNhsFree($orgId, $details['nhs_number'] ?? null, null);
+        return DB::transaction(function () use ($orgId, $d, $actor, $details) {
             $uuid = Uuid::v4();
-            $id = DB::insert('persons', [
+            $id = DB::insert('persons', $details + [
                 'uuid'            => $uuid,
                 'organisation_id' => $orgId,
                 'first_name'      => trim($d['first_name']),
@@ -62,9 +108,11 @@ final class PersonRepo
         if ($p = self::problems($d)) {
             throw DomainException::of($p);
         }
-        DB::transaction(function () use ($orgId, $personId, $d, $actor) {
+        $details = self::detailColumns($d);
+        self::checkNhsFree($orgId, $details['nhs_number'] ?? null, $personId);
+        DB::transaction(function () use ($orgId, $personId, $d, $actor, $details) {
             $person = self::byId($orgId, $personId) ?? throw new DomainException('Person not found.');
-            DB::update('persons', [
+            DB::update('persons', $details + [
                 'first_name'     => trim($d['first_name']),
                 'last_name'      => trim($d['last_name']),
                 'preferred_name' => self::nullable($d['preferred_name'] ?? null),

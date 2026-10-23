@@ -51,6 +51,10 @@
 <div class="tablewrap"><table>
 <thead><tr><th>Field</th><th>Format</th></tr></thead>
 <tbody>
+<tr><td>Sex (on the person)</td><td>M, F or X</td></tr>
+<tr><td>NHS / CHI number (on the person)</td><td>10 digits with a valid check digit; spaces and dashes allowed; one person each</td></tr>
+<tr><td>Employment status, GP practice (on the person)</td><td>Free text (100 and 255 characters)</td></tr>
+<tr><td>Home address (on the person)</td><td>Address, address line 2, town, area, postcode</td></tr>
 <tr><td>Support starts on, ends on</td><td>Real dates; the end is the last day</td></tr>
 <tr><td>Reference, local authority reference</td><td>Free text</td></tr>
 <tr><td>NHS number</td><td>10 digits with a valid check digit; spaces and dashes allowed</td></tr>

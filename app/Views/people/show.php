@@ -37,6 +37,13 @@ $types = ['phone' => 'Phone', 'email' => 'Email', 'address' => 'Address', 'next_
     <dt>Email</dt><dd><?= $e($person['email'] ?? '') ?: '—' ?></dd>
     <dt>Phone</dt><dd><?= $e($person['phone'] ?? '') ?: '—' ?></dd>
     <dt>Date of birth</dt><dd><?= View::date($person['date_of_birth']) ?></dd>
+    <?php if ($careOn): $addr = implode(', ', array_filter([$person['address_line1'], $person['address_line2'], $person['town'], $person['area'], $person['postcode']])); ?>
+      <dt>Sex</dt><dd><?= $e($person['sex'] ?? '') ?: '—' ?></dd>
+      <dt>NHS / CHI number</dt><dd><?= $e($person['nhs_number'] ?? '') ?: '—' ?></dd>
+      <dt>Address</dt><dd><?= $e($addr) ?: '—' ?></dd>
+      <dt>GP practice</dt><dd><?= $e($person['gp_practice'] ?? '') ?: '—' ?></dd>
+      <dt>Employment status</dt><dd><?= $e($person['employment_status'] ?? '') ?: '—' ?></dd>
+    <?php endif; ?>
     <?php if ($person['notes']): ?><dt>Notes</dt><dd><?= nl2br($e($person['notes'])) ?></dd><?php endif; ?>
   </dl>
 </section>

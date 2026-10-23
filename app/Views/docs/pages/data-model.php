@@ -28,7 +28,7 @@
 <thead><tr><th>Table</th><th>Holds</th><th>Key points</th></tr></thead>
 <tbody>
 <tr><td><code>organisations</code></td><td>Each tenant.</td><td>Everything else belongs to one.</td></tr>
-<tr><td><code>persons</code></td><td>A human, once.</td><td>Names, date of birth, email, phone, notes. Never deleted.</td></tr>
+<tr><td><code>persons</code></td><td>A human, once.</td><td>Names, date of birth, sex, NHS/CHI number, email, phone, employment status, GP practice, home address in parts, notes. Never deleted.</td></tr>
 <tr><td><code>person_profiles</code></td><td>Personal details that belong to the person.</td><td>National Insurance and bank columns hold encrypted text.</td></tr>
 <tr><td><code>employments</code></td><td>One stint of work.</td><td><code>start_date</code>, <code>end_date</code> (last day), job title, contract type, hours, <code>line_manager_person_id</code>, <code>employee_ref</code> (unique per organisation), leaving reason. A rehire is a new row.</td></tr>
 <tr><td><code>employment_changes</code></td><td>History of a move.</td><td>Field, from value, to value, effective date.</td></tr>

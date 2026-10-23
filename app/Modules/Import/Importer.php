@@ -215,14 +215,22 @@ final class Importer
             }
         }
         $notes = $this->s($p['notes'] ?? null);
+        // optional structured details (sex, NHS number, address, GP, employment): taken when present, and only ever fill blanks
+        $details = [];
+        foreach (PersonRepo::DETAILS as $k) {
+            $v = $this->s($p[$k] ?? null);
+            if ($v !== null) {
+                $details[$k] = $v;
+            }
+        }
         if (!$person) {
-            $created = PersonRepo::create($this->orgId, [
+            $created = PersonRepo::create($this->orgId, $details + [
                 'first_name' => $first, 'last_name' => $last, 'preferred_name' => $this->s($p['preferred_name'] ?? null), 'date_of_birth' => $dob,
                 'email' => $email, 'phone' => $this->phone($p['phone'] ?? null, $label), 'notes' => $notes,
             ], $this->actor);
             $person = DB::one('SELECT * FROM persons WHERE id = ?', [$created['id']]);
         } elseif ($how !== 'already_imported') {
-            $this->fillBlanks($person, ['preferred_name' => $this->s($p['preferred_name'] ?? null), 'date_of_birth' => $dob, 'email' => $email, 'phone' => $this->phone($p['phone'] ?? null, $label), 'notes' => $notes]);
+            $this->fillBlanks($person, $details + ['preferred_name' => $this->s($p['preferred_name'] ?? null), 'date_of_birth' => $dob, 'email' => $email, 'phone' => $this->phone($p['phone'] ?? null, $label), 'notes' => $notes]);
         }
         $this->count('people', $how);
         $pending = [];

@@ -23,6 +23,15 @@ final class PeopleApi extends BaseApi
         'date_of_birth'  => ['type' => 'date', 'nullable' => true, 'desc' => 'Not in the future.'],
         'email'          => ['type' => 'string', 'max' => 190, 'nullable' => true],
         'phone'          => ['type' => 'string', 'max' => 40, 'nullable' => true],
+        'sex'            => ['type' => 'enum', 'enum' => ['M', 'F', 'X'], 'nullable' => true, 'desc' => 'M, F, or X for another or not stated. Care data: needs care.read to see.'],
+        'nhs_number'     => ['type' => 'string', 'max' => 20, 'nullable' => true, 'desc' => 'The NHS/CHI number: 10 digits with a valid check digit (spaces are removed). One per person. Needs care.read to see.'],
+        'employment_status' => ['type' => 'string', 'max' => 100, 'nullable' => true, 'desc' => 'For example Employed, Unemployed, Retired. Needs care.read to see.'],
+        'gp_practice'    => ['type' => 'string', 'max' => 255, 'nullable' => true, 'desc' => 'The name of their GP practice. Needs care.read to see.'],
+        'address_line1'  => ['type' => 'string', 'max' => 190, 'nullable' => true, 'desc' => 'Home address, first line. The address fields need care.read to see.'],
+        'address_line2'  => ['type' => 'string', 'max' => 190, 'nullable' => true],
+        'town'           => ['type' => 'string', 'max' => 100, 'nullable' => true],
+        'area'           => ['type' => 'string', 'max' => 100, 'nullable' => true, 'desc' => 'The locality or council area.'],
+        'postcode'       => ['type' => 'string', 'max' => 12, 'nullable' => true],
         'notes'          => ['type' => 'string', 'max' => 5000, 'nullable' => true],
     ];
 
@@ -35,6 +44,7 @@ final class PeopleApi extends BaseApi
                 'employed_on' => ['date', 'Only people with an employment active on this date.'],
                 'updated_since' => ['datetime', 'Only people changed on or after this UTC time (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ). For syncing.'],
                 'email' => ['string', 'Exact email address.'],
+                'nhs_number' => ['string', 'Exact NHS/CHI number. Needs care.read.'],
             ], [], 'list:Person', 200, 'Without the care.read scope, people who only receive support (never staff) are not listed and is_supported is null. Ordered by when the person was created.'),
             self::route('POST', '/people', 'people.write', 'create', 'Create a person', [], self::FIELDS, 'Person', 201, 'Creates the person record only. To make them staff use POST /employments.'),
             self::route('GET', '/people/{id}', 'people.read', 'show', 'Get a person', [], [], 'Person'),
@@ -58,6 +68,13 @@ final class PeopleApi extends BaseApi
         if ($e = $c->q('email')) {
             $where .= ' AND p.email = ?';
             $params[] = strtolower($e);
+        }
+        if (($n = $c->q('nhs_number')) !== null) {
+            if (!$c->can('care.read')) {
+                throw ApiException::forbidden('Searching by NHS number needs the care.read scope.');
+            }
+            $where .= ' AND p.nhs_number = ?';
+            $params[] = preg_replace('/[\s-]/', '', $n);
         }
         $kind = $c->q('kind');
         if ($kind !== null) {
@@ -144,6 +161,10 @@ final class PeopleApi extends BaseApi
         $out = Present::person($r);
         if (!$care) {
             $out['is_supported'] = null;
+            // sex, NHS number, GP, employment and home address are care data
+            foreach (['sex', 'nhs_number', 'employment_status', 'gp_practice', 'address_line1', 'address_line2', 'town', 'area', 'postcode'] as $k) {
+                $out[$k] = null;
+            }
         }
         if (!$notes) {
             unset($out['notes']);

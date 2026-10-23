@@ -303,3 +303,15 @@ test('import from the older systems: export the Staff, People and Team services,
     eq(count(array_filter(Reconcile::check($org), fn($f) => $f['severity'] === 'high')), 0, 'no high-severity inconsistencies after import');
     eq(Fx::count('outbox_events', 'organisation_id = ?', [$org]), 0);
 });
+
+test('import: structured person details (sex, NHS number, address, GP, employment) are taken, and only ever fill blanks', function () {
+    $org = Fx::org();
+    $details = ['sex' => 'M', 'nhs_number' => '0101011237', 'address_line1' => '1 High St', 'town' => 'Hamilton', 'area' => 'South Lanarkshire', 'postcode' => 'ML3 6AA', 'gp_practice' => 'Test Practice', 'employment_status' => 'Retired'];
+    runImport($org, bundleOf(['people' => [person('p:1', 'Dee', 'Detail', ['date_of_birth' => '1950-01-01'] + $details)]]));
+    $row = DB::one('SELECT * FROM persons WHERE organisation_id = ? AND last_name = ?', [$org, 'Detail']);
+    eq([$row['sex'], $row['nhs_number'], $row['town'], $row['postcode'], $row['gp_practice'], $row['employment_status']], ['M', '0101011237', 'Hamilton', 'ML3 6AA', 'Test Practice', 'Retired']);
+    // a second source with different values for the same person fills nothing that is already there
+    runImport($org, bundleOf(['people' => [person('q:9', 'Dee', 'Detail', ['date_of_birth' => '1950-01-01', 'town' => 'Elsewhere', 'address_line2' => 'Flat 2'])]]));
+    $row = DB::one('SELECT * FROM persons WHERE organisation_id = ? AND last_name = ?', [$org, 'Detail']);
+    eq([$row['town'], $row['address_line2']], ['Hamilton', 'Flat 2']);
+});

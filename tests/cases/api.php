@@ -592,3 +592,44 @@ test('openapi: valid, covers every route and scope, and every schema it points a
     ok(isset($spec['paths']['/employments']['post']['requestBody']['content']['application/json']['schema']['required']));
     ok(in_array('Idempotency-Key', array_column($spec['paths']['/people']['post']['parameters'], 'name')));
 });
+
+test('people details: sex, NHS number, address, GP and employment are stored in parts, validated, and are care data', function () {
+    $org = Fx::org();
+    $k = apiKey($org);
+    $full = [
+        'first_name' => 'Detail', 'last_name' => 'Fictional', 'date_of_birth' => '1991-02-03', 'sex' => 'F', 'nhs_number' => '010 101 1237',
+        'employment_status' => 'Unemployed', 'gp_practice' => 'Test Practice', 'address_line1' => '2 Test Road', 'town' => 'Hamilton', 'area' => 'South Lanarkshire', 'postcode' => 'ML3 6AB',
+    ];
+    $p = apiOk(api('POST', '/people', $k['token'], $full), 201)['data'];
+    eq($p['sex'], 'F');
+    eq($p['nhs_number'], '0101011237', 'spaces are removed from the NHS number');
+    eq([$p['town'], $p['area'], $p['postcode'], $p['gp_practice'], $p['employment_status']], ['Hamilton', 'South Lanarkshire', 'ML3 6AB', 'Test Practice', 'Unemployed']);
+
+    // PATCH changes only what is sent
+    $q = apiOk(api('PATCH', '/people/' . $p['id'], $k['token'], ['town' => 'Motherwell']))['data'];
+    eq([$q['town'], $q['postcode'], $q['nhs_number']], ['Motherwell', 'ML3 6AB', '0101011237']);
+    // null clears one
+    $q = apiOk(api('PATCH', '/people/' . $p['id'], $k['token'], ['address_line2' => null, 'gp_practice' => null]))['data'];
+    eq($q['gp_practice'], null);
+
+    // validation: a bad NHS number, a bad sex, and a number that belongs to someone else
+    eq(api('POST', '/people', $k['token'], ['first_name' => 'X', 'last_name' => 'Y', 'nhs_number' => '1234567890'])[0], 422);
+    eq(api('POST', '/people', $k['token'], ['first_name' => 'X', 'last_name' => 'Y', 'sex' => 'Q'])[0], 422);
+    $dup = api('POST', '/people', $k['token'], ['first_name' => 'Other', 'last_name' => 'Person', 'nhs_number' => '0101011237']);
+    eq($dup[0], 422);
+    ok(str_contains(json_encode($dup[1]), 'already has that NHS number'));
+
+    // the web edit form (which sends only some fields) must not wipe the rest
+    \App\Modules\People\PersonRepo::update($org, (int) DB::value('SELECT id FROM persons WHERE uuid = ?', [$p['id']]), ['first_name' => 'Detail', 'last_name' => 'Fictional2'], Fx::actor());
+    $again = apiOk(api('GET', '/people/' . $p['id'], $k['token']))['data'];
+    eq([$again['last_name'], $again['town'], $again['nhs_number']], ['Fictional2', 'Motherwell', '0101011237']);
+
+    // care data: a key without care.read does not see them, and cannot search by NHS number
+    $noCare = apiKey($org, ['people.read', 'staff.read']);
+    DB::run('INSERT INTO employments (uuid, organisation_id, person_id, job_title, start_date) SELECT ?, organisation_id, id, ?, ? FROM persons WHERE uuid = ?', [\App\Core\Uuid::v4(), 'Tester', '2020-01-01', $p['id']]);
+    $seen = apiOk(api('GET', '/people/' . $p['id'], $noCare['token']))['data'];
+    eq([$seen['nhs_number'], $seen['postcode'], $seen['sex'], $seen['gp_practice']], [null, null, null, null]);
+    eq(api('GET', '/people', $noCare['token'], null, ['nhs_number' => '0101011237'])[0], 403);
+    $found = apiOk(api('GET', '/people', $k['token'], null, ['nhs_number' => '010 101 1237']))['data'];
+    eq(count($found), 1);
+});

@@ -27,6 +27,8 @@ final class Present
         return [
             'id' => $r['uuid'], 'first_name' => $r['first_name'], 'last_name' => $r['last_name'], 'preferred_name' => $r['preferred_name'],
             'date_of_birth' => $r['date_of_birth'], 'email' => $r['email'], 'phone' => $r['phone'], 'notes' => $r['notes'],
+            'sex' => $r['sex'] ?? null, 'nhs_number' => $r['nhs_number'] ?? null, 'employment_status' => $r['employment_status'] ?? null, 'gp_practice' => $r['gp_practice'] ?? null,
+            'address_line1' => $r['address_line1'] ?? null, 'address_line2' => $r['address_line2'] ?? null, 'town' => $r['town'] ?? null, 'area' => $r['area'] ?? null, 'postcode' => $r['postcode'] ?? null,
             'is_staff' => self::bool($r['is_staff'] ?? 0), 'is_supported' => self::bool($r['is_supported'] ?? 0),
             'current_employment' => !empty($r['cur_emp_uuid']) ? ['id' => $r['cur_emp_uuid'], 'job_title' => $r['cur_job'], 'start_date' => $r['cur_start'], 'end_date' => $r['cur_end']] : null,
             'created_at' => self::time($r['created_at']), 'updated_at' => self::time($r['updated_at']),

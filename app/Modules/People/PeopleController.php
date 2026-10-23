@@ -83,7 +83,7 @@ final class PeopleController extends Controller
         if (!$person) {
             return \App\Core\Router::error(404, 'Not found', 'That person could not be found.');
         }
-        $old = array_intersect_key($r->post, array_flip(['first_name', 'last_name', 'preferred_name', 'date_of_birth', 'email', 'phone', 'notes']));
+        $old = array_intersect_key($r->post, array_flip(array_merge(['first_name', 'last_name', 'preferred_name', 'date_of_birth', 'email', 'phone', 'notes'], PersonRepo::DETAILS)));
         try {
             PersonRepo::update($this->orgId(), (int) $person['id'], $old, $this->actor());
         } catch (DomainException $e) {

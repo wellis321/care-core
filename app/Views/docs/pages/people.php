@@ -27,6 +27,8 @@
 <p>Tasks about this person, and the activity log entries about them.</p>
 
 <h2>Editing basic details</h2>
-<p><strong>Edit details</strong> (managers and administrators) changes first name, last name, “known as”, date of birth, email, phone and notes. Names are required. The date of birth cannot be in the future. The email must look like an email address. Changes are written to the activity log and announced as a <code>person.updated</code> event.</p>
+<p><strong>Edit details</strong> (managers and administrators) changes first name, last name, “known as”, date of birth, email, phone, notes and the structured details below. Names are required. The date of birth cannot be in the future. The email must look like an email address. Changes are written to the activity log and announced as a <code>person.updated</code> event.</p>
+<h3>Structured details</h3>
+<p>A person also has a few details held in a fixed shape, so other systems can rely on them: <strong>sex</strong> (M, F or X for another or not stated), the <strong>NHS / CHI number</strong> (10 digits with a valid check digit, one per person for life), <strong>employment status</strong>, <strong>GP practice</strong>, and a <strong>home address in parts</strong> (address, address line 2, town, area and postcode). They are edited on the same form and through the <a href="/docs/api-reference">API</a>. They are care data: a key without the <code>care.read</code> scope sees them as empty, and cannot search by NHS number. These are the person's <em>current</em> details; earlier values are in the activity log. Two people cannot have the same NHS number.</p>
 <p>Everything else about a staff member (address, pay and tax, contract terms, compliance) is on the <a href="/docs/staff-record">staff record</a>.</p>
 <p>Next: <a href="/docs/joiners">Starting someone</a>.</p>
