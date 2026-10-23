@@ -48,22 +48,24 @@ final class AdminController extends Controller
         try {
             $personId = $r->input('person_id') !== '' ? (int) $r->input('person_id') : null;
             $res = UserRepo::create($this->orgId(), $personId, $r->input('email'), $r->input('role'), $this->actor(), true);
-            $this->ok('Login created. Invitation link (shown once, valid for 7 days): ' . \App\Core\Config::appUrl() . '/invite/' . $res['invite_token']);
+            $this->ok('Login created for ' . $r->input('email') . '.');
+            $this->reveal('Invitation link for ' . strtolower($r->input('email')), 'Invitation link', \App\Core\Config::appUrl() . '/invite/' . $res['invite_token'], 'Send this link to them yourself: Care Core does not send email. It works once and lasts 7 days. Opening it lets them choose a password.');
         } catch (DomainException $e) {
             $this->fail($e->getMessage());
         }
-        return $this->redirect('/admin/users');
+        return $this->redirect('/admin/users#new-secret');
     }
 
     public function reinviteUser(Request $r, array $p = []): Response
     {
         try {
             $token = UserRepo::reinvite($this->orgId(), (int) $r->input('id'), $this->actor());
-            $this->ok('New invitation (shown once, valid for 7 days, their old password no longer works): ' . \App\Core\Config::appUrl() . '/invite/' . $token);
+            $this->ok('New invitation issued. Their old password no longer works.');
+            $this->reveal('New invitation link', 'Invitation link', \App\Core\Config::appUrl() . '/invite/' . $token, 'Send this link to them yourself. It works once and lasts 7 days. Opening it lets them choose a new password.');
         } catch (DomainException $e) {
             $this->fail($e->getMessage());
         }
-        return $this->redirect('/admin/users');
+        return $this->redirect('/admin/users#new-secret');
     }
 
     public function disableUser(Request $r, array $p = []): Response
@@ -108,8 +110,9 @@ final class AdminController extends Controller
             DB::insert('webhook_endpoints', ['organisation_id' => $this->orgId(), 'url' => $url, 'secret' => $secret, 'event_types' => $types]);
             Audit::record($this->orgId(), $this->actor(), 'webhook.created', 'webhook', null, 'Added a webhook to ' . $url);
         });
-        $this->ok('Webhook added. The signing secret (shown once) is: ' . $secret);
-        return $this->redirect('/admin/integrations');
+        $this->ok('Webhook added.');
+        $this->reveal('Signing secret for the new webhook', 'Signing secret', $secret, 'Copy it now into the system that receives the webhook: it uses it to check every delivery really came from Care Core. Care Core cannot show it again.');
+        return $this->redirect('/admin/integrations#new-secret');
     }
 
     public function toggleWebhook(Request $r, array $p = []): Response
@@ -130,8 +133,9 @@ final class AdminController extends Controller
             DB::insert('scim_tokens', ['organisation_id' => $this->orgId(), 'name' => $name, 'token_hash' => hash('sha256', $token)]);
             Audit::record($this->orgId(), $this->actor(), 'scim.token_created', 'scim', null, 'Created the SCIM token "' . $name . '"');
         });
-        $this->ok('SCIM token created. Copy it now, it is not shown again: ' . $token);
-        return $this->redirect('/admin/integrations');
+        $this->ok('SCIM token created.');
+        $this->reveal('Your new SCIM token', 'SCIM token', $token, 'Copy it now and paste it into the Secret token box in Microsoft Entra. Care Core keeps only a scrambled copy, so it cannot be shown again.');
+        return $this->redirect('/admin/integrations#new-secret');
     }
 
     public function revokeScimToken(Request $r, array $p = []): Response
@@ -148,11 +152,12 @@ final class AdminController extends Controller
         try {
             $scopes = array_keys(array_filter((array) ($r->post['scopes'] ?? []), static fn($v) => $v === '1' || $v === 'on'));
             $res = \App\Api\ApiKeys::create($this->orgId(), $r->input('name'), $scopes, $r->input('allowed_ips'), $r->input('expires_on') ?: null, (int) ($r->input('rate_limit') ?: 120), (int) Auth::user()['id'], $this->actor());
-            $this->ok('API key created. Copy it now: it is not shown again. ' . $res['token']);
+            $this->ok('API key created.');
+            $this->reveal('Your new API key', 'API key', $res['token'], 'Copy it now and keep it somewhere safe, such as the other system’s secret settings. Care Core keeps only a scrambled copy, so it cannot be shown again. If it is lost, revoke it and make another.');
         } catch (DomainException $e) {
             $this->fail($e->getMessage());
         }
-        return $this->redirect('/admin/integrations#api');
+        return $this->redirect('/admin/integrations#new-secret');
     }
 
     public function revokeApiKey(Request $r, array $p = []): Response

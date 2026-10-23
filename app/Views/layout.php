@@ -12,6 +12,7 @@ $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $active = static fn(string $prefix): string => ($prefix === '/' ? $path === '/' : str_starts_with($path, $prefix)) ? ' aria-current="page"' : '';
 $org = $user ? (int) $user['organisation_id'] : 0;
 $flash = Session::takeFlash();
+$reveal = Session::takeReveal();
 ?><!DOCTYPE html>
 <html lang="en-GB">
 <head>
@@ -60,6 +61,20 @@ $flash = Session::takeFlash();
   </div>
 </header>
 <main id="main" class="container" tabindex="-1">
+<?php if ($reveal): ?>
+<section class="reveal" id="new-secret" tabindex="-1" aria-labelledby="reveal-title">
+  <h2 id="reveal-title"><?= View::e($reveal['title']) ?></h2>
+  <p><?= View::e($reveal['note']) ?></p>
+  <div class="reveal__row">
+    <label class="sr" for="reveal-value"><?= View::e($reveal['label']) ?></label>
+    <input id="reveal-value" class="reveal__value" type="text" readonly value="<?= View::e($reveal['value']) ?>" spellcheck="false" autocomplete="off">
+    <button class="btn btn-primary" type="button" id="reveal-copy">Copy</button>
+  </div>
+  <p class="reveal__status" id="reveal-status" role="status" aria-live="polite"></p>
+  <p class="small muted">This is shown only this once. Leaving or reloading the page hides it for good.</p>
+</section>
+<script src="/assets/copy.js" defer></script>
+<?php endif; ?>
 <?php foreach ($flash as [$type, $msg]): ?>
   <div class="alert alert-<?= $type === 'ok' ? 'success' : 'error' ?>" role="<?= $type === 'ok' ? 'status' : 'alert' ?>"><?= View::e($msg) ?></div>
 <?php endforeach; ?>

@@ -59,6 +59,12 @@ def check(label, ok, extra=''):
         fails += 1
 
 
+def secret_of(h):
+    """The one-time secret shown in the "copy it now" panel, or ''."""
+    m = re.search(r'id="reveal-value"[^>]*value="([^"]+)"', h)
+    return html.unescape(m.group(1)) if m else ''
+
+
 def link(h, pattern):
     m = re.search(pattern, h)
     return m.group(1) if m else None
@@ -113,8 +119,8 @@ check('staff role cannot open a person we support', staff.get(cid)[0] in (403, 4
 
 print('--- joiner, invitation, sign-in, leaver')
 s, h, u = admin.post('/staff/join', {'first_name': 'Jo', 'last_name': 'Starter', 'email': 'jo.starter@example.test', 'job_title': 'Support Worker', 'start_date': '2026-01-05', 'contract_type': 'permanent', 'create_login': '1', 'login_role': 'staff'}, action='/staff/join')
-fl = ' '.join(Client.alerts(h))
-check('a new starter is created with onboarding tasks and an invitation link', 'onboarding started' in fl and '/invite/' in fl, fl)
+fl = ' '.join(Client.alerts(h)) + ' ' + secret_of(h)
+check('a new starter is created with onboarding tasks and an invitation link (in the copy-it-now panel)', 'onboarding started' in fl and '/invite/' in fl and 'id="new-secret"' in h, fl)
 token = link(fl, r'/invite/([0-9a-f]{48})')
 joUrl = u.replace(BASE, '')
 check('the page for the new starter exists', '/people/' in joUrl and 'Jo Starter' in h)
@@ -179,7 +185,7 @@ check('the checks page loads', s == 200 and 'Consistency checks' in h)
 
 print('--- SCIM over HTTP')
 s, h, _ = admin.post('/admin/integrations', {'name': 'Entra test'}, action='/admin/scim')
-tok = link(' '.join(Client.alerts(h)), r'([0-9a-f]{64})')
+tok = link(secret_of(h), r'([0-9a-f]{64})')
 check('a SCIM token can be created', tok is not None, ' '.join(Client.alerts(h)))
 
 
@@ -281,7 +287,7 @@ for path in ['/docs/overview', '/docs/install', '/docs/event-catalogue']:
 
 pw = Client()
 s, h, _ = admin.post('/admin/users', {'email': 'pw.test@example.test', 'role': 'staff', 'person_id': ''}, action='/admin/users')
-inv = link(' '.join(Client.alerts(h)), r'/invite/([0-9a-f]{48})')
+inv = link(secret_of(h), r'/invite/([0-9a-f]{48})')
 check('an administrator can create a login', inv is not None, Client.alerts(h))
 s, h, _ = pw.post('/invite/' + inv, {'password': 'first password here', 'password2': 'first password here'}, action='/invite/' + inv)
 pwc = Client('pw.test@example.test', 'first password here')
@@ -295,7 +301,7 @@ check('a password can be changed', 'password has been changed' in ' '.join(Clien
 check('the new password works and the old one does not', 'Dashboard' in Client('pw.test@example.test', 'second password here').get('/')[1] and 'Dashboard' not in Client('pw.test@example.test', 'first password here').get('/')[1])
 uid = link(admin.get('/admin/users')[1], r'(?s)pw\.test@example\.test.*?name="id" value="(\d+)"')
 s, h, _ = admin.post('/admin/users', {'id': uid}, action='/admin/users/reinvite')
-inv2 = link(' '.join(Client.alerts(h)), r'/invite/([0-9a-f]{48})')
+inv2 = link(secret_of(h), r'/invite/([0-9a-f]{48})')
 check('an administrator can issue a new invitation for a forgotten password', inv2 is not None, Client.alerts(h))
 check('which stops the old password at once, and signs out the open session', 'Dashboard' not in Client('pw.test@example.test', 'second password here').get('/')[1] and 'Dashboard' not in pwc.get('/')[1])
 s, h, _ = Client().post('/invite/' + inv2, {'password': 'third password here', 'password2': 'third password here'}, action='/invite/' + inv2)
@@ -322,7 +328,10 @@ s, h, _ = admin.get('/admin/integrations')
 check('the integrations page has an API keys section with every scope', 'API keys' in h and 'name="scopes[people.read]"' in h and 'staff.sensitive' in h)
 scopes = {'scopes[%s]' % k: '1' for k in ['people.read', 'people.write', 'staff.read', 'staff.write', 'teams.read', 'teams.write', 'events.read']}
 s, h, _ = admin.post('/admin/integrations', {'name': 'HTTP test', 'allowed_ips': '', 'expires_on': '', 'rate_limit': '300', **scopes}, action='/admin/api-keys')
-token = link(' '.join(Client.alerts(h)), r'(cc_[0-9a-f]{8}_[0-9a-f]{48})')
+token = link(secret_of(h), r'(cc_[0-9a-f]{8}_[0-9a-f]{48})')
+check('the new key is shown in a prominent panel with a Copy button, and the redirect points at it', 'id="new-secret"' in h and 'id="reveal-copy"' in h and '/assets/copy.js' in h)
+s, h2, _ = admin.get('/admin/integrations')
+check('and it is shown only once: a reload no longer has it', 'id="new-secret"' not in h2 and token not in h2)
 check('an administrator can create an API key; the secret is shown once', token is not None, Client.alerts(h))
 s, h, _ = admin.get('/admin/integrations')
 check('and it is listed by prefix only, never the secret', token[:11] in h and token not in h and 'HTTP test' in h)

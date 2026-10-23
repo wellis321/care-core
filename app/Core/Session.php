@@ -28,6 +28,20 @@ final class Session
         return $f;
     }
 
+    /** A secret to show once on the next page (an API key, an invitation link): kept apart from ordinary messages. @param array{title:string,note:string,value:string,label:string} $secret */
+    public static function reveal(array $secret): void
+    {
+        $_SESSION['reveal'] = $secret;
+    }
+
+    /** @return array{title:string,note:string,value:string,label:string}|null */
+    public static function takeReveal(): ?array
+    {
+        $r = $_SESSION['reveal'] ?? null;
+        unset($_SESSION['reveal']);
+        return is_array($r) ? $r : null;
+    }
+
     public static function get(string $key, mixed $default = null): mixed
     {
         return $_SESSION[$key] ?? $default;

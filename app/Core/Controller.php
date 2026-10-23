@@ -31,6 +31,12 @@ abstract class Controller
         Session::flash('ok', $message);
     }
 
+    /** Show something once, prominently, on the page the person lands on: a key they must copy now. */
+    protected function reveal(string $title, string $label, string $value, string $note): void
+    {
+        Session::reveal(['title' => $title, 'label' => $label, 'value' => $value, 'note' => $note]);
+    }
+
     protected function fail(string $message): void
     {
         Session::flash('error', $message);

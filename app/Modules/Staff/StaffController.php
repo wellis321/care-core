@@ -42,9 +42,9 @@ final class StaffController extends Controller
         }
         $this->ok(($res['rehire'] ? 'Rehired' : 'Added') . ' and onboarding started: ' . $res['tasks'] . ' task' . ($res['tasks'] === 1 ? '' : 's') . ' created.');
         if ($res['invite_token']) {
-            $this->ok('Invitation link (shown once, valid for 7 days): ' . \App\Core\Config::appUrl() . '/invite/' . $res['invite_token']);
+            $this->reveal('Invitation link for their login', 'Invitation link', \App\Core\Config::appUrl() . '/invite/' . $res['invite_token'], 'Send this link to them yourself: Care Core does not send email. It works once and lasts 7 days. Opening it lets them choose a password.');
         }
-        return $this->redirect('/people/' . $res['person_uuid']);
+        return $this->redirect('/people/' . $res['person_uuid'] . ($res['invite_token'] ? '#new-secret' : ''));
     }
 
     public function moveForm(Request $r, array $p): Response
