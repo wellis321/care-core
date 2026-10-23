@@ -14,6 +14,14 @@ $areas = [
     'Follow-up tasks created for each person who needs a new key worker or line manager',
     'Editable checklists for new starters, role changes and leavers',
   ]],
+  'Recruitment' => ['recruitment', [
+    'Job roles as a reference: what the job is, who it reports to, where it normally sits, and the checks needed before someone can start',
+    'Vacancies for one or many posts, with a line manager and team, opened and closed when you choose',
+    'Candidates move from applied through interview to an offer, with notes, dates and a visible history',
+    'Nobody can be hired until the offer is accepted and every required check is done',
+    'Hiring starts them through the ordinary joiner process: their record, team, onboarding and the events your other systems listen to',
+    'Unsuccessful candidates never become people, and their details can be removed',
+  ]],
   'The staff record' => ['staff-record', [
     'Address, emergency contact, National Insurance and bank details (encrypted), photo and signature',
     'Job terms, bank or casual status, job description links',

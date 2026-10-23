@@ -16,6 +16,9 @@ use App\Core\Uuid;
 use App\Modules\Care\CareRepo;
 use App\Modules\Identity\UserRepo;
 use App\Modules\People\PersonRepo;
+use App\Modules\Recruitment\ApplicationRepo;
+use App\Modules\Recruitment\RoleRepo;
+use App\Modules\Recruitment\VacancyRepo;
 use App\Modules\Staff\Checklists;
 use App\Modules\Staff\Compliance;
 use App\Modules\Staff\Lifecycle;
@@ -146,6 +149,36 @@ AssignmentRepo::assign($org, $home, $moved['id'], 'Service user', false, $day(-1
 CareRepo::assignKeyWorker($org, $moved['id'], $staff[3]['person_id'], 'Key worker', $day(-900), $actor);
 CareRepo::endSupport($org, $moved['id'], $day(-120), $actor);
 
+
+// ── Recruitment: roles, two vacancies, and candidates at different stages ──
+$mgrRole  = RoleRepo::create($org, ['title' => 'Registered Manager', 'code' => 'RM', 'description' => 'Responsible for the service and its registration with the Care Inspectorate.', 'default_team_id' => $leadT, 'hours_per_week' => 37.5, 'grade' => 'Band 7'], $actor);
+$swRole   = RoleRepo::create($org, ['title' => 'Support Worker', 'code' => 'SW', 'description' => 'Supports people to live well day to day, following their care plans.', 'person_specification' => 'Kind, reliable, willing to learn. SVQ 2 or willingness to work towards it.', 'reports_to_role_id' => $mgrRole['id'], 'default_team_id' => $dayT, 'hours_per_week' => 30, 'grade' => 'Band 3'], $actor);
+$nightRole = RoleRepo::create($org, ['title' => 'Night Support Worker', 'code' => 'NSW', 'description' => 'Overnight support and checks.', 'reports_to_role_id' => $mgrRole['id'], 'default_team_id' => $nightT, 'hours_per_week' => 36, 'grade' => 'Band 3'], $actor);
+foreach ([$swRole['id'], $nightRole['id']] as $roleId) {
+    RoleRepo::addRequirement($org, $roleId, 'PVG scheme membership', 'Enhanced disclosure for working with adults.', true, $actor);
+    RoleRepo::addRequirement($org, $roleId, 'Two references', null, true, $actor);
+    RoleRepo::addRequirement($org, $roleId, 'Right to work', null, true, $actor);
+    RoleRepo::addRequirement($org, $roleId, 'SSSC registration', 'Needed within six months of starting.', false, $actor);
+}
+$vacSw = VacancyRepo::create($org, ['role_id' => $swRole['id'], 'posts' => 2, 'line_manager_person_id' => $staff[2]['person_id'], 'closing_date' => $day(14)], $actor);
+VacancyRepo::open($org, $vacSw['id'], $actor);
+$vacNight = VacancyRepo::create($org, ['role_id' => $nightRole['id'], 'posts' => 1, 'line_manager_person_id' => $staff[5]['person_id']], $actor);   // left as a draft
+$cands = [];
+foreach ([['Lewis', 'Gordon', 'lewis.gordon', 'Applied through the careers page'], ['Amara', 'Okafor', 'amara.okafor', 'Recommended by a colleague'], ['Jamie', 'Brodie', 'jamie.brodie', 'Job centre'], ['Kerry', 'Lennox', 'kerry.lennox', 'Applied through the careers page']] as [$f, $l, $em, $src]) {
+    $cands[$l] = ApplicationRepo::create($org, $vacSw['id'], ['first_name' => $f, 'last_name' => $l, 'email' => $em . '@example.test', 'source' => $src, 'date_of_birth' => '199' . random_int(0, 9) . '-0' . random_int(1, 9) . '-1' . random_int(0, 9)], $actor);
+}
+ApplicationRepo::setStage($org, $cands['Okafor']['id'], 'shortlisted', [], $actor);
+ApplicationRepo::setStage($org, $cands['Brodie']['id'], 'shortlisted', [], $actor);
+ApplicationRepo::setStage($org, $cands['Brodie']['id'], 'interview', ['interview_date' => $day(3)], $actor);
+ApplicationRepo::setStage($org, $cands['Lennox']['id'], 'shortlisted', [], $actor);
+ApplicationRepo::setStage($org, $cands['Lennox']['id'], 'interview', ['interview_date' => $day(-6)], $actor);
+ApplicationRepo::setStage($org, $cands['Lennox']['id'], 'offer', ['proposed_start_date' => $day(30), 'offer_date' => $day(-2)], $actor);
+ApplicationRepo::acceptOffer($org, $cands['Lennox']['id'], $day(-1), $actor);
+foreach (DB::all('SELECT id FROM application_checks WHERE application_id = ? AND title IN (\'PVG scheme membership\', \'Right to work\')', [$cands['Lennox']['id']]) as $c) {
+    ApplicationRepo::setCheck($org, $cands['Lennox']['id'], (int) $c['id'], $day(-1), null, $actor);
+}
+ApplicationRepo::create($org, $vacSw['id'], ['first_name' => 'Pat', 'last_name' => 'Henderson', 'email' => 'pat.henderson@example.test'], $actor);
+ApplicationRepo::setStage($org, (int) DB::value('SELECT id FROM applications WHERE last_name = ?', ['Henderson']), 'rejected', ['reason' => 'Not able to work the required shifts'], $actor);
 
 // ── Staff records: profile, terms, registrations, supervisions, appraisals, learning ──
 $streets = ['Ness Walk', 'Church Street', 'Academy Street', 'High Street', 'Lochaber Road', 'Glen Road', 'Harbour Road', 'Station Road'];

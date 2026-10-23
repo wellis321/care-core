@@ -21,7 +21,7 @@ final class Api
     /** @var list<class-string> */
     private const CONTROLLERS = [
         Controllers\PeopleApi::class, Controllers\StaffApi::class, Controllers\ComplianceApi::class, Controllers\TeamsApi::class,
-        Controllers\CareApi::class, Controllers\TasksApi::class, Controllers\EventsApi::class, Controllers\AdminApi::class, Controllers\MetaApi::class,
+        Controllers\CareApi::class, Controllers\RecruitmentApi::class, Controllers\TasksApi::class, Controllers\EventsApi::class, Controllers\AdminApi::class, Controllers\MetaApi::class,
     ];
 
     /** @return list<array<string,mixed>> every route, with its documentation */

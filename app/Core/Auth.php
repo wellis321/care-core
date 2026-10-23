@@ -10,7 +10,7 @@ final class Auth
 {
     private const PERMISSIONS = [
         'admin'   => ['*'],
-        'manager' => ['people.view', 'people.edit', 'staff.manage', 'teams.view', 'teams.manage', 'care.view', 'care.manage', 'tasks.view', 'tasks.manage', 'audit.view', 'reconcile.view'],
+        'manager' => ['people.view', 'people.edit', 'staff.manage', 'recruitment.manage', 'teams.view', 'teams.manage', 'care.view', 'care.manage', 'tasks.view', 'tasks.manage', 'audit.view', 'reconcile.view'],
         'staff'   => ['people.view_staff', 'teams.view', 'tasks.view'],
     ];
 

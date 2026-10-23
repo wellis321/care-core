@@ -18,6 +18,8 @@ final class Scopes
         'teams.write'      => 'Create, edit and close teams; add and end team places.',
         'care.read'        => 'Read support episodes, care needs, contacts and key workers.',
         'care.write'       => 'Start and end support; manage care needs, contacts and key workers.',
+        'recruitment.read'  => 'Read job roles, vacancies, candidates and their checks.',
+        'recruitment.write' => 'Create roles and vacancies, add and move candidates, record offers and checks, and hire.',
         'tasks.read'       => 'Read tasks.',
         'tasks.write'      => 'Mark tasks done or skipped.',
         'events.read'      => 'Read the event feed.',

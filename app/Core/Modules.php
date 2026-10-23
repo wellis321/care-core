@@ -6,7 +6,7 @@ namespace App\Core;
 /** Which modules an organisation has switched on. People and Identity are always on: they are the core. */
 final class Modules
 {
-    public const ALL = ['people' => 'People', 'staff' => 'Staff', 'teams' => 'Teams', 'care' => 'Care'];
+    public const ALL = ['people' => 'People', 'staff' => 'Staff', 'teams' => 'Teams', 'care' => 'Care', 'recruitment' => 'Recruitment'];
     private const ALWAYS = ['people'];
 
     public static function enabled(int $orgId, string $module): bool

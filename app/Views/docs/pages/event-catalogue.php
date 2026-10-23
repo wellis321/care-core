@@ -27,6 +27,21 @@
 <tr><td><code>team_assignment.ended</code></td><td>the person</td><td><code>team</code>, <code>valid_to</code>, and <code>cause</code>: <code>employment_ended</code> when it was caused by someone leaving</td><td>Someone leaves a team, a team closes, or an employment ends.</td></tr>
 </tbody></table></div>
 
+<h2>Recruitment</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Type</th><th>Subject</th><th>data</th><th>Raised when</th></tr></thead>
+<tbody>
+<tr><td><code>role.created</code>, <code>role.updated</code></td><td>the job role</td><td><code>title</code> (on created)</td><td>A job role is created or changed (including its checks).</td></tr>
+<tr><td><code>vacancy.created</code></td><td>the vacancy</td><td><code>reference</code>, <code>role</code></td><td>A vacancy is started, as a draft.</td></tr>
+<tr><td><code>vacancy.opened</code></td><td>the vacancy</td><td><code>reference</code></td><td>A vacancy is opened for candidates.</td></tr>
+<tr><td><code>vacancy.closed</code></td><td>the vacancy</td><td><code>reference</code></td><td>A vacancy is closed without being filled.</td></tr>
+<tr><td><code>vacancy.filled</code></td><td>the vacancy</td><td><code>reference</code></td><td>The last post is filled by a hire.</td></tr>
+<tr><td><code>application.received</code></td><td>the application</td><td><code>vacancy</code>, <code>reference</code></td><td>A candidate is added to a vacancy.</td></tr>
+<tr><td><code>application.stage_changed</code></td><td>the application</td><td><code>from</code>, <code>to</code>, <code>vacancy</code></td><td>An application moves between stages.</td></tr>
+<tr><td><code>application.hired</code></td><td>the application</td><td><code>vacancy</code>, <code>role</code>, <code>person</code>, <code>employment</code>, <code>start_date</code></td><td>A candidate is hired. <code>person.created</code> (for someone new) and <code>employment.started</code> follow in the same step, so systems that only watch employment need do nothing extra.</td></tr>
+</tbody></table></div>
+<p>Candidates are not people until they are hired, so nothing about an unsuccessful candidate is announced beyond the application events, which carry no personal details.</p>
+
 <h2>Care</h2>
 <div class="tablewrap"><table>
 <thead><tr><th>Type</th><th>Subject</th><th>data</th><th>Raised when</th></tr></thead>

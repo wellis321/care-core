@@ -9,6 +9,7 @@
 <tr><td>Edit a person’s basic details</td><td>Yes</td><td>Yes</td><td>No</td></tr>
 <tr><td>Start, move and end staff</td><td>Yes</td><td>Yes</td><td>No</td></tr>
 <tr><td>Open and edit the full staff record (personal, pay and tax, terms, compliance)</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+<tr><td>Manage <a href="/docs/recruitment">recruitment</a>: job roles, vacancies, candidates and hiring</td><td>Yes</td><td>Yes</td><td>No</td></tr>
 <tr><td>See and change care information (people we support)</td><td>Yes</td><td>Yes</td><td>No</td></tr>
 <tr><td>See teams</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
 <tr><td>Create, edit and close teams; add and remove members</td><td>Yes</td><td>Yes</td><td>No</td></tr>

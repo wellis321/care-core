@@ -5,6 +5,7 @@
 <tr><td><strong>People</strong></td><td>Cannot be switched off. It is the core: people, profiles, logins, tasks, the activity log.</td></tr>
 <tr><td><strong>Staff</strong></td><td>The joiner, mover and leaver pages, the staff record and its links are hidden and return “not switched on”.</td></tr>
 <tr><td><strong>Teams</strong></td><td>The Teams menu item and pages are hidden.</td></tr>
+<tr><td><strong>Recruitment</strong></td><td>The Recruitment menu item and pages (job roles, vacancies, candidates, hiring) are hidden. People who were hired through it stay exactly as they are.</td></tr>
 <tr><td><strong>Care</strong></td><td>People we support, key workers and care information are hidden, and the “People we support” filter disappears.</td></tr>
 </tbody></table></div>
 <h2>What switching off does not do</h2>

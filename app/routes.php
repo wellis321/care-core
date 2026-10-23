@@ -9,6 +9,7 @@ use App\Modules\Docs\DocsController;
 use App\Modules\Identity\AuthController;
 use App\Modules\Import\ImportController;
 use App\Modules\Identity\SsoController;
+use App\Modules\Recruitment\RecruitmentController;
 use App\Modules\People\DashboardController;
 use App\Modules\People\PeopleController;
 use App\Modules\Staff\SelfServiceController;
@@ -75,6 +76,28 @@ $router->add('GET', '/files/{kind}/{uuid}', [SelfServiceController::class, 'file
 // Tasks
 $router->add('GET', '/tasks', [TaskController::class, 'index'], 'tasks.view');
 $router->add('POST', '/tasks/{uuid}', [TaskController::class, 'update'], 'tasks.view');
+
+// Recruitment: roles, vacancies, candidates and hiring
+$router->add('GET', '/recruitment', [RecruitmentController::class, 'index'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/vacancies', [RecruitmentController::class, 'createVacancy'], 'recruitment.manage', 'recruitment');
+$router->add('GET', '/recruitment/vacancies/{uuid}', [RecruitmentController::class, 'vacancy'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/vacancies/{uuid}', [RecruitmentController::class, 'updateVacancy'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/vacancies/{uuid}/open', [RecruitmentController::class, 'openVacancy'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/vacancies/{uuid}/close', [RecruitmentController::class, 'closeVacancy'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/vacancies/{uuid}/candidates', [RecruitmentController::class, 'addCandidate'], 'recruitment.manage', 'recruitment');
+$router->add('GET', '/recruitment/applications/{uuid}', [RecruitmentController::class, 'application'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/applications/{uuid}', [RecruitmentController::class, 'updateApplication'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/applications/{uuid}/stage', [RecruitmentController::class, 'stage'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/applications/{uuid}/accept', [RecruitmentController::class, 'acceptOffer'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/applications/{uuid}/check', [RecruitmentController::class, 'check'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/applications/{uuid}/remove-details', [RecruitmentController::class, 'removeDetails'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/applications/{uuid}/hire', [RecruitmentController::class, 'hire'], 'recruitment.manage', 'recruitment');
+$router->add('GET', '/recruitment/roles', [RecruitmentController::class, 'roles'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/roles', [RecruitmentController::class, 'createRole'], 'recruitment.manage', 'recruitment');
+$router->add('GET', '/recruitment/roles/{uuid}', [RecruitmentController::class, 'role'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/roles/{uuid}', [RecruitmentController::class, 'updateRole'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/roles/{uuid}/checks', [RecruitmentController::class, 'roleCheck'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/roles/{uuid}/active', [RecruitmentController::class, 'roleActive'], 'recruitment.manage', 'recruitment');
 
 // Teams
 $router->add('GET', '/teams', [TeamController::class, 'index'], 'teams.view', 'teams');

@@ -9,7 +9,7 @@ use App\Core\Crypto;
 use App\Core\Database as DB;
 use App\Core\Request;
 
-const ALL_SCOPES = ['people.read', 'people.write', 'staff.read', 'staff.write', 'compliance.read', 'compliance.write', 'teams.read', 'teams.write', 'care.read', 'care.write', 'tasks.read', 'tasks.write', 'events.read', 'webhooks.manage', 'audit.read', 'admin.read'];
+const ALL_SCOPES = ['people.read', 'people.write', 'staff.read', 'staff.write', 'compliance.read', 'compliance.write', 'teams.read', 'teams.write', 'care.read', 'care.write', 'recruitment.read', 'recruitment.write', 'tasks.read', 'tasks.write', 'events.read', 'webhooks.manage', 'audit.read', 'admin.read'];
 
 /** @return array{token:string,id:int,uuid:string} */
 function apiKey(int $org, array $scopes = ALL_SCOPES, array $over = []): array
@@ -632,4 +632,58 @@ test('people details: sex, NHS number, address, GP and employment are stored in 
     eq(api('GET', '/people', $noCare['token'], null, ['nhs_number' => '0101011237'])[0], 403);
     $found = apiOk(api('GET', '/people', $k['token'], null, ['nhs_number' => '010 101 1237']))['data'];
     eq(count($found), 1);
+});
+
+test('api recruitment: role → vacancy → candidate → offer → checks → hire, with scopes and tenant isolation', function () {
+    $org = Fx::org();
+    $k = apiKey($org);
+    $team = apiOk(api('POST', '/teams', $k['token'], ['name' => 'API Team']), 201)['data'];
+    $mgr = apiOk(api('POST', '/people', $k['token'], ['first_name' => 'Mo', 'last_name' => 'Manager']), 201)['data'];
+    $head = apiOk(api('POST', '/roles', $k['token'], ['title' => 'Service Manager']), 201)['data'];
+    $role = apiOk(api('POST', '/roles', $k['token'], ['title' => 'Support Worker', 'code' => 'SW', 'reports_to_role_id' => $head['id'], 'default_team_id' => $team['id'], 'hours_per_week' => 30]), 201)['data'];
+    eq([$role['reports_to_role_id'], $role['default_team_id'], $role['hours_per_week']], [$head['id'], $team['id'], 30.0]);
+    $withCheck = apiOk(api('POST', '/roles/' . $role['id'] . '/checks', $k['token'], ['title' => 'Right to work']), 201)['data'];
+    eq(count($withCheck['checks']), 1);
+    eq(api('PATCH', '/roles/' . $head['id'], $k['token'], ['reports_to_role_id' => $role['id']])[0], 422, 'a reporting loop is refused');
+    eq(api('POST', '/roles', $k['token'], ['title' => 'X', 'reports_to_role_id' => \App\Core\Uuid::v4()])[0], 422, 'an unknown role is refused');
+
+    $vac = apiOk(api('POST', '/vacancies', $k['token'], ['role_id' => $role['id'], 'line_manager_id' => $mgr['id'], 'posts' => 1]), 201)['data'];
+    eq([$vac['status'], $vac['team_id'], $vac['title'], $vac['reference']], ['draft', $team['id'], 'Support Worker', 'VAC-0001']);
+    eq(api('POST', '/vacancies/' . $vac['id'] . '/applications', $k['token'], ['first_name' => 'A', 'last_name' => 'B'])[0], 422, 'a draft vacancy takes no candidates');
+    apiOk(api('POST', '/vacancies/' . $vac['id'] . '/open', $k['token']));
+    $app = apiOk(api('POST', '/vacancies/' . $vac['id'] . '/applications', $k['token'], ['first_name' => 'Api', 'last_name' => 'Candidate', 'email' => 'api.candidate@example.test', 'date_of_birth' => '1992-06-01']), 201)['data'];
+    eq([$app['stage'], count($app['checks'])], ['applied', 1]);
+    eq(api('POST', '/applications/' . $app['id'] . '/stage', $k['token'], ['stage' => 'hired'])[0], 422);
+    apiOk(api('POST', '/applications/' . $app['id'] . '/stage', $k['token'], ['stage' => 'shortlisted']));
+    eq(api('POST', '/applications/' . $app['id'] . '/stage', $k['token'], ['stage' => 'offer'])[0], 422, 'an offer needs a proposed start date');
+    apiOk(api('POST', '/applications/' . $app['id'] . '/stage', $k['token'], ['stage' => 'offer', 'proposed_start_date' => '2025-04-07']));
+    eq(api('POST', '/applications/' . $app['id'] . '/hire', $k['token'], []) [0], 422, 'not accepted yet');
+    apiOk(api('POST', '/applications/' . $app['id'] . '/accept-offer', $k['token'], ['accepted_on' => '2025-03-01']));
+    $r = api('POST', '/applications/' . $app['id'] . '/hire', $k['token'], []);
+    eq($r[0], 422);
+    ok(str_contains(json_encode($r[1]), 'Right to work'), 'the outstanding check is named');
+    $checkId = apiOk(api('GET', '/applications/' . $app['id'], $k['token']))['data']['checks'][0]['id'];
+    $done = apiOk(api('POST', '/applications/' . $app['id'] . '/checks/' . $checkId, $k['token'], ['done_on' => '2025-03-05', 'notes' => 'Seen']))['data'];
+    eq($done['checks'][0]['done_on'], '2025-03-05');
+
+    $hired = apiOk(api('POST', '/applications/' . $app['id'] . '/hire', $k['token'], ['employee_ref' => 'API1']), 201)['data'];
+    eq([$hired['application']['stage'], $hired['vacancy_filled'], $hired['rehire']], ['hired', true, false]);
+    ok($hired['onboarding_tasks_created'] > 0);
+    $emp = apiOk(api('GET', '/employments/' . $hired['employment_id'], $k['token']))['data'];
+    eq([$emp['job_title'], $emp['start_date'], $emp['employee_ref'], $emp['line_manager_id'] ?? null], ['Support Worker', '2025-04-07', 'API1', $mgr['id']]);
+    eq(apiOk(api('GET', '/vacancies/' . $vac['id'], $k['token']))['data']['status'], 'filled');
+    $list = apiOk(api('GET', '/vacancies/' . $vac['id'] . '/applications', $k['token'], null, ['stage' => 'hired']))['data'];
+    eq(count($list), 1);
+    eq(api('GET', '/vacancies', $k['token'], null, ['status' => 'nonsense'])[0], 400);
+
+    // scopes: a read-only key reads but cannot write; a key without recruitment scopes sees nothing
+    $ro = apiKey($org, ['recruitment.read']);
+    eq(api('GET', '/vacancies', $ro['token'])[0], 200);
+    eq(api('POST', '/vacancies/' . $vac['id'] . '/open', $ro['token'])[0], 403);
+    eq(api('GET', '/vacancies', apiKey($org, ['people.read'])['token'])[0], 403);
+    // another organisation's key cannot see any of it
+    $other = apiKey(Fx::org());
+    eq(api('GET', '/vacancies/' . $vac['id'], $other['token'])[0], 404);
+    eq(api('GET', '/applications/' . $app['id'], $other['token'])[0], 404);
+    eq(count(apiOk(api('GET', '/roles', $other['token']))['data']), 0);
 });

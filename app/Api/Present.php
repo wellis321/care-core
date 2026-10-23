@@ -125,4 +125,36 @@ final class Present
     {
         return ['id' => $r['uuid'], 'email' => $r['email'], 'role' => $r['role'], 'status' => $r['status'], 'access_ends_on' => $r['access_ends_on'], 'person_id' => $r['person_uuid'] ?? null, 'last_login_at' => self::time($r['last_login_at'])];
     }
+
+    /** Expects job_roles.* plus reports_to_uuid and team_uuid. @param array<string,mixed> $r @return array<string,mixed> */
+    public static function role(array $r): array
+    {
+        return [
+            'id' => $r['uuid'], 'title' => $r['title'], 'code' => $r['code'], 'description' => $r['description'], 'person_specification' => $r['person_specification'],
+            'reports_to_role_id' => $r['reports_to_uuid'] ?? null, 'default_team_id' => $r['team_uuid'] ?? null, 'contract_type' => $r['contract_type'],
+            'hours_per_week' => $r['hours_per_week'] === null ? null : (float) $r['hours_per_week'], 'grade' => $r['grade'], 'active' => self::bool($r['active']), 'created_at' => self::time($r['created_at']),
+        ];
+    }
+
+    /** Expects vacancies.* plus role_uuid, team_uuid, manager_uuid and hired. @param array<string,mixed> $r @return array<string,mixed> */
+    public static function vacancy(array $r): array
+    {
+        return [
+            'id' => $r['uuid'], 'reference' => $r['reference'], 'role_id' => $r['role_uuid'], 'title' => $r['title'], 'team_id' => $r['team_uuid'] ?? null, 'line_manager_id' => $r['manager_uuid'] ?? null,
+            'posts' => (int) $r['posts'], 'filled' => (int) ($r['hired'] ?? 0), 'status' => $r['status'], 'contract_type' => $r['contract_type'],
+            'hours_per_week' => $r['hours_per_week'] === null ? null : (float) $r['hours_per_week'], 'opened_on' => $r['opened_on'], 'closing_date' => $r['closing_date'], 'closed_on' => $r['closed_on'], 'notes' => $r['notes'],
+            'created_at' => self::time($r['created_at']),
+        ];
+    }
+
+    /** Expects applications.* plus vacancy_uuid, person_uuid and employment_uuid. @param array<string,mixed> $r @return array<string,mixed> */
+    public static function application(array $r): array
+    {
+        return [
+            'id' => $r['uuid'], 'vacancy_id' => $r['vacancy_uuid'], 'first_name' => $r['first_name'], 'last_name' => $r['last_name'], 'email' => $r['email'], 'phone' => $r['phone'], 'date_of_birth' => $r['date_of_birth'],
+            'source' => $r['source'], 'stage' => $r['stage'], 'stage_changed_on' => $r['stage_changed_on'], 'interview_date' => $r['interview_date'], 'interview_notes' => $r['interview_notes'],
+            'offer_date' => $r['offer_date'], 'offer_accepted_on' => $r['offer_accepted_on'], 'proposed_start_date' => $r['proposed_start_date'], 'reason' => $r['reason'], 'notes' => $r['notes'],
+            'person_id' => $r['person_uuid'] ?? null, 'employment_id' => $r['employment_uuid'] ?? null, 'created_at' => self::time($r['created_at']),
+        ];
+    }
 }

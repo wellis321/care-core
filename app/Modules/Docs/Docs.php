@@ -21,6 +21,7 @@ final class Docs
             'guides' => ['title' => 'Everyday guides', 'blurb' => 'Step by step, for the people who use it every day.', 'pages' => [
                 'dashboard'    => ['The dashboard', 'Who is starting, who is leaving, what needs doing.'],
                 'people'       => ['Finding people and profiles', 'Searching, the filters and everything on a profile page.'],
+                'recruitment'  => ['Recruitment', 'Job roles, vacancies, candidates and hiring someone into a role.'],
                 'joiners'      => ['Starting someone', 'The joiner process, rehires and logins.'],
                 'movers'       => ['Changing role, hours or team', 'The mover process and its history.'],
                 'leavers'      => ['Recording someone leaving', 'The leaver process, with a preview of what will happen.'],

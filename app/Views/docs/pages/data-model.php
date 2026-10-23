@@ -28,6 +28,9 @@
 <thead><tr><th>Table</th><th>Holds</th><th>Key points</th></tr></thead>
 <tbody>
 <tr><td><code>organisations</code></td><td>Each tenant.</td><td>Everything else belongs to one.</td></tr>
+<tr><td><code>job_roles</code>, <code>job_role_requirements</code></td><td>A job role and the checks needed before someone can start in it.</td><td>Title, code, description, reporting line (to another role), usual team, contract, hours, grade; each check is required or optional.</td></tr>
+<tr><td><code>vacancies</code></td><td>A post (or several) to fill in a role.</td><td>Reference, role, team, line manager, posts, status (draft, open, filled, closed).</td></tr>
+<tr><td><code>applications</code>, <code>application_checks</code></td><td>A candidate for a vacancy, and their checks.</td><td>Candidate details, stage, interview and offer dates; linked to a person and an employment once hired.</td></tr>
 <tr><td><code>persons</code></td><td>A human, once.</td><td>Names, date of birth, sex, NHS/CHI number, email, phone, employment status, GP practice, home address in parts, notes. Never deleted.</td></tr>
 <tr><td><code>person_profiles</code></td><td>Personal details that belong to the person.</td><td>National Insurance and bank columns hold encrypted text.</td></tr>
 <tr><td><code>employments</code></td><td>One stint of work.</td><td><code>start_date</code>, <code>end_date</code> (last day), job title, contract type, hours, <code>line_manager_person_id</code>, <code>employee_ref</code> (unique per organisation), leaving reason. A rehire is a new row.</td></tr>
