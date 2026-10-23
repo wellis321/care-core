@@ -34,10 +34,37 @@ final class Response
 
     public function send(): void
     {
-        http_response_code($this->status);
-        foreach ($this->headers as $k => $v) {
-            header($k . ': ' . $v);
+        $body = $this->body;
+        $headers = $this->headers;
+        // Send one complete response of a known length. Left to itself the web server compresses a page as it streams it, in
+        // chunks with no Content-Length, and a stall in the middle (seen on shared hosting) leaves the browser with the top of
+        // the page and a spinner until it is refreshed. So compress it here, whole, and say exactly how long it is.
+        if ($body !== '' && strlen($body) > 1024 && $this->status !== 204 && $this->status !== 304 && $this->compressible($headers)) {
+            $accept = strtolower($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '');
+            if (str_contains($accept, 'gzip') && function_exists('gzencode') && !isset($headers['Content-Encoding'])) {
+                $zipped = gzencode($body, 6);
+                if ($zipped !== false) {
+                    $body = $zipped;
+                    $headers['Content-Encoding'] = 'gzip';
+                }
+            }
+            $headers['Vary'] = 'Accept-Encoding';
         }
-        echo $this->body;
+        $headers['Content-Length'] = (string) strlen($body);
+        if (function_exists('ini_set')) {
+            @ini_set('zlib.output_compression', '0');
+        }
+        http_response_code($this->status);
+        foreach ($headers as $k => $v) {
+            header($k . ': ' . $v, true);
+        }
+        echo $body;
+    }
+
+    /** @param array<string,string> $headers */
+    private function compressible(array $headers): bool
+    {
+        $type = strtolower($headers['Content-Type'] ?? '');
+        return str_starts_with($type, 'text/') || str_contains($type, 'json') || str_contains($type, 'xml') || str_contains($type, 'javascript');
     }
 }
