@@ -227,3 +227,6 @@ input[type="file"]::file-selector-button:hover { background: var(--ink, #0d2b2e)
 /* The kit's generic "a:hover" turns links dark teal, which vanishes on the dark top bar. Keep everything in it light on hover. */
 .topbar a:hover, .topbar .linkbtn:hover, .topbar a:focus-visible { color: #fff; }
 .brand:hover .brand__mark { background: #f1dc9a; }
+
+.demo-other-products { margin: 0 0 0.6rem; }
+.demo-other-products a, .demo-banner a { color: inherit; }

@@ -26,7 +26,7 @@ $flash = Session::takeFlash();
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <?php if (Config::demo()): ?>
-<div class="demo-banner" role="region" aria-label="Demo notice"><strong>Demo</strong> <span class="demo-banner__text">All names and records here are made up, and the data resets every night. Please do not enter real personal information.</span></div>
+<div class="demo-banner" role="region" aria-label="Demo notice"><strong>Demo</strong> <span class="demo-banner__text">All names and records here are made up, and the data resets every night. Please do not enter real personal information.</span> <a href="https://findcarescotland.com/software">Part of Find Care Scotland’s software for providers</a></div>
 <?php endif; ?>
 <header class="topbar">
   <div class="topbar__in">
@@ -67,6 +67,14 @@ $flash = Session::takeFlash();
 </main>
 <footer class="sitefoot"><div class="container">
   <p>Care Core: one record of your people, your teams and the people you support. Joiners, movers and leavers change everything in one go.</p>
+  <?php if (Config::demo()): ?>
+  <p class="demo-other-products">Other products: <?php
+    $links = [];
+    foreach (['digital-id' => 'Digital ID', 'contracts' => 'Contracts', 'strategic-plan' => 'Strategic plans', 'simple-data-cleaner' => 'Simple Data Cleaner'] as $slug => $label) {
+        $links[] = '<a href="https://findcarescotland.com/software/' . $slug . '">' . $label . '</a>';
+    }
+    echo implode(' · ', $links); ?> · <a href="https://findcarescotland.com/software">All software for providers</a> · <a href="https://findcarescotland.com/">Find Care Scotland directory</a></p>
+  <?php endif; ?>
   <p class="footlinks"><a href="/about">About</a> · <a href="/features">Features</a> · <a href="/docs">Documentation</a> · <a href="/security">Security and privacy</a> · <a href="/docs/faq">Questions</a></p>
 </div></footer>
 </body>
