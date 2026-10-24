@@ -50,6 +50,9 @@ final class Response
             }
             $headers['Vary'] = 'Accept-Encoding';
         }
+        // Hostinger's edge offers browsers HTTP/3 (Alt-Svc), and a browser that reuses a connection the edge has quietly closed
+        // sits for ~20 seconds before it gives up (a page that "spins" until it is refreshed). Tell browsers to stay on HTTP/2.
+        $headers['Alt-Svc'] = 'clear';
         $headers['Content-Length'] = (string) strlen($body);
         if (function_exists('ini_set')) {
             @ini_set('zlib.output_compression', '0');
