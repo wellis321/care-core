@@ -78,6 +78,10 @@ final class OpenApi
             return ['description' => $desc];
         }
         $name = $r['response'];
+        if ($name === 'Image') {
+            $bin = ['schema' => ['type' => 'string', 'format' => 'binary']];
+            return ['description' => $desc, 'content' => ['image/png' => $bin, 'image/jpeg' => $bin, 'image/webp' => $bin, 'image/gif' => $bin]];
+        }
         if (str_starts_with($name, 'list:')) {
             $item = ['$ref' => '#/components/schemas/' . substr($name, 5)];
             $schema = ['type' => 'object', 'properties' => ['data' => ['type' => 'array', 'items' => $item], 'page' => ['$ref' => '#/components/schemas/Page']]];

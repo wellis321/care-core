@@ -78,6 +78,8 @@ final class StaffApi extends BaseApi
             self::route('GET', '/employments/{id}/details', 'staff.read', 'details', 'Get employment terms', [], [], 'EmploymentDetails', 200, "Sections: $sections."),
             self::route('PATCH', '/employments/{id}/details/{section}', 'staff.write', 'saveDetails', 'Update one section of employment terms', [], [], 'EmploymentDetails', 200, "section is one of: $sections. Send only the fields to change; see the schema for each section."),
             self::route('GET', '/people/{id}/profile', 'staff.read', 'profile', 'Get a staff member’s personal profile', [], [], 'Profile', 200, 'National Insurance and bank fields are included only for keys with the staff.sensitive scope.'),
+            self::route('GET', '/people/{id}/photo', 'staff.read', 'photo', 'Get a staff member’s profile photo', [], [], 'Image', 200, 'The picture itself (PNG, JPEG, WebP or GIF), not JSON. 404 if they have none. Use has_photo on the profile to know first. Photos waiting for approval are not returned: only the approved one.'),
+            self::route('GET', '/people/{id}/signature', 'staff.read', 'signature', 'Get a staff member’s signature image', [], [], 'Image', 200, 'The picture itself (PNG), not JSON. 404 if they have not added one.'),
             self::route('PATCH', '/people/{id}/profile', 'staff.write', 'saveProfile', 'Update a staff member’s personal profile', [], self::PROFILE, 'Profile', 200, 'Changing National Insurance or bank fields needs the staff.sensitive scope. Values are checked and encrypted at rest.'),
             self::route('GET', '/profile-changes', 'staff.read', 'profileChanges', 'List self-service change requests', self::paging() + ['status' => ['string', 'pending, approved, rejected or withdrawn.'], 'person_id' => ['uuid', 'Only this person’s requests.']], [], 'list:ProfileChange', 200, 'Read-only. Values of sensitive fields are omitted unless the key has the staff.sensitive scope.'),
         ];
@@ -222,6 +224,28 @@ final class StaffApi extends BaseApi
     {
         $p = $c->person();
         return ['data' => self::profileOut($c, (int) $p['id'])];
+    }
+
+    /** The approved profile photo as an image. Waiting changes live in profile_changes and are never served from here. */
+    public function photo(Ctx $c): \App\Core\Response
+    {
+        return $this->image($c, 'photo_path', 'photo');
+    }
+
+    public function signature(Ctx $c): \App\Core\Response
+    {
+        return $this->image($c, 'signature_path', 'signature');
+    }
+
+    private function image(Ctx $c, string $column, string $what): \App\Core\Response
+    {
+        $p = $c->person();   // 404 for anyone outside this organisation
+        $row = DB::one("SELECT $column AS path FROM person_profiles WHERE person_id = ?", [(int) $p['id']]);
+        $file = \App\Modules\Staff\FileStore::read($row['path'] ?? null);
+        if ($file === null) {
+            throw ApiException::notFound('That person has no ' . $what);
+        }
+        return \App\Core\Response::file($file[0], $file[1]);
     }
 
     public function saveProfile(Ctx $c): array

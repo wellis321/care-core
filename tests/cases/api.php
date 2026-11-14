@@ -687,3 +687,30 @@ test('api recruitment: role → vacancy → candidate → offer → checks → h
     eq(api('GET', '/applications/' . $app['id'], $other['token'])[0], 404);
     eq(count(apiOk(api('GET', '/roles', $other['token']))['data']), 0);
 });
+
+
+test('api: a staff photo and signature can be fetched as images, only by a key that may read staff, and never across organisations', function () {
+    $org = Fx::org();
+    $s = Fx::staff($org);
+    $k = apiKey($org, ['staff.read']);
+    $noStaff = apiKey($org, ['people.read']);
+    $pid = $s['person_uuid'];
+    eq(api('GET', "/people/$pid/photo", $k['token'])[0], 404, 'nothing uploaded yet');
+    $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+    $rel = App\Modules\Staff\FileStore::saveBytes($org, 'photo', $png, 1048576);
+    $personId = (int) DB::value('SELECT id FROM persons WHERE uuid = ?', [$pid]);
+    DB::run('INSERT INTO person_profiles (person_id, organisation_id, photo_path) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE photo_path = VALUES(photo_path)', [$personId, $org, $rel]);
+    [$st, , $res] = api('GET', "/people/$pid/photo", $k['token']);
+    eq($st, 200); eq($res->headers['Content-Type'], 'image/png'); eq($res->body, $png, 'the bytes come back exactly');
+    ok(str_contains($res->headers['Cache-Control'], 'private'), 'never cached by a shared cache');
+    eq($res->headers['X-Content-Type-Options'], 'nosniff');
+    eq(api('GET', "/people/$pid/signature", $k['token'])[0], 404, 'no signature yet');
+    eq(api('GET', "/people/$pid/photo", $noStaff['token'])[0], 403, 'people.read alone is not enough for a picture of staff');
+    eq(api('GET', "/people/$pid/photo", null)[0], 401);
+    $other = apiKey(Fx::org(), ['staff.read']);
+    eq(api('GET', "/people/$pid/photo", $other['token'])[0], 404, 'another organisation cannot see it');
+    $profile = apiOk(api('GET', "/people/$pid/profile", $k['token']))['data'];
+    eq($profile['has_photo'], true);
+    $spec = apiOk(api('GET', '/openapi.json', null))['paths']["/people/{id}/photo"]['get'] ?? null;
+    ok(isset($spec['responses']['200']['content']['image/png']), 'documented as an image');
+});
