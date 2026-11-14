@@ -171,7 +171,7 @@ final class Oidc
         $keys = is_file($cache) && filemtime($cache) > time() - 3600 ? json_decode((string) file_get_contents($cache), true) : null;
         foreach (['cached', 'fresh'] as $pass) {
             if ($pass === 'fresh' || !is_array($keys)) {
-                [$status, $body] = self::request('https://login.microsoftonline.com/' . rawurlencode((string) Config::get('ENTRA_TENANT_ID')) . '/discovery/v2.0/keys', null);
+                [$status, $body] = self::request(self::authority() . '/' . rawurlencode((string) Config::get('ENTRA_TENANT_ID')) . '/discovery/v2.0/keys', null);
                 $keys = $status === 200 ? json_decode($body, true) : null;
                 if (is_array($keys) && !empty($keys['keys'])) {
                     @mkdir(dirname($cache), 0750, true);
@@ -217,9 +217,21 @@ final class Oidc
 
     // ── Plumbing ─────────────────────────────────────────────────────────────
 
+    /**
+     * Where Microsoft's sign-in lives. Always login.microsoftonline.com, except that ENTRA_AUTHORITY may point at the local Entra sandbox
+     * (http://localhost:8600) for development and tests. A name that is not a local development host is ignored, so a stray setting on a real
+     * server can never send sign-ins somewhere else. The token's issuer is still checked against the real Microsoft issuer.
+     */
+    public static function authority(): string
+    {
+        $a = rtrim((string) Config::get('ENTRA_AUTHORITY'), '/');
+        $host = strtolower((string) parse_url($a, PHP_URL_HOST));
+        return ($a !== '' && in_array($host, ['localhost', '127.0.0.1', 'host.docker.internal', 'entra-sandbox'], true)) ? $a : 'https://login.microsoftonline.com';
+    }
+
     private static function base(): string
     {
-        return 'https://login.microsoftonline.com/' . rawurlencode((string) Config::get('ENTRA_TENANT_ID')) . '/oauth2/v2.0';
+        return self::authority() . '/' . rawurlencode((string) Config::get('ENTRA_TENANT_ID')) . '/oauth2/v2.0';
     }
 
     /** @param array<string,string>|null $fields @return array{0:int,1:string} */
@@ -230,7 +242,7 @@ final class Oidc
         }
         $ch = curl_init($url);
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 15, CURLOPT_CONNECTTIMEOUT => 8, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_PROTOCOLS => CURLPROTO_HTTPS, CURLOPT_FOLLOWLOCATION => false]);
+            CURLOPT_PROTOCOLS => self::authority() === 'https://login.microsoftonline.com' ? CURLPROTO_HTTPS : (CURLPROTO_HTTPS | CURLPROTO_HTTP), CURLOPT_FOLLOWLOCATION => false]);
         if ($fields !== null) {
             curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => http_build_query($fields)]);
         }
