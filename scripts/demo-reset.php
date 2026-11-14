@@ -243,7 +243,7 @@ if ($ownerEmail !== '' || $ownerHash !== '') {
         echo "Kept the owner's administrator login: $ownerEmail\n";
     }
 }
-// The Digital ID demo (id.findcarescotland.com) reads this demo's staff through an API key. The key's value is DEMO_LINK_TOKEN in this server's .env
+// The demo apps (Digital ID at id., Policy Core at policies.) read this demo's staff and teams through one API key. The key's value is DEMO_LINK_TOKEN in this server's .env
 // (cc_ + 8 hex + _ + 48 hex), so both demos can be rebuilt every night without anyone copying a secret. It can read people and staff and register one
 // webhook; it cannot write, and it only exists in this fictional organisation.
 $linkToken = trim((string) Config::get('DEMO_LINK_TOKEN', ''));
@@ -251,9 +251,9 @@ if ($linkToken !== '') {
     if (!preg_match('/^(cc_[0-9a-f]{8})_[0-9a-f]{48}$/', $linkToken, $m)) {
         fwrite(STDERR, "DEMO_LINK_TOKEN is not a valid key (cc_ + 8 hex + _ + 48 hex), so the Digital ID link was not created.\n");
     } else {
-        DB::insert('api_keys', ['uuid' => Uuid::v4(), 'organisation_id' => $org, 'name' => 'Digital ID demo', 'key_prefix' => $m[1], 'key_hash' => hash('sha256', $linkToken),
-            'scopes' => 'people.read,staff.read,webhooks.manage', 'allowed_ips' => null, 'rate_limit_per_minute' => 300, 'expires_at' => null, 'created_by_user_id' => null]);
-        echo "Created the Digital ID demo API key.\n";
+        DB::insert('api_keys', ['uuid' => Uuid::v4(), 'organisation_id' => $org, 'name' => 'Demo apps (Digital ID, Policy Core)', 'key_prefix' => $m[1], 'key_hash' => hash('sha256', $linkToken),
+            'scopes' => 'people.read,staff.read,teams.read,webhooks.manage', 'allowed_ips' => null, 'rate_limit_per_minute' => 300, 'expires_at' => null, 'created_by_user_id' => null]);
+        echo "Created the demo apps API key.\n";
     }
 }
 // The seeded history is not news: no endpoint registered after the reset (the Digital ID demo does so a minute later) is sent it.
