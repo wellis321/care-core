@@ -3,9 +3,18 @@
   <h1>Sign in</h1>
   <?php if ($error): ?><div class="alert alert-error" role="alert"><?= View::e($error) ?></div><?php endif; ?>
   <?php if (Config::demo()): ?>
+  <form method="post" action="/demo/enter" class="demo-enter" aria-labelledby="demo-enter-h">
+    <?= Csrf::field() ?><?= \App\Modules\Identity\DemoEntry::fields() ?>
+    <h2 id="demo-enter-h">Explore the demonstration in one click</h2>
+    <p class="muted small">No sign-up and nothing to type. It is full of invented people, and it resets every night.</p>
+    <div class="demo-enter__btns">
+      <button class="btn btn-primary" type="submit" name="role" value="manager">Explore as a manager<span>Record joiners and leavers, see tasks and teams</span></button>
+      <button class="btn btn-secondary" type="submit" name="role" value="staff">Explore as a member of staff<span>See your own profile and your team</span></button>
+    </div>
+  </form>
   <div class="demo-login-help alert alert-info">
-    <strong>Try the demo</strong>
-    <p class="small">Sign in with either account. The password for both is <strong>DemoPass2026!</strong></p>
+    <strong>Or sign in with a demo account</strong>
+    <p class="small">Sign in with any account. The password for both is <strong>DemoPass2026!</strong></p>
     <ul class="small"><li>Administrator: <strong>admin@demo.lochview.test</strong></li><li>Manager: <strong>manager@demo.lochview.test</strong></li><li>Member of staff: <strong>staff@demo.lochview.test</strong></li></ul>
   </div>
   <?php endif; ?>

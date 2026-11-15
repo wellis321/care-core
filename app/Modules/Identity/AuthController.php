@@ -30,6 +30,22 @@ final class AuthController extends Controller
         return $this->redirect($this->safeNext($r->input('next'), '/'));
     }
 
+    /** Demo only: sign in as the shared manager, staff or administrator account with one press. See DemoEntry for how robots are kept out. */
+    public function demoEnter(Request $r, array $p = []): Response
+    {
+        if (!\App\Core\Config::demo()) {
+            return \App\Core\Router::error(404, 'Page not found', 'We could not find that page.');
+        }
+        $fail = fn(string $m): Response => $this->view('auth/login', ['title' => 'Sign in', 'next' => '', 'email' => '', 'error' => $m], 400);
+        if (!DemoEntry::allowed($r->ip)) return $fail('That is a lot of attempts. Please wait a little and try again.');
+        $human = ($r->post[DemoEntry::HONEYPOT] ?? '') === '' && !DemoEntry::looksAutomated($r->header('user-agent')) && (Auth::user() !== null || DemoEntry::tokenOk($r->input('ft')));
+        $u = $human ? DemoEntry::userFor($r->input('role')) : null;
+        if (!$u) return $fail('That did not work. Please wait a moment after the page loads and press the button again, or use one of the demo accounts below.');
+        DB::update('users', ['last_login_at' => gmdate('Y-m-d H:i:s')], ['id' => $u['id']]);
+        Auth::signInAs($u);
+        return $this->redirect('/');
+    }
+
     public function logout(Request $r, array $p = []): Response
     {
         Auth::logout();

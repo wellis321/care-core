@@ -30,6 +30,7 @@ $router->add('GET', '/login', [AuthController::class, 'loginForm'], null, null, 
 $router->add('GET', '/login/entra', [SsoController::class, 'start'], null, null, false, false);
 $router->add('GET', '/login/entra/callback', [SsoController::class, 'callback'], null, null, false, false);
 $router->add('POST', '/login', [AuthController::class, 'login'], null, null, true, false);
+$router->add('POST', '/demo/enter', [AuthController::class, 'demoEnter'], null, null, true, false);
 $router->add('POST', '/logout', [AuthController::class, 'logout'], null, null, true, false);
 $router->add('GET', '/invite/{token}', [AuthController::class, 'inviteForm'], null, null, false, false);
 $router->add('POST', '/invite/{token}', [AuthController::class, 'invite'], null, null, true, false);

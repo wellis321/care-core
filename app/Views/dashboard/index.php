@@ -9,6 +9,24 @@
   <?php endif; ?>
 </div>
 
+<?php if (\App\Core\Config::demo()): ?>
+<details class="tour" open>
+  <summary><strong>New here? Three things to try</strong> <span class="muted small">(this is a demonstration; it resets every night)</span></summary>
+  <?php if ($isManager): ?>
+  <ol>
+    <li><strong>See what a leaver does.</strong> Open <a href="/people?kind=staff">People</a>, choose a member of staff and press <em>Record leaving</em>. A preview shows what will end (team places, key worker links, the login) and what follow-up tasks will be created, before you confirm anything.</li>
+    <li><strong>Look at the follow-up work.</strong> Joiners, movers and leavers create <a href="/tasks">tasks</a>. They are how the things a computer cannot do for you do not get forgotten.</li>
+    <li><strong>Open the team structure.</strong> <a href="/teams">Teams</a> sit in a hierarchy, and each remembers who was in it on any date.</li>
+  </ol>
+  <?php else: ?>
+  <ol>
+    <li><strong>Open your profile.</strong> <a href="/me">My profile</a> shows what is held about you. You can keep your own details, photo and signature up to date.</li>
+    <li><strong>Notice what waits for approval.</strong> Some changes you make wait for your line manager to approve before they take effect.</li>
+    <li><strong>See your team.</strong> Open <a href="/teams">Teams</a> to see who is in your team and the structure around it.</li>
+  </ol>
+  <?php endif; ?>
+</details>
+<?php endif; ?>
 <?php if ($isManager): ?>
 <dl class="stats">
   <div><dt>Staff</dt><dd><a href="/people?kind=staff" aria-label="Staff: <?= (int) $stats['staff'] ?>, view"><?= (int) $stats['staff'] ?></a></dd></div>

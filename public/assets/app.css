@@ -244,3 +244,17 @@ ul.plain { list-style: none; margin: 0 0 1rem; padding: 0; }
 ul.plain li { padding: 0.65rem 0; border-top: 1px solid var(--rule-soft, #ebe8df); }
 ul.plain li:first-child { border-top: 0; }
 form.inline { display: inline-flex; gap: 0.5rem; align-items: center; margin-left: 0.5rem; flex-wrap: wrap; }
+
+/* Demonstration: one-click entry, role switch and the guide */
+.hp { position: absolute; left: -9999px; top: auto; }
+.demo-enter { margin: 0 0 1.25rem; padding: 1rem 1.1rem; background: #fff; border: 2px solid var(--ink, #0d2b2e); }
+.demo-enter h2 { margin: 0 0 .25rem; font-size: 1.15rem; }
+.demo-enter__btns { display: grid; gap: .6rem; margin-top: .75rem; }
+.demo-enter__btns .btn { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: .15rem; height: auto; min-height: 56px; padding: .65rem 1rem; text-align: left; }
+.demo-enter__btns .btn span { font-size: .85rem; font-weight: 400; }
+.demo-enter__btns .btn-secondary { border: 2px solid var(--ink, #0d2b2e); background: #fff; }
+.demo-switch { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .15rem .5rem; margin: 0; }
+.demo-switch .linkbtn { background: none; border: 0; padding: .35rem 0; font: inherit; font-size: .9rem; text-decoration: underline; cursor: pointer; color: inherit; min-height: 44px; }
+.tour { margin: 0 0 1.5rem; padding: .25rem 1.1rem 1rem; background: #fff; border: 2px solid var(--ink, #0d2b2e); }
+.tour > summary { cursor: pointer; padding: .8rem 0; min-height: 44px; }
+.tour ol { margin: 0; padding-left: 1.3rem; display: grid; gap: .6rem; max-width: 52rem; }
