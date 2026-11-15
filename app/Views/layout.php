@@ -27,7 +27,7 @@ $reveal = Session::takeReveal();
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <?php if (Config::demo()): ?>
-<div class="demo-banner" role="region" aria-label="Demo notice"><strong>Demo</strong> <span class="demo-banner__text">All names and records here are made up, and the data resets every night. Please do not enter real personal information.</span> <a href="https://findcarescotland.com/software">Part of Find Care Scotland’s software for providers</a></div>
+<div class="demo-banner" role="region" aria-label="Demo notice"><strong>Demo</strong> <span class="demo-banner__text">All names and records here are made up, and the data resets every night. Please do not enter real personal information.</span> <strong><a class="demo-banner__back" href="https://findcarescotland.com/software/care-core">&larr; Back to Care Core on Find Care Scotland</a></strong> &middot; <a href="https://findcarescotland.com/software">All software</a></div>
 <?php endif; ?>
 <header class="topbar">
   <div class="topbar__in">
