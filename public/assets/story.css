@@ -127,3 +127,37 @@
 .story .srow{grid-template-columns:1fr auto}
 .story .moment li::before{content:"\2713";font-family:inherit;font-weight:700}
 .story .bento .b i.big{display:none}
+
+/* Care Core features and security */
+.story .feat-index{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 2rem;padding:0;list-style:none}
+.story .feat-index a{display:block;background:var(--surface);border:1px solid var(--rule);padding:.45rem .8rem;font-size:.9rem;font-weight:600;color:var(--ink);text-decoration:none;min-height:2.25rem;box-sizing:border-box}
+.story .feat-index a:hover,.story .feat-index a:focus-visible{background:var(--brand-tint);border-color:var(--brand)}
+.story .feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:2.5rem}
+.story .feat-card{background:var(--surface);border:1px solid var(--rule);padding:1.5rem;scroll-margin-top:5rem}
+.story .feat-card.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.story .feat-card.dark a{color:#fff}
+.story .feat-card .num{display:inline-block;font-weight:700;font-size:.8rem;letter-spacing:.06em;color:var(--thistle-deep);background:var(--thistle-tint);padding:.2rem .55rem;margin-bottom:.7rem}
+.story .feat-card.dark .num{background:rgba(255,255,255,.14);color:#fff}
+.story .feat-card h2{font-size:1.3rem;margin:0 0 .8rem;color:inherit}
+.story .feat-card ul{margin:0 0 1rem;padding:0;list-style:none;display:grid;gap:.55rem}
+.story .feat-card li{position:relative;padding-left:1.5rem;line-height:1.55;font-size:.97rem;color:var(--ink-soft)}
+.story .feat-card.dark li{color:rgba(255,255,255,.88)}
+.story .feat-card li::before{content:"\2713";position:absolute;left:0;font-weight:700;color:var(--brand)}
+.story .feat-card.dark li::before{color:#9fe0c6}
+.story .feat-card .more{font-weight:700;font-size:.92rem}
+.story .feat-card.wide{grid-column:span 2}
+.story .feat-card.wide ul{grid-template-columns:1fr 1fr;column-gap:2rem}
+.story .diff{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.story .diff>div{background:var(--surface);border:1px solid var(--rule);padding:.6rem .8rem;font-size:.9rem}
+.story .diff small{display:block;color:var(--muted);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:.7rem;margin-bottom:.15rem}
+.story .diff .new{background:var(--brand-tint);border-color:var(--brand)}
+.story .sec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2.5rem}
+.story .sec-card{background:var(--surface);border:1px solid var(--rule);padding:1.4rem}
+.story .sec-card .num{display:inline-block;font-weight:700;font-size:.8rem;color:var(--brand-deep);background:var(--brand-tint);padding:.2rem .55rem;margin-bottom:.7rem}
+.story .sec-card h2{font-size:1.15rem;margin:0 0 .5rem;color:var(--ink)}
+.story .sec-card p{margin:0;line-height:1.6;color:var(--ink-soft);font-size:.97rem}
+.story .honest{background:var(--gold-tint);border:1px solid var(--gold);padding:1.5rem;margin-bottom:2.5rem;max-width:56rem}
+.story .honest h2{margin:0 0 .6rem;color:var(--warn-ink);font-size:1.25rem}
+.story .honest p{margin:0 0 .7rem;line-height:1.65;color:var(--warn-ink)}
+.story .honest a{color:var(--warn-ink);font-weight:700}
+@media (max-width:900px){.story .feat-grid,.story .sec-grid{grid-template-columns:1fr}.story .feat-card.wide{grid-column:auto}.story .feat-card.wide ul{grid-template-columns:1fr}}

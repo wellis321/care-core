@@ -1,8 +1,19 @@
-<div class="hero">
-  <p class="eyebrow">Features</p>
+<link rel="stylesheet" href="/assets/story.css">
+<div class="story"><div class="story-wrap">
+<section class="story-hero">
+ <div>
+  <span class="story-kicker">Features</span>
   <h1>Everything Care Core does</h1>
-  <p class="lede">A complete list, by area. Each item links to its page in the documentation.</p>
-</div>
+  <p class="lead">A complete list, by area. Each area links to its page in the documentation.</p>
+  <p class="story-note">The picture is a drawn illustration with invented data.</p>
+ </div>
+ <div class="scene" aria-hidden="true"><div class="scene-bar"><span class="dot"></span>Start a new member of staff<span class="tag">One step</span></div><div class="scene-body">
+   <div class="srow"><div><div class="t">Job, hours and line manager</div><div class="s">Support worker, 37.5 hours</div></div><span class="st">Set</span></div>
+   <div class="srow"><div><div class="t">Team</div><div class="s">Harbour team</div></div><span class="st">Placed</span></div>
+   <div class="srow"><div><div class="t">Onboarding checklist</div><div class="s">Tasks created for the manager</div></div><span class="st thistle">Created</span></div>
+   <div class="srow"><div><div class="t">Optional login</div><div class="s">Invitation sent</div></div><span class="st gold">Invited</span></div>
+ </div><div class="scene-foot">Illustration with invented data</div></div>
+</section>
 <?php
 $areas = [
   'Joiners, movers and leavers' => ['joiners', [
@@ -95,9 +106,17 @@ $areas = [
     'Tested: domain tests, end-to-end checks through the interface, and a demo that resets nightly',
   ]],
 ];
-foreach ($areas as $title => [$doc, $items]): ?>
-<section class="section"><h2><?= htmlspecialchars($title) ?></h2>
-  <ul style="max-width:52rem;line-height:1.7"><?php foreach ($items as $i): ?><li><?= htmlspecialchars($i) ?></li><?php endforeach; ?></ul>
-  <p><a href="/docs/<?= htmlspecialchars($doc) ?>">Read more ›</a></p></section>
+?>
+<ul class="feat-index" aria-label="Jump to an area">
+<?php $n = 0; foreach ($areas as $title => [$doc, $items]): $n++; ?><li><a href="#a<?= $n ?>"><?= htmlspecialchars($title) ?></a></li><?php endforeach; ?>
+</ul>
+<div class="feat-grid">
+<?php $n = 0; foreach ($areas as $title => [$doc, $items]): $n++;
+  $cls = in_array($title, ['Trust and control', 'Joiners, movers and leavers'], true) ? ' dark' : ''; if (in_array($title, ['The API', 'Moving in'], true)) $cls .= ' wide'; ?>
+<section class="feat-card<?= $cls ?>" id="a<?= $n ?>"><span class="num"><?= sprintf('%02d', $n) ?></span><h2><?= htmlspecialchars($title) ?></h2>
+  <ul><?php foreach ($items as $i): ?><li><?= htmlspecialchars($i) ?></li><?php endforeach; ?></ul>
+  <a class="more" href="/docs/<?= htmlspecialchars($doc) ?>">Read more &rsaquo;</a></section>
 <?php endforeach; ?>
+</div>
 <p class="actions"><a class="btn btn-primary" href="/docs">Browse the documentation</a> <a class="btn btn-secondary" href="/docs/limits">What it does not do yet</a></p>
+</div></div>
