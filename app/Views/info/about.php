@@ -6,6 +6,20 @@
   <p class="actions"><a class="btn btn-primary" href="/login"><?= Config::demo() ? 'Try the demo' : 'Sign in' ?></a> <a class="btn btn-secondary" href="/features">See what it does</a> <a class="btn btn-secondary" href="/docs">Read the documentation</a></p>
 </div>
 
+<link rel="stylesheet" href="/assets/story.css">
+<div class="story"><div class="story-wrap">
+<section class="moment">
+ <div class="moment-text"><span class="when"><i class="fas fa-user-minus"></i> One change, everywhere</span><h3>Record a last day once</h3>
+  <p>Recording a leaver ends the employment, the team places and the key worker links, creates the follow-up tasks, and sets the login to stop after that day. Nobody has to remember each system.</p></div>
+ <div class="scene" aria-hidden="true"><div class="scene-bar"><span class="dot"></span>Leaver: last day 31 March<span class="tag">Care Core</span></div><div class="scene-body">
+   <div class="srow"><i class="fas fa-briefcase lead"></i><div><div class="t">Employment ended</div><div class="s">Support worker</div></div><span class="st">Done</span></div>
+   <div class="srow"><i class="fas fa-people-group lead"></i><div><div class="t">Team place ended</div><div class="s">Harbour team</div></div><span class="st">Done</span></div>
+   <div class="srow"><i class="fas fa-user-group lead"></i><div><div class="t">Key worker links ended</div><div class="s">New key workers needed for 2 people</div></div><span class="st gold">Tasks created</span></div>
+   <div class="srow"><i class="fas fa-key lead"></i><div><div class="t">Login set to stop</div><div class="s">After the last day</div></div><span class="st thistle">Scheduled</span></div>
+ </div><div class="scene-foot">Illustration with invented data</div></div>
+</section>
+</div></div>
+
 <section class="prose" style="max-width:52rem">
   <h2>The problem</h2>
   <p>The same facts live in several places: an HR system, a rota, a training tracker, a care system, a spreadsheet of registrations. When someone leaves, somebody has to remember to update every one of them. Things get missed, and the failures are the ones inspectors worry about: a leaver still in a team, still listed as someone’s key worker, and still able to sign in.</p>
