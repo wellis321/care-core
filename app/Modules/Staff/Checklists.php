@@ -42,6 +42,18 @@ final class Checklists
         ]);
     }
 
+    /** A task someone else (the API) asked us to raise about a person. @return string the task's uuid */
+    public static function createManual(int $orgId, int $personId, string $personUuid, string $title, ?string $description, ?string $due, string $ownerRole, Actor $actor): string
+    {
+        $uuid = Uuid::v4();
+        DB::transaction(function () use ($orgId, $personId, $personUuid, $title, $description, $due, $ownerRole, $actor, $uuid) {
+            DB::insert('tasks', ['uuid' => $uuid, 'organisation_id' => $orgId, 'person_id' => $personId, 'kind' => 'manual', 'title' => $title,
+                'description' => $description, 'due_date' => $due, 'owner_role' => $ownerRole]);
+            Audit::record($orgId, $actor, 'task.created', 'person', $personUuid, 'Task "' . $title . '" created');
+        });
+        return $uuid;
+    }
+
     public static function setStatus(int $orgId, string $taskUuid, string $status, ?int $userId, Actor $actor): void
     {
         if (!in_array($status, ['done', 'skipped', 'open'], true)) {

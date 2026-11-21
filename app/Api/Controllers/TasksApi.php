@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Api\Controllers;
 
 use App\Api\ApiException;
+use App\Api\Created;
 use App\Api\Ctx;
 use App\Api\Page;
 use App\Api\Present;
@@ -21,6 +22,11 @@ final class TasksApi extends BaseApi
                 'status' => ['string', 'open (default), done, skipped or all.'], 'person_id' => ['uuid', 'Tasks about this person.'],
                 'kind' => ['string', 'joiner, mover, leaver, reassign or manual.'], 'due_before' => ['date', 'Due on or before this date.'],
             ], [], 'list:Task'),
+            self::route('POST', '/tasks', 'tasks.write', 'create', 'Create a task about a person', [], [
+                'person_id' => ['type' => 'uuid', 'required' => true], 'title' => ['type' => 'string', 'required' => true, 'max' => 200],
+                'description' => ['type' => 'string', 'nullable' => true, 'max' => 500], 'due_date' => ['type' => 'date', 'nullable' => true],
+                'owner_role' => ['type' => 'enum', 'enum' => ['admin', 'manager', 'staff']],
+            ], 'Task', 201, 'Always a manual task. Keep the title and description free of health information: tasks are seen by every manager. Send an Idempotency-Key so a retry cannot create it twice.'),
             self::route('GET', '/tasks/{id}', 'tasks.read', 'show', 'Get a task', [], [], 'Task'),
             self::route('PATCH', '/tasks/{id}', 'tasks.write', 'update', 'Mark a task done, skipped or open', [], ['status' => ['type' => 'enum', 'required' => true, 'enum' => ['open', 'done', 'skipped']]], 'Task', 200, 'Marking a task done raises a task.completed event.'),
         ];
@@ -54,6 +60,16 @@ final class TasksApi extends BaseApi
             $params[] = $d;
         }
         return Page::run($c, 'SELECT t.*, p.uuid AS person_uuid FROM tasks t JOIN persons p ON p.id = t.person_id' . $where, $params, 't.id', [Present::class, 'task']);
+    }
+
+    public function create(Ctx $c): Created
+    {
+        $in = $c->input(['person_id' => ['type' => 'uuid', 'required' => true], 'title' => ['type' => 'string', 'required' => true, 'max' => 200],
+            'description' => ['type' => 'string', 'nullable' => true, 'max' => 500], 'due_date' => ['type' => 'date', 'nullable' => true],
+            'owner_role' => ['type' => 'enum', 'enum' => ['admin', 'manager', 'staff']]]);
+        $p = $c->person($in['person_id']);
+        $uuid = Checklists::createManual($c->org(), (int) $p['id'], (string) $p['uuid'], $in['title'], $in['description'] ?? null, $in['due_date'] ?? null, $in['owner_role'] ?? 'manager', $c->actor());
+        return new Created(self::one($c, $uuid), '/tasks');
     }
 
     public function show(Ctx $c): array

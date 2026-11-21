@@ -469,6 +469,24 @@ test('api care: support, needs, contacts and key workers, with the same rules an
 
 // ── Tasks, events, webhooks, audit ──────────────────────────────────────────
 
+test('api tasks: create a manual task (idempotent, validated, own organisation only)', function () {
+    $org = Fx::org();
+    $s = Fx::staff($org);
+    $k = apiKey($org);
+    $before = Fx::count('tasks', 'organisation_id = ?', [$org]);
+    $body = ['person_id' => $s['person_uuid'], 'title' => 'Personal plan review due', 'due_date' => '2026-12-01', 'owner_role' => 'manager'];
+    $t = apiOk(api('POST', '/tasks', $k['token'], $body, [], ['idempotency-key' => 'plan-1']), 201)['data'];
+    eq([$t['kind'], $t['status'], $t['due_date'], $t['person_id']], ['manual', 'open', '2026-12-01', $s['person_uuid']]);
+    $again = apiOk(api('POST', '/tasks', $k['token'], $body, [], ['idempotency-key' => 'plan-1']), 201)['data'];
+    eq($again['id'], $t['id'], 'a retry with the same key returns the first task');
+    eq(Fx::count('tasks', 'organisation_id = ?', [$org]), $before + 1);
+    eq(api('POST', '/tasks', $k['token'], ['title' => 'x'])[0], 422, 'a person is required');
+    eq(api('POST', '/tasks', $k['token'], ['person_id' => $s['person_uuid'], 'title' => str_repeat('x', 201)])[0], 422);
+    eq(api('POST', '/tasks', apiKey($org, ['tasks.read'])['token'], $body)[0], 403, 'needs tasks.write');
+    $other = Fx::org();
+    eq(api('POST', '/tasks', apiKey($other)['token'], $body)[0], 404, 'another organisation cannot raise a task about this person');
+});
+
 test('api tasks: list with filters, mark done (raises the event), reopen', function () {
     $org = Fx::org();
     $s = Fx::staff($org);
