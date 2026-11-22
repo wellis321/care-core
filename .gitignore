@@ -3,3 +3,4 @@
 storage/
 *.log
 .DS_Store
+public/assets/product/raw/

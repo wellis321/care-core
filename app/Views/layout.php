@@ -11,6 +11,7 @@ $user = Auth::user();
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $active = static fn(string $prefix): string => ($prefix === '/' ? $path === '/' : str_starts_with($path, $prefix)) ? ' aria-current="page"' : '';
 $org = $user ? (int) $user['organisation_id'] : 0;
+$marketing = !empty($marketing);   // the public front page: its own header, full width
 $flash = Session::takeFlash();
 $reveal = Session::takeReveal();
 ?><!DOCTYPE html>
@@ -18,10 +19,14 @@ $reveal = Session::takeReveal();
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= View::e($title ?? 'Care Core') ?> · Care Core</title>
-<meta name="robots" content="noindex">
+<title><?= View::e($marketing ? 'Care Core: one record of your people. Change it once.' : (($title ?? 'Care Core') . ' · Care Core')) ?></title>
+<?php if ($marketing): ?><meta name="description" content="Care Core is the system of record for a care organisation: staff, the people they support and the teams between them. Joiners, movers and leavers change everything in one go. A working demonstration.">
+<meta property="og:title" content="Care Core: one record of your people. Change it once."><meta property="og:type" content="website">
+<link rel="preload" href="/assets/fonts/newsreader-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<?php else: ?><meta name="robots" content="noindex"><?php endif; ?>
 <link rel="stylesheet" href="/assets/app.css?v=<?= (int) @filemtime(ROOT_PATH . '/public/assets/app.css') ?>">
 <link rel="stylesheet" href="/assets/suite/suite.css?v=<?= (int) @filemtime(ROOT_PATH . '/public/assets/suite/suite.css') ?>">
+<?php if ($marketing): ?><link rel="stylesheet" href="/assets/home.css?v=<?= (int) @filemtime(ROOT_PATH . '/public/assets/home.css') ?>"><?php endif; ?>
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -32,6 +37,13 @@ $reveal = Session::takeReveal();
 <form method="post" action="/demo/enter" class="demo-switch"><?= \App\Core\Csrf::field() ?><?= \App\Modules\Identity\DemoEntry::fields() ?><span>You are viewing as <?= htmlspecialchars(['staff' => 'a member of staff', 'manager' => 'a manager', 'admin' => 'an administrator'][$user['role']] ?? 'a user') ?>.</span> <button class="linkbtn" type="submit" name="role" value="<?= $other ?>">See it as <?= $other === 'staff' ? 'a member of staff' : 'a manager' ?></button></form>
 <?php endif; ?></div>
 <?php endif; ?>
+<?php if ($marketing): ?>
+<header class="rg-top"><div class="rg-top-in">
+  <a class="rg-brand" href="/"><span class="rg-mark" aria-hidden="true">C</span>Care Core</a>
+  <nav class="rg-nav" aria-label="Main"><a href="#story">What it does</a><a href="#lifecycle">Joiners and leavers</a><a href="#hub">Joined up</a><a href="#trust">Security</a><a href="#developers">For developers</a><a href="#faq">Questions</a></nav>
+  <div class="rg-top-cta"><a class="rg-signin" href="/login">Sign in</a><a class="rg-btn rg-btn-ink rg-btn-sm" href="#demo">Try the demo</a></div>
+</div></header>
+<?php else: ?>
 <header class="topbar">
   <div class="topbar__in">
     <a class="brand" href="/"><span class="brand__mark" aria-hidden="true">C</span>Care Core</a>
@@ -64,7 +76,8 @@ $reveal = Session::takeReveal();
     <?php endif; ?>
   </div>
 </header>
-<main id="main" class="container" tabindex="-1">
+<?php endif; ?>
+<main id="main"<?= $marketing ? '' : ' class="container"' ?> tabindex="-1">
 <?php if ($reveal): ?>
 <section class="reveal" id="new-secret" tabindex="-1" aria-labelledby="reveal-title">
   <h2 id="reveal-title"><?= View::e($reveal['title']) ?></h2>
@@ -84,6 +97,7 @@ $reveal = Session::takeReveal();
 <?php endforeach; ?>
 <?= $content ?>
 </main>
+<?php if ($marketing): ?><script src="/assets/home.js" defer></script><?php endif; ?>
 <footer class="sitefoot"><div class="container">
   <p>Care Core: one record of your people, your teams and the people you support. Joiners, movers and leavers change everything in one go.</p>
   <?php if (Config::demo()): ?>

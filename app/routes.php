@@ -40,7 +40,7 @@ $router->add('GET', '/account', [AuthController::class, 'accountForm']);
 $router->add('POST', '/account/password', [AuthController::class, 'changePassword']);
 
 // Dashboard
-$router->add('GET', '/', [DashboardController::class, 'index']);
+$router->add('GET', '/', [DashboardController::class, 'index'], null, null, false, false);   // signed in: the dashboard. Signed out: the public front page.
 
 // People
 $router->add('GET', '/people', [PeopleController::class, 'index']);

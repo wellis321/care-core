@@ -16,6 +16,7 @@ final class DashboardController extends Controller
 {
     public function index(Request $r, array $p = []): Response
     {
+        if (!Auth::user()) return $this->view('home/public', ['title' => 'Care Core', 'marketing' => true]);
         $org = $this->orgId();
         $today = Clock::today();
         $soon = date('Y-m-d', strtotime($today . ' +30 days'));

@@ -17,7 +17,7 @@ test('docs: every catalogued page exists, nothing is uncatalogued, and each has 
 });
 
 test('docs: every internal link on every docs and info page points at a page that exists', function () {
-    $known = ['/login', '/about', '/features', '/security', '/docs', '/api/v1/openapi.json'];
+    $known = ['/login', '/about', '/features', '/security', '/docs', '/api/v1/openapi.json', '/assets/story.css'];
     $pages = [];
     foreach (array_keys(Docs::flat()) as $slug) {
         $pages[$slug] = Docs::body($slug);
@@ -121,5 +121,24 @@ test('docs: every script and command the import pages mention exists', function 
     preg_match_all('~scripts/([a-z-]+\.php)~', $text, $m);
     foreach (array_unique($m[1]) as $script) {
         ok(is_file(ROOT_PATH . '/scripts/' . $script), "scripts/$script is mentioned but does not exist");
+    }
+});
+
+test('front page: one main heading, no inline styles, every menu link has a target, every screenshot exists, and the limits are stated', function () {
+    $html = App\Core\View::partial('home/public', ['title' => 'Care Core']);
+    eq(substr_count($html, '<h1'), 1, 'one h1');
+    ok(!preg_match('/\sstyle="/', $html), 'no inline style attributes (the content security policy forbids them)');
+    foreach (['story', 'lifecycle', 'hub', 'trust', 'developers', 'faq', 'demo'] as $id) {
+        ok(str_contains($html, 'id="' . $id . '"'), "the menu points at #$id, which must exist");
+    }
+    preg_match_all('~src="/assets/product/([a-z]+\.webp)~', $html, $m);
+    ok(count($m[1]) >= 7, 'the screenshots are on the page');
+    foreach (array_unique($m[1]) as $f) {
+        ok(is_file(ROOT_PATH . '/public/assets/product/' . $f), "screenshot $f exists");
+    }
+    ok(preg_match_all('~<img[^>]+alt="[^"]+"[^>]+width="\d+"[^>]+height="\d+"~', $html) === preg_match_all('~<img~', $html), 'every image has alt text and a size');
+    ok(str_contains($html, 'What it does not do yet') && str_contains($html, 'Not yet for real records'), 'the page says what Care Core does not do and that it is not for real records yet');
+    foreach (['div', 'section', 'ul', 'ol', 'figure', 'details', 'svg', 'g', 'form'] as $tg) {
+        eq(preg_match_all('~<' . $tg . '[\s>]~i', $html), preg_match_all('~</' . $tg . '>~i', $html), "balanced <$tg>");
     }
 });
