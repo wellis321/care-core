@@ -52,21 +52,21 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
     <figure class="rg-diagram">
       <svg viewBox="0 0 960 520" role="img" aria-labelledby="hub-t hub-d">
         <title id="hub-t">Care Core at the centre of the suite</title>
-        <desc id="hub-d">Care Plans, Digital ID, Policy Core and Referrals are connected to Care Core today. Contracts is a planned link.</desc>
+        <desc id="hub-d">Care Plans, Digital ID, Policy Core and Referrals are connected to Care Core today. Contracts is connected too.</desc>
         <g class="h-rings"><circle cx="480" cy="262" r="108"/><circle cx="480" cy="262" r="168"/><circle cx="480" cy="262" r="232"/></g>
         <g class="h-lines">
           <path class="h-live" d="M222 405 C330 400 395 320 428 292"/>
           <path class="h-live" d="M738 105 C650 120 585 220 540 244"/>
           <path class="h-live" d="M738 262 L552 262"/>
           <path class="h-live" d="M222 115 C330 122 395 210 428 235"/>
-          <path class="h-next" d="M738 420 C650 408 585 312 540 282"/>
+          <path class="h-live" d="M738 420 C650 408 585 312 540 282"/>
         </g>
         <a class="h-link" href="https://core.findcarescotland.com/" aria-label="Care Core"><g class="h-core"><circle cx="480" cy="262" r="72"/><text x="480" y="258" class="h-core-t">Care Core</text><text x="480" y="282" class="h-core-s">the record</text></g></a>
         <a class="h-link" href="https://care.findcarescotland.com/" aria-label="Care Plans"><g class="h-node"><rect x="46" y="368" width="176" height="74" rx="8"/><text x="134" y="400" class="h-n-t">Care Plans</text><text x="134" y="423" class="h-n-s">people, key workers, leavers</text></g></a>
         <a class="h-link" href="https://id.findcarescotland.com/" aria-label="Digital ID"><g class="h-node"><rect x="738" y="68" width="176" height="74" rx="8"/><text x="826" y="100" class="h-n-t">Digital ID</text><text x="826" y="123" class="h-n-s">staff identity</text></g></a>
         <a class="h-link" href="https://policies.findcarescotland.com/" aria-label="Policy Core"><g class="h-node"><rect x="738" y="225" width="176" height="74" rx="8"/><text x="826" y="257" class="h-n-t">Policy Core</text><text x="826" y="280" class="h-n-s">staff lists</text></g></a>
         <a class="h-link" href="https://core.findcarescotland.com/" aria-label="Referrals"><g class="h-node"><rect x="46" y="78" width="176" height="74" rx="8"/><text x="134" y="110" class="h-n-t">Referrals</text><text x="134" y="133" class="h-n-s">held here</text></g></a>
-        <a class="h-link" href="https://contracts.findcarescotland.com/public/index.php" aria-label="Contracts"><g class="h-node h-next-node"><rect x="738" y="383" width="176" height="74" rx="8"/><text x="826" y="415" class="h-n-t">Contracts</text><text x="826" y="438" class="h-n-s">linked to people: next</text></g></a>
+        <a class="h-link" href="https://contracts.findcarescotland.com/public/index.php" aria-label="Contracts"><g class="h-node"><rect x="738" y="383" width="176" height="74" rx="8"/><text x="826" y="415" class="h-n-t">Contracts</text><text x="826" y="438" class="h-n-s">reads the people</text></g></a>
       </svg>
       <figcaption>Solid lines are connected today. Dashed lines are coming next. Click any product to visit it.</figcaption>
     </figure>
@@ -75,6 +75,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
       <div>
         <h3>Working today</h3>
         <ul class="rg-list">
+          <li><strong>Contracts</strong> reads the people you support from Care Core, so each person is entered once and their contracts sit beside the support they pay for.</li>
           <li><strong>Referrals</strong> recorded and decided here, so they exist before the person arrives. Care Plans reads them, with the specialist skills they call for, and a person linked here is linked there.</li>
           <li><strong>Care Plans</strong> reads people supported, key workers and leavers (signed events plus a daily catch-up) and writes plan-review reminders back as tasks carrying no names.</li>
           <li><strong>Digital ID</strong> takes staff identity: name, photo, signature and status.</li>
@@ -86,7 +87,6 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
         <h3>Coming next</h3>
         <ul class="rg-list rg-list-next">
           <li><strong>Training records</strong> published through the API, so Care Plans can see who holds each specialist skill and when it runs out.</li>
-          <li><strong>Contracts</strong> linked to each person, so funding and rates sit beside the support.</li>
         </ul>
       </div>
     </div>
@@ -226,7 +226,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
   </div>
   <div class="rg-wrap rg-limits">
     <h3>On the roadmap</h3>
-    <p>Retention tools and a subject-access export are planned, and the connected suite is growing: training records and Contracts next. You remain the data controller, and Care Core gives you the tools to act as one.</p>
+    <p>Retention tools and a subject-access export are planned, and the connected suite is growing: training records next. You remain the data controller, and Care Core gives you the tools to act as one.</p>
   </div>
 </section>
 
