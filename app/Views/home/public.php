@@ -42,6 +42,57 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
   </div>
 </section>
 
+<!-- ═══ The hub ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ -->
+<section class="rg-sec rg-hub" id="hub" aria-labelledby="hub-h">
+  <div class="rg-wrap">
+    <p class="rg-eyebrow rg-on-ink">The centre of the suite</p>
+    <h2 id="hub-h">Everything else listens to Care Core.</h2>
+    <p class="rg-lead rg-on-ink rg-narrow">Change a person once here and the products that depend on them find out, with identifiers and dates only, never names or health details in the event itself. Each product works alone; together they stop you keeping the same fact in several places.</p>
+
+    <figure class="rg-diagram">
+      <svg viewBox="0 0 960 520" role="img" aria-labelledby="hub-t hub-d">
+        <title id="hub-t">Care Core at the centre of the suite</title>
+        <desc id="hub-d">Care Plans, Digital ID and Policy Core read from Care Core today. Referrals, to be held in Care Core, and Contracts are planned links.</desc>
+        <g class="h-rings"><circle cx="480" cy="262" r="108"/><circle cx="480" cy="262" r="168"/><circle cx="480" cy="262" r="232"/></g>
+        <g class="h-lines">
+          <path class="h-live" d="M222 405 C330 400 395 320 428 292"/>
+          <path class="h-live" d="M738 105 C650 120 585 220 540 244"/>
+          <path class="h-live" d="M738 262 L552 262"/>
+          <path class="h-next" d="M222 115 C330 122 395 210 428 235"/>
+          <path class="h-next" d="M738 420 C650 408 585 312 540 282"/>
+        </g>
+        <a class="h-link" href="https://core.findcarescotland.com/" aria-label="Care Core"><g class="h-core"><circle cx="480" cy="262" r="72"/><text x="480" y="258" class="h-core-t">Care Core</text><text x="480" y="282" class="h-core-s">the record</text></g></a>
+        <a class="h-link" href="https://care.findcarescotland.com/" aria-label="Care Plans"><g class="h-node"><rect x="46" y="368" width="176" height="74" rx="8"/><text x="134" y="400" class="h-n-t">Care Plans</text><text x="134" y="423" class="h-n-s">people, key workers, leavers</text></g></a>
+        <a class="h-link" href="https://id.findcarescotland.com/" aria-label="Digital ID"><g class="h-node"><rect x="738" y="68" width="176" height="74" rx="8"/><text x="826" y="100" class="h-n-t">Digital ID</text><text x="826" y="123" class="h-n-s">staff identity</text></g></a>
+        <a class="h-link" href="https://policies.findcarescotland.com/" aria-label="Policy Core"><g class="h-node"><rect x="738" y="225" width="176" height="74" rx="8"/><text x="826" y="257" class="h-n-t">Policy Core</text><text x="826" y="280" class="h-n-s">staff lists</text></g></a>
+        <a class="h-link" href="https://core.findcarescotland.com/" aria-label="Referrals"><g class="h-node h-next-node"><rect x="46" y="78" width="176" height="74" rx="8"/><text x="134" y="110" class="h-n-t">Referrals</text><text x="134" y="133" class="h-n-s">held here: next</text></g></a>
+        <a class="h-link" href="https://contracts.findcarescotland.com/public/index.php" aria-label="Contracts"><g class="h-node h-next-node"><rect x="738" y="383" width="176" height="74" rx="8"/><text x="826" y="415" class="h-n-t">Contracts</text><text x="826" y="438" class="h-n-s">linked to people: next</text></g></a>
+      </svg>
+      <figcaption>Solid lines are connected today. Dashed lines are coming next. Click any product to visit it.</figcaption>
+    </figure>
+
+    <div class="rg-hub-cols">
+      <div>
+        <h3>Working today</h3>
+        <ul class="rg-list">
+          <li><strong>Care Plans</strong> reads people supported, key workers and leavers (signed events plus a daily catch-up) and writes plan-review reminders back as tasks carrying no names.</li>
+          <li><strong>Digital ID</strong> takes staff identity: name, photo, signature and status.</li>
+          <li><strong>Policy Core</strong> reads the staff list.</li>
+          <li><strong>Microsoft Entra</strong> signs staff in (OpenID Connect with PKCE) and provisions joiners and leavers through SCIM. Nobody is created by signing in.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Coming next</h3>
+        <ul class="rg-list rg-list-next">
+          <li><strong>Referrals</strong> recorded here, so they exist before the person arrives and flow into their plan and skills.</li>
+          <li><strong>Training records</strong> published through the API, so Care Plans can see who holds each specialist skill and when it runs out.</li>
+          <li><strong>Contracts</strong> linked to each person, so funding and rates sit beside the support.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ═══ The failures ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ -->
 <section class="rg-sec rg-failures" aria-labelledby="fail-h">
   <div class="rg-wrap rg-failures-grid">
@@ -152,57 +203,6 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
         <li><strong>Ending support</strong> ends the key worker links and team places the same day, so nobody stays linked to someone who is no longer supported.</li>
         <li><strong>Care planning belongs in Care Plans,</strong> which reads these people from here.</li>
       </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ The hub ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ -->
-<section class="rg-sec rg-hub" id="hub" aria-labelledby="hub-h">
-  <div class="rg-wrap">
-    <p class="rg-eyebrow rg-on-ink">The centre of the suite</p>
-    <h2 id="hub-h">Everything else listens to Care Core.</h2>
-    <p class="rg-lead rg-on-ink rg-narrow">Change a person once here and the products that depend on them find out, with identifiers and dates only, never names or health details in the event itself. Each product works alone; together they stop you keeping the same fact in several places.</p>
-
-    <figure class="rg-diagram">
-      <svg viewBox="0 0 960 520" role="img" aria-labelledby="hub-t hub-d">
-        <title id="hub-t">Care Core at the centre of the suite</title>
-        <desc id="hub-d">Care Plans, Digital ID and Policy Core read from Care Core today. Referrals, to be held in Care Core, and Contracts are planned links.</desc>
-        <g class="h-rings"><circle cx="480" cy="262" r="108"/><circle cx="480" cy="262" r="168"/><circle cx="480" cy="262" r="232"/></g>
-        <g class="h-lines">
-          <path class="h-live" d="M222 405 C330 400 395 320 428 292"/>
-          <path class="h-live" d="M738 105 C650 120 585 220 540 244"/>
-          <path class="h-live" d="M738 262 L552 262"/>
-          <path class="h-next" d="M222 115 C330 122 395 210 428 235"/>
-          <path class="h-next" d="M738 420 C650 408 585 312 540 282"/>
-        </g>
-        <g class="h-core"><circle cx="480" cy="262" r="72"/><text x="480" y="258" class="h-core-t">Care Core</text><text x="480" y="282" class="h-core-s">the record</text></g>
-        <g class="h-node"><rect x="46" y="368" width="176" height="74" rx="8"/><text x="134" y="400" class="h-n-t">Care Plans</text><text x="134" y="423" class="h-n-s">people, key workers, leavers</text></g>
-        <g class="h-node"><rect x="738" y="68" width="176" height="74" rx="8"/><text x="826" y="100" class="h-n-t">Digital ID</text><text x="826" y="123" class="h-n-s">staff identity</text></g>
-        <g class="h-node"><rect x="738" y="225" width="176" height="74" rx="8"/><text x="826" y="257" class="h-n-t">Policy Core</text><text x="826" y="280" class="h-n-s">staff lists</text></g>
-        <g class="h-node h-next-node"><rect x="46" y="78" width="176" height="74" rx="8"/><text x="134" y="110" class="h-n-t">Referrals</text><text x="134" y="133" class="h-n-s">held here: next</text></g>
-        <g class="h-node h-next-node"><rect x="738" y="383" width="176" height="74" rx="8"/><text x="826" y="415" class="h-n-t">Contracts</text><text x="826" y="438" class="h-n-s">linked to people: next</text></g>
-      </svg>
-      <figcaption>Solid lines are connected today. Dashed lines are coming next.</figcaption>
-    </figure>
-
-    <div class="rg-hub-cols">
-      <div>
-        <h3>Working today</h3>
-        <ul class="rg-list">
-          <li><strong>Care Plans</strong> reads people supported, key workers and leavers (signed events plus a daily catch-up) and writes plan-review reminders back as tasks carrying no names.</li>
-          <li><strong>Digital ID</strong> takes staff identity: name, photo, signature and status.</li>
-          <li><strong>Policy Core</strong> reads the staff list.</li>
-          <li><strong>Microsoft Entra</strong> signs staff in (OpenID Connect with PKCE) and provisions joiners and leavers through SCIM. Nobody is created by signing in.</li>
-        </ul>
-      </div>
-      <div>
-        <h3>Coming next</h3>
-        <ul class="rg-list rg-list-next">
-          <li><strong>Referrals</strong> recorded here, so they exist before the person arrives and flow into their plan and skills.</li>
-          <li><strong>Training records</strong> published through the API, so Care Plans can see who holds each specialist skill and when it runs out.</li>
-          <li><strong>Contracts</strong> linked to each person, so funding and rates sit beside the support.</li>
-        </ul>
-      </div>
     </div>
   </div>
 </section>

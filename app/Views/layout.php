@@ -32,7 +32,7 @@ $reveal = Session::takeReveal();
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <?php if (Config::demo()): ?>
-<div class="demo-banner" role="region" aria-label="Demo notice"><strong>Demo</strong> <span class="demo-banner__text">All names and records here are made up, and the data resets every night. Please do not enter real personal information.</span> <strong><a class="demo-banner__back" href="https://findcarescotland.com/software/care-core">&larr; Back to Care Core on Find Care Scotland</a></strong> &middot; <a href="https://findcarescotland.com/software">All software</a>
+<div class="demo-banner" role="region" aria-label="Demo notice"><strong>Demo</strong> <span class="demo-banner__text">All names and records here are made up, and the data resets every night. Please do not enter real personal information.</span> <strong><a class="demo-banner__back" href="https://findcarescotland.com/software">&larr; Back to Find Care Scotland software</a></strong> &middot; <a href="https://findcarescotland.com/software">All software</a>
 <?php if ($user): $other = ($user['role'] ?? '') === 'staff' ? 'manager' : 'staff'; ?>
 <form method="post" action="/demo/enter" class="demo-switch"><?= \App\Core\Csrf::field() ?><?= \App\Modules\Identity\DemoEntry::fields() ?><span>You are viewing as <?= htmlspecialchars(['staff' => 'a member of staff', 'manager' => 'a manager', 'admin' => 'an administrator'][$user['role']] ?? 'a user') ?>.</span> <button class="linkbtn" type="submit" name="role" value="<?= $other ?>">See it as <?= $other === 'staff' ? 'a member of staff' : 'a manager' ?></button></form>
 <?php endif; ?></div>
