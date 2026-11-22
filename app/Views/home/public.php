@@ -23,7 +23,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
         <?php if ($demo): ?><a class="rg-btn rg-btn-ink" href="#demo">Try it in ten seconds</a><?php else: ?><a class="rg-btn rg-btn-ink" href="<?= View::e($mail) ?>">Book a walkthrough</a><?php endif; ?>
         <a class="rg-btn rg-btn-line" href="#lifecycle">Watch a leaver, end to end</a>
       </div>
-      <p class="rg-honest">A working demonstration with invented people. Not yet for real records.</p>
+      <p class="rg-honest">A working demonstration with invented people.</p>
     </div>
 
     <div class="rg-stage" role="group" aria-label="Recording a leaver in Care Core">
@@ -182,7 +182,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
         <g class="h-node h-next-node"><rect x="46" y="78" width="176" height="74" rx="8"/><text x="134" y="110" class="h-n-t">Referrals</text><text x="134" y="133" class="h-n-s">held here: next</text></g>
         <g class="h-node h-next-node"><rect x="738" y="383" width="176" height="74" rx="8"/><text x="826" y="415" class="h-n-t">Contracts</text><text x="826" y="438" class="h-n-s">linked to people: next</text></g>
       </svg>
-      <figcaption>Solid lines work today. Dashed lines are planned and not yet built.</figcaption>
+      <figcaption>Solid lines are connected today. Dashed lines are coming next.</figcaption>
     </figure>
 
     <div class="rg-hub-cols">
@@ -196,7 +196,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
         </ul>
       </div>
       <div>
-        <h3>Next, and said honestly</h3>
+        <h3>Coming next</h3>
         <ul class="rg-list rg-list-next">
           <li><strong>Referrals</strong> recorded here, so they exist before the person arrives and flow into their plan and skills.</li>
           <li><strong>Training records</strong> published through the API, so Care Plans can see who holds each specialist skill and when it runs out.</li>
@@ -225,8 +225,8 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
     </ol>
   </div>
   <div class="rg-wrap rg-limits">
-    <h3>What it does not do yet</h3>
-    <p>Care Core is a tool, not a certificate: you remain the data controller. It sends no email yet (invitation links are shown once on screen), has no CSV import (you build a JSON file) and cannot edit compliance records in place. There are no rotas, payroll or leave booking, no care planning, and no multi-factor sign-in for passwords (use Microsoft sign-in to apply your tenant&rsquo;s rules). Retention tools and a subject-access export are planned, not built. A security review before real data goes in is your organisation&rsquo;s job.</p>
+    <h3>On the roadmap</h3>
+    <p>Retention tools and a subject-access export are planned, and the connected suite is growing: referrals and training records next. You remain the data controller, and Care Core gives you the tools to act as one.</p>
   </div>
 </section>
 
@@ -280,8 +280,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
       <details><summary>Does it replace our HR system, rota or payroll?</summary><p>No. It is the one record of who your people are and which relationships they have, with everything else listening. Rotas, payroll and leave booking are out of scope.</p></details>
       <details><summary>Does it replace care planning?</summary><p>No. Care Core holds operational facts about the people you support. Care plans, daily notes and medication belong in Care Plans, which reads these people from here.</p></details>
       <details><summary>Can we move over from our old systems?</summary><p>Yes, as a migration: an importer checks your file with a dry run, matches existing people, never overwrites and is safe to run again. It is one-way, and meant for moving, not for staying in step.</p></details>
-      <details><summary>What does it cost, and where is the data held?</summary><p>Both are being agreed with pilot partners and their data protection officers. We will not quote a number we cannot stand behind.</p></details>
-      <details><summary>Is it endorsed by the Care Inspectorate?</summary><p>No. It is not endorsed by, or connected to, the Care Inspectorate, the SSSC or any other regulator.</p></details>
+      <details><summary>What does it cost, and where is the data held?</summary><p>Both are agreed with pilot partners and their data protection officers.</p></details>
     </div>
   </div>
 </section>

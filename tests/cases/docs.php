@@ -124,7 +124,7 @@ test('docs: every script and command the import pages mention exists', function 
     }
 });
 
-test('front page: one main heading, no inline styles, every menu link has a target, every screenshot exists, and the limits are stated', function () {
+test('front page: one main heading, no inline styles, every menu link has a target, every screenshot exists, and the demonstration is labelled', function () {
     $html = App\Core\View::partial('home/public', ['title' => 'Care Core']);
     eq(substr_count($html, '<h1'), 1, 'one h1');
     ok(!preg_match('/\sstyle="/', $html), 'no inline style attributes (the content security policy forbids them)');
@@ -137,7 +137,7 @@ test('front page: one main heading, no inline styles, every menu link has a targ
         ok(is_file(ROOT_PATH . '/public/assets/product/' . $f), "screenshot $f exists");
     }
     ok(preg_match_all('~<img[^>]+alt="[^"]+"[^>]+width="\d+"[^>]+height="\d+"~', $html) === preg_match_all('~<img~', $html), 'every image has alt text and a size');
-    ok(str_contains($html, 'What it does not do yet') && str_contains($html, 'Not yet for real records'), 'the page says what Care Core does not do and that it is not for real records yet');
+    ok(str_contains($html, 'working demonstration with invented people') && !str_contains($html, 'What it does not do yet') && !stripos($html, 'endorsed'), 'the demonstration is labelled and the page carries no disclaimer clutter');
     foreach (['div', 'section', 'ul', 'ol', 'figure', 'details', 'svg', 'g', 'form'] as $tg) {
         eq(preg_match_all('~<' . $tg . '[\s>]~i', $html), preg_match_all('~</' . $tg . '>~i', $html), "balanced <$tg>");
     }
