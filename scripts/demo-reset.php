@@ -260,8 +260,8 @@ if ($linkToken !== '') {
     if (!preg_match('/^(cc_[0-9a-f]{8})_[0-9a-f]{48}$/', $linkToken, $m)) {
         fwrite(STDERR, "DEMO_LINK_TOKEN is not a valid key (cc_ + 8 hex + _ + 48 hex), so the Digital ID link was not created.\n");
     } else {
-        DB::insert('api_keys', ['uuid' => Uuid::v4(), 'organisation_id' => $org, 'name' => 'Demo apps (Digital ID, Policy Core)', 'key_prefix' => $m[1], 'key_hash' => hash('sha256', $linkToken),
-            'scopes' => 'people.read,staff.read,teams.read,compliance.read,webhooks.manage', 'allowed_ips' => null, 'rate_limit_per_minute' => 300, 'expires_at' => null, 'created_by_user_id' => null]);
+        DB::insert('api_keys', ['uuid' => Uuid::v4(), 'organisation_id' => $org, 'name' => 'Demo apps (Digital ID, Policy Core, Care Plans, Contracts, Strategic Plans)', 'key_prefix' => $m[1], 'key_hash' => hash('sha256', $linkToken),
+            'scopes' => 'people.read,staff.read,teams.read,care.read,compliance.read,referrals.read,webhooks.manage', 'allowed_ips' => null, 'rate_limit_per_minute' => 300, 'expires_at' => null, 'created_by_user_id' => null]);
         echo "Created the demo apps API key.\n";
     }
 }
