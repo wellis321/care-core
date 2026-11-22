@@ -75,6 +75,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
       <div>
         <h3>Working today</h3>
         <ul class="rg-list">
+          <li><strong>Care Plans</strong> turns your training records into specialist skills with their expiry dates, so a rota can be checked against them.</li>
           <li><strong>Digital ID</strong> shows a member of staff's current training and skills, read from Care Core, on their own card.</li>
           <li><strong>Strategic Plans</strong> projects are owned by one of your teams, picked from Care Core, and show who is in the team today.</li>
           <li><strong>Contracts</strong> reads the people you support from Care Core, so each person is entered once and their contracts sit beside the support they pay for.</li>
@@ -88,7 +89,8 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
       <div>
         <h3>Coming next</h3>
         <ul class="rg-list rg-list-next">
-          <li><strong>Training records</strong> shared with Care Plans, so specialist skills and their expiry dates arrive without typing.</li>
+          <li><strong>Deeper links between the products,</strong> such as contracts beside each person's referral and plan goals tied to services.</li>
+          <li><strong>Retention tools and a subject-access export,</strong> so you can answer a request for a person's information from one place.</li>
         </ul>
       </div>
     </div>
@@ -228,7 +230,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
   </div>
   <div class="rg-wrap rg-limits">
     <h3>On the roadmap</h3>
-    <p>Retention tools and a subject-access export are planned, and the connected suite is growing: training records for Care Plans next. You remain the data controller, and Care Core gives you the tools to act as one.</p>
+    <p>Retention tools and a subject-access export are planned, and the connected suite is growing: deeper links between the products next. You remain the data controller, and Care Core gives you the tools to act as one.</p>
   </div>
 </section>
 
