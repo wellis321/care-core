@@ -215,3 +215,35 @@ body:has(.rg) { background: var(--paper, #f6f1e8); }
 .h-link:hover .h-node rect { stroke-width: 3; }
 .h-link:focus-visible { outline: 3px solid #e2b04a; outline-offset: 4px; }
 .h-link { cursor: pointer; }
+
+/* Suite connectivity diagram (Care Core's style, used on every page) */
+
+
+.sm-diagram { margin: 2.5rem 0 0; }
+.sm-diagram svg { display: block; width: 100%; height: auto; }
+.sm-diagram figcaption { margin-top: .75rem; font-size: .9rem; color: #b9c4c4; }
+.sm-rings circle { fill: none; stroke: rgb(255 255 255 / .1); stroke-width: 1; }
+.sm-live { fill: none; stroke: #d9b45a; stroke-width: 2.6; stroke-dasharray: 9 11; stroke-linecap: round; animation: sm-flow 2.4s linear infinite; }
+.sm-rings circle { animation: sm-ring 5s ease-in-out infinite; } .sm-rings circle:nth-child(2) { animation-delay: 1s; } .sm-rings circle:nth-child(3) { animation-delay: 2s; }
+@keyframes sm-flow { to { stroke-dashoffset: -20; } }
+@keyframes sm-ring { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sm-live, .sm-rings circle { animation: none; } }
+.sm-hub circle { fill: #5a1229; stroke: #d9b45a; stroke-width: 2.6; }
+.sm-ht, .sm-hs, .sm-nt, .sm-ns { text-anchor: middle; }
+.sm-ht { fill: #fff; font-family: var(--serif); font-size: 24px; font-weight: 600; }
+.sm-hs { fill: #e6c3cf; font-size: 12.5px; }
+.sm-node rect { fill: #1d3d44; stroke: rgb(255 255 255 / .3); stroke-width: 1.5; }
+.sm-nt { fill: #fff; font-family: var(--serif); font-size: 20px; font-weight: 600; }
+.sm-ns { fill: #c4bdae; font-size: 12.5px; }
+.sm-here rect { stroke: #d9b45a; stroke-width: 3; fill: #24474f; }
+.sm-here .sm-ns { fill: #d9b45a; font-weight: 700; }
+.sm-link { cursor: pointer; }
+.sm-link:hover .sm-node rect { stroke-width: 3; stroke: #fff; }
+.sm-link:hover .sm-hub circle { stroke-width: 4; }
+.sm-link:focus-visible { outline: 3px solid #d9b45a; outline-offset: 4px; }
+.sm-suitecols { display: grid; grid-template-columns: 1.4fr 1fr; gap: clamp(1.5rem, 5vw, 4rem); margin-top: 2.5rem; }
+.sm-suitecols h3 { font-family: var(--serif); font-size: 1.4rem; font-weight: 600; color: #d9b45a; margin: 0 0 .6rem; }
+.sm-suitecols ul { list-style: none; margin: 0; padding: 0; }
+.sm-suitecols li { padding: .6rem 0; border-top: 1px solid rgb(255 255 255 / .18); line-height: 1.55; color: #d6dfe0; }
+.sm-suitecols strong { color: #fff; }
+@media (max-width: 48rem) { .sm-suitecols { grid-template-columns: 1fr; } .sm-nt { font-size: 24px; } .sm-ns { font-size: 15px; } }
