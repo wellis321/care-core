@@ -75,6 +75,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
       <div>
         <h3>Working today</h3>
         <ul class="rg-list">
+          <li><strong>Digital ID</strong> shows a member of staff's current training and skills, read from Care Core, on their own card.</li>
           <li><strong>Strategic Plans</strong> projects are owned by one of your teams, picked from Care Core, and show who is in the team today.</li>
           <li><strong>Contracts</strong> reads the people you support from Care Core, so each person is entered once and their contracts sit beside the support they pay for.</li>
           <li><strong>Referrals</strong> recorded and decided here, so they exist before the person arrives. Care Plans reads them, with the specialist skills they call for, and a person linked here is linked there.</li>
@@ -87,7 +88,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
       <div>
         <h3>Coming next</h3>
         <ul class="rg-list rg-list-next">
-          <li><strong>Training records</strong> published through the API, so Care Plans can see who holds each specialist skill and when it runs out.</li>
+          <li><strong>Training records</strong> shared with Care Plans, so specialist skills and their expiry dates arrive without typing.</li>
         </ul>
       </div>
     </div>
@@ -227,7 +228,7 @@ $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eag
   </div>
   <div class="rg-wrap rg-limits">
     <h3>On the roadmap</h3>
-    <p>Retention tools and a subject-access export are planned, and the connected suite is growing: training records next. You remain the data controller, and Care Core gives you the tools to act as one.</p>
+    <p>Retention tools and a subject-access export are planned, and the connected suite is growing: training records for Care Plans next. You remain the data controller, and Care Core gives you the tools to act as one.</p>
   </div>
 </section>
 
