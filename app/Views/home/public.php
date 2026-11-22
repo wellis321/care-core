@@ -6,7 +6,7 @@ use App\Core\View;
 use App\Modules\Identity\DemoEntry;
 
 $demo = Config::demo();
-$mail = 'mailto:hello@findcarescotland.com?subject=' . rawurlencode('Care Core: a walkthrough');
+$mail = 'https://findcarescotland.com/software/enquire?product=care-core';
 $shot = static fn(string $n, string $alt, int $w = 1080, int $h = 708, bool $eager = false): string =>
     '<img src="/assets/product/' . $n . '.webp?v=' . (int) @filemtime(ROOT_PATH . '/public/assets/product/' . $n . '.webp') . '" alt="' . View::e($alt) . '" width="' . $w . '" height="' . $h . '"' . ($eager ? '' : ' loading="lazy"') . ' decoding="async">';
 ?>
