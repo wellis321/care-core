@@ -49,6 +49,11 @@ final class ReferralRepo
         $checks[] = Check::date($received, 'The date received');
         $checks[] = ($received !== '' && Clock::valid($received) && $received > Clock::today()) ? 'The date received cannot be in the future.' : null;
         $checks[] = Check::date((string) ($d['wanted_from'] ?? ''), 'The date support is wanted from');
+        $dob = (string) ($d['date_of_birth'] ?? '');
+        $checks[] = Check::date($dob, 'Date of birth');
+        $checks[] = ($dob !== '' && Clock::valid($dob) && $dob > Clock::today()) ? 'Date of birth cannot be in the future.' : null;
+        $nhs = preg_replace('/[\s-]/', '', (string) ($d['nhs_number'] ?? ''));
+        $checks[] = $nhs === '' ? null : Check::nhsNumber($nhs);
         return Check::all($checks);
     }
 
@@ -96,6 +101,7 @@ final class ReferralRepo
             $ref = sprintf('REF-%04d', $n);
             $row = ['uuid' => $uuid, 'organisation_id' => $orgId, 'reference' => $ref, 'received_on' => ($d['received_on'] ?? '') ?: Clock::today(),
                 'source' => $d['source'], 'person_name' => trim((string) $d['person_name']), 'reason' => trim((string) $d['reason']),
+                'date_of_birth' => ($d['date_of_birth'] ?? '') ?: null, 'nhs_number' => preg_replace('/[\s-]/', '', (string) ($d['nhs_number'] ?? '')) ?: null,
                 'plan_types' => implode(',', $types), 'wanted_from' => ($d['wanted_from'] ?? '') ?: null];
             foreach (['referrer', 'needs_summary', 'risks', 'what_matters'] as $k) {
                 $row[$k] = trim((string) ($d[$k] ?? '')) ?: null;
@@ -119,10 +125,13 @@ final class ReferralRepo
             throw DomainException::of($p);
         }
         $set = [];
-        foreach (['source', 'received_on', 'wanted_from'] as $k) {
+        foreach (['source', 'received_on', 'wanted_from', 'date_of_birth'] as $k) {
             if (array_key_exists($k, $d)) {
                 $set[$k] = ($d[$k] ?? '') !== '' ? $d[$k] : ($k === 'received_on' ? $r['received_on'] : null);
             }
+        }
+        if (array_key_exists('nhs_number', $d)) {
+            $set['nhs_number'] = preg_replace('/[\s-]/', '', (string) $d['nhs_number']) ?: null;
         }
         foreach (['person_name', 'reason'] as $k) {
             if (array_key_exists($k, $d)) {
@@ -213,7 +222,7 @@ final class ReferralRepo
         if ($cut === false) {
             throw new DomainException('The name on the referral needs a first name and a last name before it can become a person record.');
         }
-        $person = PersonRepo::create($orgId, ['first_name' => substr($name, 0, $cut), 'last_name' => substr($name, $cut + 1)], $actor);
+        $person = PersonRepo::create($orgId, array_filter(['first_name' => substr($name, 0, $cut), 'last_name' => substr($name, $cut + 1), 'date_of_birth' => $r['date_of_birth'], 'nhs_number' => $r['nhs_number']], static fn($v) => $v !== null), $actor);
         self::linkPerson($orgId, $id, (int) $person['id'], $actor);
         return $person;
     }

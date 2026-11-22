@@ -19,6 +19,8 @@ final class ReferralsApi extends BaseApi
     private const BODY = [
         'source'        => ['type' => 'enum', 'required' => true, 'enum' => ['council', 'nhs', 'family', 'self', 'provider', 'other'], 'desc' => 'Who the referral came from.'],
         'person_name'   => ['type' => 'string', 'required' => true, 'max' => 150, 'desc' => 'The person referred. They may not be a person in Care Core yet.'],
+        'date_of_birth' => ['type' => 'date', 'nullable' => true, 'desc' => 'Carried to the person record when one is started from the referral.'],
+        'nhs_number'    => ['type' => 'string', 'max' => 12, 'nullable' => true, 'desc' => 'CHI or NHS number.'],
         'reason'        => ['type' => 'string', 'required' => true, 'max' => 600],
         'received_on'   => ['type' => 'date', 'desc' => 'Defaults to today. Cannot be in the future.'],
         'referrer'      => ['type' => 'string', 'max' => 200, 'nullable' => true],

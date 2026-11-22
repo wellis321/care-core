@@ -1,6 +1,6 @@
 <?php use App\Core\Csrf; use App\Core\View; use App\Modules\Referrals\ReferralRepo; $e = [View::class, 'e'];
 $open = in_array($r['status'], ['received', 'assessing'], true);
-$old = ['person_name' => $r['person_name'], 'source' => $r['source'], 'referrer' => $r['referrer'], 'received_on' => $r['received_on'], 'wanted_from' => $r['wanted_from'], 'reason' => $r['reason'],
+$old = ['person_name' => $r['person_name'], 'date_of_birth' => $r['date_of_birth'], 'nhs_number' => $r['nhs_number'], 'source' => $r['source'], 'referrer' => $r['referrer'], 'received_on' => $r['received_on'], 'wanted_from' => $r['wanted_from'], 'reason' => $r['reason'],
         'needs_summary' => $r['needs_summary'], 'what_matters' => $r['what_matters'], 'risks' => $r['risks'], 'plan_types' => $r['plan_types'], 'skills' => implode("\n", $skills)]; ?>
 <p class="crumbs"><a href="/referrals">Referrals</a> › <?= $e($r['reference']) ?></p>
 <div class="pagehead"><div><p class="eyebrow"><?= $e($r['reference']) ?> · <?= $e(ReferralRepo::STATUS[$r['status']]) ?></p><h1><?= $e($r['person_name']) ?></h1>
@@ -10,6 +10,7 @@ $old = ['person_name' => $r['person_name'], 'source' => $r['source'], 'referrer'
   <section class="card section">
     <h2>The referral</h2>
     <dl class="facts">
+      <?php if ($r['date_of_birth']): ?><dt>Date of birth</dt><dd><?= View::date($r['date_of_birth']) ?></dd><?php endif; ?>
       <dt>Why</dt><dd><?= $e($r['reason']) ?></dd>
       <?php if ($r['needs_summary']): ?><dt>What they need</dt><dd><?= nl2br($e($r['needs_summary'])) ?></dd><?php endif; ?>
       <?php if ($r['what_matters']): ?><dt>What matters to them</dt><dd><?= nl2br($e($r['what_matters'])) ?></dd><?php endif; ?>

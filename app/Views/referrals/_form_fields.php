@@ -4,6 +4,8 @@ $types = ReferralRepo::planTypes($old['plan_types'] ?? []); ?>
 <div class="formgrid">
   <div class="form-group"><label for="person_name">Person referred</label><input id="person_name" name="person_name" type="text" maxlength="150" required value="<?= $o('person_name') ?>"></div>
   <div class="form-group"><label for="source">Who referred them</label><select id="source" name="source" required><option value="">Choose</option><?php foreach (ReferralRepo::SOURCES as $k => $label): ?><option value="<?= $e($k) ?>"<?= ($old['source'] ?? '') === $k ? ' selected' : '' ?>><?= $e($label) ?></option><?php endforeach; ?></select></div>
+  <div class="form-group"><label for="date_of_birth">Date of birth</label><input id="date_of_birth" name="date_of_birth" type="date" value="<?= $o('date_of_birth') ?>"></div>
+  <div class="form-group"><label for="nhs_number">CHI or NHS number</label><input id="nhs_number" name="nhs_number" type="text" inputmode="numeric" maxlength="12" value="<?= $o('nhs_number') ?>"></div>
   <div class="form-group"><label for="referrer">Referrer’s name or team</label><input id="referrer" name="referrer" type="text" maxlength="200" value="<?= $o('referrer') ?>"></div>
   <div class="form-group"><label for="received_on">Date received</label><input id="received_on" name="received_on" type="date" value="<?= $o('received_on') ?>"></div>
   <div class="form-group"><label for="wanted_from">Support wanted from</label><input id="wanted_from" name="wanted_from" type="date" value="<?= $o('wanted_from') ?>"></div>

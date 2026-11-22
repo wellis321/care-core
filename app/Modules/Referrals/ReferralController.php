@@ -13,7 +13,7 @@ use App\Core\Router;
 
 final class ReferralController extends Controller
 {
-    private const KEYS = ['source', 'person_name', 'received_on', 'referrer', 'reason', 'needs_summary', 'risks', 'what_matters', 'wanted_from'];
+    private const KEYS = ['source', 'person_name', 'date_of_birth', 'nhs_number', 'received_on', 'referrer', 'reason', 'needs_summary', 'risks', 'what_matters', 'wanted_from'];
 
     public function index(Request $r, array $p = []): Response
     {

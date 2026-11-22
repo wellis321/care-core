@@ -69,11 +69,12 @@ test('referrals: an accepted referral links to an existing person once, or start
     refuses(fn() => ReferralRepo::linkPerson($org, $r['id'], $pat['id'], Fx::actor()), 'already linked');
     eq(ReferralRepo::forPerson($org, $pat['id'])['reference'], $r['reference']);
 
-    $r2 = newReferral($org, ['person_name' => 'Iain MacLeod']);
+    $r2 = newReferral($org, ['person_name' => 'Iain MacLeod', 'date_of_birth' => '1939-02-03']);
     ReferralRepo::setStatus($org, $r2['id'], 'accepted', null, Fx::actor());
     $person = ReferralRepo::createPersonAndLink($org, $r2['id'], Fx::actor());
     $p = DB::one('SELECT first_name, last_name FROM persons WHERE id = ?', [$person['id']]);
     eq([$p['first_name'], $p['last_name']], ['Iain', 'MacLeod']);
+    eq(DB::value('SELECT date_of_birth FROM persons WHERE id = ?', [$person['id']]), '1939-02-03', 'the date of birth on the referral goes to the person record');
     refuses(fn() => ReferralRepo::linkPerson($org, newReferral($org)['id'], $pat['id'], Fx::actor()), 'accepted');
 });
 

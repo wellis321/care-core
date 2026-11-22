@@ -141,7 +141,7 @@ final class Present
     {
         return [
             'id' => $r['uuid'], 'reference' => $r['reference'], 'status' => $r['status'], 'source' => $r['source'], 'referrer' => $r['referrer'],
-            'person_name' => $r['person_name'], 'person_id' => $r['person_uuid'] ?? null, 'received_on' => $r['received_on'], 'wanted_from' => $r['wanted_from'],
+            'person_name' => $r['person_name'], 'date_of_birth' => $r['date_of_birth'], 'nhs_number' => $r['nhs_number'], 'person_id' => $r['person_uuid'] ?? null, 'received_on' => $r['received_on'], 'wanted_from' => $r['wanted_from'],
             'reason' => $r['reason'], 'needs_summary' => $r['needs_summary'], 'risks' => $r['risks'], 'what_matters' => $r['what_matters'],
             'plan_types' => $r['plan_types'] === '' ? [] : explode(',', (string) $r['plan_types']),
             'skills' => ($r['skills_text'] ?? '') === '' ? [] : explode("\n", (string) $r['skills_text']),

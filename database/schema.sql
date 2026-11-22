@@ -766,6 +766,8 @@ CREATE TABLE referrals (
     source          ENUM('council','nhs','family','self','provider','other') NOT NULL,
     referrer        VARCHAR(200) NULL,
     person_name     VARCHAR(150) NOT NULL,
+    date_of_birth   DATE         NULL,
+    nhs_number      VARCHAR(10)  NULL,
     reason          VARCHAR(600) NOT NULL,
     needs_summary   VARCHAR(1000) NULL,
     risks           VARCHAR(600) NULL,
