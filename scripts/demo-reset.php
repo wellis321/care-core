@@ -19,6 +19,7 @@ use App\Modules\People\PersonRepo;
 use App\Modules\Recruitment\ApplicationRepo;
 use App\Modules\Recruitment\RoleRepo;
 use App\Modules\Recruitment\VacancyRepo;
+use App\Modules\Referrals\ReferralRepo;
 use App\Modules\Staff\Checklists;
 use App\Modules\Staff\Compliance;
 use App\Modules\Staff\Lifecycle;
@@ -179,6 +180,14 @@ foreach (DB::all('SELECT id FROM application_checks WHERE application_id = ? AND
 }
 ApplicationRepo::create($org, $vacSw['id'], ['first_name' => 'Pat', 'last_name' => 'Henderson', 'email' => 'pat.henderson@example.test'], $actor);
 ApplicationRepo::setStage($org, (int) DB::value('SELECT id FROM applications WHERE last_name = ?', ['Henderson']), 'rejected', ['reason' => 'Not able to work the required shifts'], $actor);
+
+// ── Referrals: one accepted and waiting for the person to arrive, one being assessed, one just received ──
+$ref1 = ReferralRepo::create($org, ['source' => 'council', 'person_name' => 'Elspeth Murray', 'referrer' => 'Highland Council social work', 'reason' => 'Leaving hospital and needs support to return home safely', 'needs_summary' => 'Help with washing, dressing and medication prompts, and company during the day.', 'what_matters' => 'Staying in her own home, her garden and her cat.', 'risks' => 'Has fallen twice this year.', 'plan_types' => ['dementia', 'home'], 'skills' => ['Dementia care', 'Moving and handling'], 'received_on' => $day(-9), 'wanted_from' => $day(5)], $actor);
+ReferralRepo::setStatus($org, $ref1['id'], 'assessing', null, $actor);
+ReferralRepo::setStatus($org, $ref1['id'], 'accepted', null, $actor);
+$ref2 = ReferralRepo::create($org, ['source' => 'nhs', 'person_name' => 'Hamish Baird', 'referrer' => 'Raigmore community team', 'reason' => 'Needs daily living support after a stroke', 'plan_types' => ['home'], 'skills' => ['Stroke rehabilitation'], 'received_on' => $day(-3)], $actor);
+ReferralRepo::setStatus($org, $ref2['id'], 'assessing', null, $actor);
+ReferralRepo::create($org, ['source' => 'family', 'person_name' => 'Isla Ferguson', 'referrer' => 'Her daughter', 'reason' => 'Her family would like respite care for two weeks', 'received_on' => $day(-1), 'wanted_from' => $day(21)], $actor);
 
 // ── Staff records: profile, terms, registrations, supervisions, appraisals, learning ──
 $streets = ['Ness Walk', 'Church Street', 'Academy Street', 'High Street', 'Lochaber Road', 'Glen Road', 'Harbour Road', 'Station Road'];

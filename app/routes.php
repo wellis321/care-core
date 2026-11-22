@@ -10,6 +10,7 @@ use App\Modules\Identity\AuthController;
 use App\Modules\Import\ImportController;
 use App\Modules\Identity\SsoController;
 use App\Modules\Recruitment\RecruitmentController;
+use App\Modules\Referrals\ReferralController;
 use App\Modules\People\DashboardController;
 use App\Modules\People\PeopleController;
 use App\Modules\Staff\SelfServiceController;
@@ -145,3 +146,11 @@ $router->add('GET', '/admin/reconcile', [AdminController::class, 'reconcile'], '
 $router->add('POST', '/admin/reconcile/fix', [AdminController::class, 'reconcileFix'], '*');
 $router->add('GET', '/admin/modules', [AdminController::class, 'modules'], '*');
 $router->add('POST', '/admin/modules', [AdminController::class, 'saveModules'], '*');
+
+// Referrals: where a person's support starts
+$router->add('GET', '/referrals', [ReferralController::class, 'index'], 'referrals.manage', 'referrals');
+$router->add('POST', '/referrals', [ReferralController::class, 'create'], 'referrals.manage', 'referrals');
+$router->add('GET', '/referrals/{uuid}', [ReferralController::class, 'show'], 'referrals.manage', 'referrals');
+$router->add('POST', '/referrals/{uuid}', [ReferralController::class, 'update'], 'referrals.manage', 'referrals');
+$router->add('POST', '/referrals/{uuid}/status', [ReferralController::class, 'status'], 'referrals.manage', 'referrals');
+$router->add('POST', '/referrals/{uuid}/link', [ReferralController::class, 'link'], 'referrals.manage', 'referrals');

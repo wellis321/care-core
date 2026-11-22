@@ -42,6 +42,17 @@
 </tbody></table></div>
 <p>Candidates are not people until they are hired, so nothing about an unsuccessful candidate is announced beyond the application events, which carry no personal details.</p>
 
+<h2>Referrals</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Type</th><th>Subject</th><th>data</th><th>Raised when</th></tr></thead>
+<tbody>
+<tr><td><code>referral.received</code></td><td>the referral</td><td><code>reference</code></td><td>A referral is recorded.</td></tr>
+<tr><td><code>referral.updated</code></td><td>the referral</td><td><code>reference</code></td><td>A referral that is received or being assessed is changed.</td></tr>
+<tr><td><code>referral.status_changed</code></td><td>the referral</td><td><code>reference</code>, <code>status</code>, <code>from</code></td><td>A referral moves to assessing, accepted, declined or withdrawn. The reason is not in the event.</td></tr>
+<tr><td><code>referral.linked</code></td><td>the referral</td><td><code>reference</code>, <code>person</code></td><td>An accepted referral is linked to a person (existing, or started from the name on the referral).</td></tr>
+</tbody></table></div>
+<p>A referral holds health and risk information, so no event carries a name or any of it. A product that needs the detail reads the referral by API with the <code>referrals.read</code> scope.</p>
+
 <h2>Care</h2>
 <div class="tablewrap"><table>
 <thead><tr><th>Type</th><th>Subject</th><th>data</th><th>Raised when</th></tr></thead>

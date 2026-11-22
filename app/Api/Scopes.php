@@ -20,6 +20,8 @@ final class Scopes
         'care.write'       => 'Start and end support; manage care needs, contacts and key workers.',
         'recruitment.read'  => 'Read job roles, vacancies, candidates and their checks.',
         'recruitment.write' => 'Create roles and vacancies, add and move candidates, record offers and checks, and hire.',
+        'referrals.read'   => 'Read referrals: who was referred, why, what they need and the decision.',
+        'referrals.write'  => 'Record referrals, move them through assessment, decide them and link them to a person.',
         'tasks.read'       => 'Read tasks.',
         'tasks.write'      => 'Mark tasks done or skipped.',
         'events.read'      => 'Read the event feed.',
