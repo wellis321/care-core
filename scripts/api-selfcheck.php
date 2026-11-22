@@ -11,7 +11,7 @@ use App\Api\Api;
 use App\Core\Database as DB;
 use App\Core\Request;
 
-$token = trim((string) getenv('DEMO_LINK_TOKEN'));
+$token = trim((string) \App\Core\Config::get('DEMO_LINK_TOKEN', ''));
 $uuid = (string) DB::value("SELECT p.uuid FROM persons p JOIN employments e ON e.person_id = p.id WHERE e.end_date IS NULL ORDER BY p.id DESC LIMIT 1");
 foreach (['/people/' . $uuid . '/learning', '/people/' . $uuid . '/photo', '/people/' . $uuid . '/employments', '/referrals?limit=1'] as $path) {
     $req = new Request('GET', Api::PREFIX . $path, [], [], ['host' => 'localhost', 'authorization' => 'Bearer ' . $token, 'accept' => 'application/json'], '', '127.0.0.1');
