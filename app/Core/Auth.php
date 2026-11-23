@@ -20,6 +20,14 @@ final class Auth
     /** @return array<string,mixed> the user, or throws a DomainException with a message safe to show */
     public static function attempt(string $email, string $password, string $ip): array
     {
+        $user = self::verifyPassword($email, $password, $ip);
+        self::complete($user);
+        return $user;
+    }
+
+    /** Check an email and password, with the sign-in limits, but do not yet start a session (a second step may follow). @return array<string,mixed> */
+    public static function verifyPassword(string $email, string $password, string $ip): array
+    {
         $email = strtolower(trim($email));
         $window = gmdate('Y-m-d H:i:s', time() - 900);
         $byEmail = (int) Database::value('SELECT COUNT(*) FROM login_attempts WHERE email = ? AND attempted_at > ?', [$email, $window]);
@@ -34,12 +42,17 @@ final class Auth
             Database::insert('login_attempts', ['email' => mb_substr($email, 0, 190), 'ip' => mb_substr($ip, 0, 45), 'attempted_at' => gmdate('Y-m-d H:i:s')]);
             throw new DomainException('That email address or password is not right.');
         }
-        Database::run('DELETE FROM login_attempts WHERE email = ?', [$email]);
+        return $user;
+    }
+
+    /** Start the session for someone who has passed every step. The count of wrong tries is cleared only now, so a password guess followed by wrong codes still counts. */
+    public static function complete(array $user): void
+    {
+        Database::run('DELETE FROM login_attempts WHERE email = ?', [strtolower((string) $user['email'])]);
         Database::update('users', ['last_login_at' => gmdate('Y-m-d H:i:s')], ['id' => $user['id']]);
         session_regenerate_id(true);
         Session::set('user_id', (int) $user['id']);
         self::$user = null;
-        return $user;
     }
 
     /** Start a session for a user who has already proved who they are elsewhere (single sign-on). */

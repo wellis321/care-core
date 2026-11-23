@@ -18,3 +18,30 @@
   <p class="muted small">Forgotten your password? Ask an administrator for a new invitation.</p>
   <?php endif; ?>
 </section>
+<?php $tf = $tf ?? null; if ($tf): ?>
+<section class="section card" id="two-step" style="max-width:36rem">
+  <h2>Two-step sign-in</h2>
+  <?php if (!$tf['available']): ?>
+    <p class="muted">Two-step sign-in applies to accounts that sign in with a password. If you sign in with Microsoft, your Microsoft settings decide this. A shared demonstration account cannot use it.</p>
+  <?php elseif ($tf['on']): ?>
+    <p><strong>It is on.</strong> After your password, Care Core asks for a code from your authenticator app. You have <?= (int) $tf['left'] ?> recovery code<?= $tf['left'] === 1 ? '' : 's' ?> left.</p>
+    <form class="form" method="post" action="/account/2fa/codes"><?= Csrf::field() ?>
+      <div class="form-group"><label for="tf-pw1">Make new recovery codes (your password)</label><input id="tf-pw1" name="password" type="password" required autocomplete="current-password"></div>
+      <div class="actions"><button class="btn btn-secondary" type="submit">New recovery codes</button></div></form>
+    <form class="form" method="post" action="/account/2fa/disable"><?= Csrf::field() ?>
+      <div class="form-group"><label for="tf-pw2">Switch it off (your password)</label><input id="tf-pw2" name="password" type="password" required autocomplete="current-password"></div>
+      <div class="actions"><button class="btn btn-secondary" type="submit">Switch off two-step sign-in</button></div></form>
+  <?php elseif ($tf['secret']): ?>
+    <p>1. In an authenticator app (such as Microsoft Authenticator or Google Authenticator), add an account and type in this setup key:</p>
+    <p style="font-family:monospace;font-size:1.15rem;letter-spacing:.08em"><strong><?= $e(trim(chunk_split($tf['secret'], 4, ' '))) ?></strong></p>
+    <p class="muted small">On a phone, <a href="<?= $e($tf['uri']) ?>">this link</a> opens your app directly.</p>
+    <p>2. Enter the 6-digit code it shows, to prove it works:</p>
+    <form class="form" method="post" action="/account/2fa/enable"><?= Csrf::field() ?>
+      <div class="form-group"><label for="tf-code">Code</label><input id="tf-code" name="code" inputmode="numeric" autocomplete="one-time-code" required maxlength="7"></div>
+      <div class="actions"><button class="btn btn-primary" type="submit">Switch it on</button></div></form>
+  <?php else: ?>
+    <p>Add a second step to signing in: a 6-digit code from an authenticator app on your phone, as well as your password. It is not on yet.</p>
+    <form class="form" method="post" action="/account/2fa/start"><?= Csrf::field() ?><div class="actions"><button class="btn btn-primary" type="submit">Set it up</button></div></form>
+  <?php endif; ?>
+</section>
+<?php endif; ?>

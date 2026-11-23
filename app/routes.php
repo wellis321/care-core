@@ -31,6 +31,8 @@ $router->add('GET', '/login', [AuthController::class, 'loginForm'], null, null, 
 $router->add('GET', '/login/entra', [SsoController::class, 'start'], null, null, false, false);
 $router->add('GET', '/login/entra/callback', [SsoController::class, 'callback'], null, null, false, false);
 $router->add('POST', '/login', [AuthController::class, 'login'], null, null, true, false);
+$router->add('GET', '/login/2fa', [AuthController::class, 'twoFactorForm'], null, null, false, false);
+$router->add('POST', '/login/2fa', [AuthController::class, 'twoFactorCheck'], null, null, true, false);
 $router->add('POST', '/demo/enter', [AuthController::class, 'demoEnter'], null, null, true, false);
 $router->add('POST', '/logout', [AuthController::class, 'logout'], null, null, true, false);
 $router->add('GET', '/invite/{token}', [AuthController::class, 'inviteForm'], null, null, false, false);
@@ -39,6 +41,10 @@ $router->add('POST', '/invite/{token}', [AuthController::class, 'invite'], null,
 // Your account
 $router->add('GET', '/account', [AuthController::class, 'accountForm']);
 $router->add('POST', '/account/password', [AuthController::class, 'changePassword']);
+$router->add('POST', '/account/2fa/start', [AuthController::class, 'twoFactorStart']);
+$router->add('POST', '/account/2fa/enable', [AuthController::class, 'twoFactorEnable']);
+$router->add('POST', '/account/2fa/disable', [AuthController::class, 'twoFactorDisable']);
+$router->add('POST', '/account/2fa/codes', [AuthController::class, 'twoFactorCodes']);
 
 // Dashboard
 $router->add('GET', '/', [DashboardController::class, 'index'], null, null, false, false);   // signed in: the dashboard. Signed out: the public front page.
@@ -128,6 +134,7 @@ $router->add('GET', '/admin', [AdminController::class, 'index'], '*');
 $router->add('GET', '/admin/users', [AdminController::class, 'users'], '*');
 $router->add('POST', '/admin/users', [AdminController::class, 'createUser'], '*');
 $router->add('POST', '/admin/users/reinvite', [AdminController::class, 'reinviteUser'], '*');
+$router->add('POST', '/admin/users/reset-2fa', [AdminController::class, 'resetTwoFactor'], '*');
 $router->add('POST', '/admin/users/disable', [AdminController::class, 'disableUser'], '*');
 $router->add('GET', '/admin/integrations', [AdminController::class, 'integrations'], '*');
 $router->add('POST', '/admin/webhooks', [AdminController::class, 'addWebhook'], '*');

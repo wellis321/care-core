@@ -68,6 +68,18 @@ final class AdminController extends Controller
         return $this->redirect('/admin/users#new-secret');
     }
 
+    public function resetTwoFactor(Request $r, array $p = []): Response
+    {
+        try {
+            $u = DB::one('SELECT id, uuid, email FROM users WHERE id = ? AND organisation_id = ?', [(int) $r->input('id'), $this->orgId()]) ?? throw new DomainException('Login not found.');
+            \App\Modules\Identity\TwoFactor::reset($this->orgId(), $u, $this->actor());
+            $this->ok('Two-step sign-in was reset for ' . $u['email'] . '. They sign in with their password and can set it up again from their account page.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/admin/users');
+    }
+
     public function disableUser(Request $r, array $p = []): Response
     {
         try {

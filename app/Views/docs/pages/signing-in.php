@@ -8,6 +8,16 @@
 <li>A successful sign-in clears the count for that email address.</li>
 </ul>
 
+<h2>Two-step sign-in</h2>
+<p>For a login that uses a password, you can add a second step: a 6-digit code from an authenticator app on your phone (Microsoft Authenticator, Google Authenticator and similar). Open <strong>Your account</strong>, choose <strong>Set it up</strong>, type the setup key into your app, and enter the code it shows to prove it works. Care Core then gives you <strong>eight recovery codes</strong>, once. Keep them somewhere safe: each works once, in place of an app code, if you lose your phone.</p>
+<ul>
+<li>After your password is accepted, Care Core asks for a code. Until it is right, nothing is signed in.</li>
+<li>An app code works once. Wrong codes count towards the same 15-minute limit as wrong passwords.</li>
+<li>You can make new recovery codes, or switch it off, from your account page. Both need your password.</li>
+<li>If you lose your phone <em>and</em> your codes, an administrator chooses <strong>Reset two-step</strong> against your login (Admin › Logins). The reset is recorded in the activity log. An administrator who is locked out can run <code>php scripts/reset-two-factor.php email</code> on the server.</li>
+<li>It does not apply to <strong>Sign in with Microsoft</strong>: your Microsoft settings decide that. It cannot be used on the shared demonstration accounts.</li>
+</ul>
+
 <h2>Changing your password</h2>
 <p>Click your email address at the top right to open <strong>Your account</strong>. Enter your current password and the new one twice. The new password must be at least 10 characters and different from the current one. Logins that sign in with Microsoft have no password to change.</p>
 

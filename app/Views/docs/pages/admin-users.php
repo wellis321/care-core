@@ -23,6 +23,9 @@
 <h2>New invitation: a forgotten password or a lost link</h2>
 <p>Choose <strong>New invitation</strong> against any login that is not disabled. Care Core issues a fresh one-time link (shown once, valid for 7 days) and returns the login to <em>invited</em>: <strong>the old password stops working immediately</strong>, and so does any session still open. Pass the link to the person; opening it lets them choose a new password. This is how a forgotten password is dealt with. Each use is written to the activity log.</p>
 
+<h2>Reset two-step: a lost phone</h2>
+<p>If someone has lost their phone and their recovery codes, choose <strong>Reset two-step</strong> against their login (shown only when it is on). It removes the second step; they sign in with their password and can set it up again from <strong>Your account</strong>. It is recorded in the activity log. Make sure you know who is asking: a reset is the way round the second step.</p>
+
 <h2>Disabling a login</h2>
 <p>Choose <strong>Disable</strong> against the login. It stops working at once. You cannot disable your own login. Disabling is recorded in the activity log. To restore access, create the login again or, for a returning member of staff, use <a href="/docs/joiners">Start new employment</a> (which removes the end date from the existing login).</p>
 

@@ -31,6 +31,7 @@
 <h2>Protecting access</h2>
 <ul>
 <li>Sign-in is rate limited and gives the same message whether or not an account exists.</li>
+<li><strong>Two-step sign-in</strong> with an authenticator app is available for password logins: the secret is stored encrypted, each code works once, and recovery codes are stored only as hashes. See <a href="/docs/signing-in">Signing in</a>. Microsoft sign-in lets you apply your tenant’s own multi-factor rules.</li>
 <li>Sessions use private, script-proof cookies, a new session identifier at each sign-in, and are re-checked on every request. A leaver’s access ends on the right day with no job needing to run.</li>
 <li><a href="/docs/entra-signin">Microsoft sign-in</a> verifies tokens fully and matches on a permanent identifier. It never creates accounts.</li>
 <li>Every form that changes data carries a secret token tied to your session, so another website cannot make your browser submit one.</li>
@@ -59,7 +60,6 @@
 <li><strong>Lawful basis, privacy notices and records of processing</strong> under UK GDPR, and a data protection impact assessment for care information.</li>
 <li><strong>Retention and deletion.</strong> Care Core keeps history indefinitely and never deletes a person. Agree retention periods, and use the database to archive or remove records when they expire. There is no automated retention tool yet.</li>
 <li><strong>Subject access requests.</strong> There is no export button yet; the data is in the database tables listed in the <a href="/docs/data-model">data model</a>.</li>
-<li><strong>Multi-factor authentication</strong> for password sign-in is not built. Using Microsoft sign-in lets you apply your tenant’s multi-factor rules.</li>
 <li><strong>Hosting security.</strong> Keep PHP, the database and the server patched; restrict who can reach the server and the database; take and test backups; protect the <code>.env</code> file and <code>APP_KEY</code>.</li>
 <li><strong>Who gets an administrator role.</strong> Give it to as few people as possible.</li>
 <li><strong>Penetration testing and a formal security review</strong> before storing real data.</li>

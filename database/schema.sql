@@ -12,7 +12,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
+DROP TABLE IF EXISTS recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
     login_attempts, tasks, checklist_template_items, checklist_templates, key_worker_assignments, person_contacts,
     care_needs, support_episodes, team_assignments, teams, employment_changes, employments, users, persons,
     organisation_modules, organisations;
@@ -349,6 +349,24 @@ CREATE TABLE audit_log (
     KEY idx_audit_org (organisation_id, id),
     KEY idx_audit_entity (entity_type, entity_uuid),
     CONSTRAINT fk_audit_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Two-step sign-in: an authenticator app (time-based codes). The secret is kept encrypted; recovery codes are kept only as hashes and each works once.
+CREATE TABLE user_security (
+    user_id             BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    totp_secret_sealed  TEXT     NULL,
+    totp_enabled_at     DATETIME NULL,
+    totp_last_step      BIGINT   NULL,
+    CONSTRAINT fk_usec_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE recovery_codes (
+    id        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id   BIGINT UNSIGNED NOT NULL,
+    code_hash CHAR(64) NOT NULL,
+    used_at   DATETIME NULL,
+    KEY idx_rc_user (user_id),
+    CONSTRAINT fk_rc_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE login_attempts (

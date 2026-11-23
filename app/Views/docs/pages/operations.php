@@ -5,6 +5,7 @@
 <tr><td><code>scripts/migrate.php</code></td><td>Creates the tables, or applies new upgrades to an existing database.</td></tr>
 <tr><td><code>scripts/make-key.php</code></td><td>Adds <code>APP_KEY</code> to <code>.env</code> once.</td></tr>
 <tr><td><code>scripts/create-organisation.php "Name" email</code></td><td>Creates an organisation and its first administrator (prints an invitation link).</td></tr>
+<tr><td><code>scripts/reset-two-factor.php email</code></td><td>Removes two-step sign-in for a login: for a locked-out administrator who has lost their phone and recovery codes.</td></tr>
 <tr><td><code>scripts/reinvite.php email</code></td><td>Prints a new one-time invitation link for a login: for a locked-out administrator.</td></tr>
 <tr><td><code>scripts/export-old-systems.php</code></td><td>Reads an older Staff, People or Team service database (read only) and writes an import file.</td></tr>
 <tr><td><code>scripts/import.php</code></td><td>Checks (or, with <code>--commit</code>, performs) an import. See <a href="/docs/import">Importing data</a>.</td></tr>
