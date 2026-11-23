@@ -223,6 +223,11 @@ foreach ($staff as $i => $s) {
         [$c] = Compliance::clean($org, 'learning', ['title' => $t, 'record_type' => 'training', 'provider' => 'Highland Care Training (demo)', 'completion_date' => $done, 'expiry_date' => $exp, 'status' => 'completed', 'is_mandatory' => '1']);
         Compliance::add($org, ['id' => $s['person_id'], 'uuid' => $s['person_uuid']], 'learning', $c, $actor);
     }
+    // One member of staff already holds CALM here, so a connected EngageTrack demo has something to bring across.
+    if ($i === 2) {
+        [$c] = Compliance::clean($org, 'learning', ['title' => 'CALM: physical intervention', 'record_type' => 'qualification', 'provider' => 'CALM Training Ltd (demo)', 'completion_date' => $day(-60), 'expiry_date' => $day(305), 'status' => 'completed', 'is_mandatory' => '']);
+        Compliance::add($org, ['id' => $s['person_id'], 'uuid' => $s['person_uuid']], 'learning', $c, $actor);
+    }
 }
 // One TUPE transfer and one visa, so those sections show real content.
 foreach ([[6, 'tupe', ['is_tupe' => '1', 'tupe_transfer_date' => $day(-700), 'tupe_previous_organisation' => 'Glen Care Services (demo)', 'tupe_previous_employer_ref' => 'GCS-114', 'tupe_contract_type' => 'permanent', 'tupe_hours_per_week' => '37.5', 'tupe_notes' => 'Terms protected under TUPE.']],
@@ -264,6 +269,13 @@ if ($linkToken !== '') {
             'scopes' => 'people.read,staff.read,teams.read,care.read,compliance.read,referrals.read,webhooks.manage', 'allowed_ips' => null, 'rate_limit_per_minute' => 1200, 'expires_at' => null, 'created_by_user_id' => null]);
         echo "Created the demo apps API key.\n";
     }
+}
+// The EngageTrack demo has its OWN key (DEMO_ENGAGE_TOKEN), because it may also WRITE training (learning records) to this organisation; the shared demo key above cannot.
+$engToken = trim((string) Config::get('DEMO_ENGAGE_TOKEN', ''));
+if ($engToken !== '' && preg_match('/^(cc_[0-9a-f]{8})_[0-9a-f]{48}$/', $engToken, $m)) {
+    DB::insert('api_keys', ['uuid' => Uuid::v4(), 'organisation_id' => $org, 'name' => 'EngageTrack demo (reads people and teams, reads and writes training)', 'key_prefix' => $m[1], 'key_hash' => hash('sha256', $engToken),
+        'scopes' => 'people.read,staff.read,teams.read,compliance.read,compliance.write', 'allowed_ips' => null, 'rate_limit_per_minute' => 1200, 'expires_at' => null, 'created_by_user_id' => null]);
+    echo "Created the EngageTrack demo API key.\n";
 }
 // The seeded history is not news: no endpoint registered after the reset (the Digital ID demo does so a minute later) is sent it.
 DB::run('UPDATE outbox_events SET fanned_out_at = UTC_TIMESTAMP() WHERE fanned_out_at IS NULL');
