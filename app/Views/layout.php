@@ -107,7 +107,7 @@ $reveal = Session::takeReveal();
     foreach (['digital-id' => 'Digital ID', 'contracts' => 'Contracts', 'strategic-plan' => 'Strategic plans', 'simple-data-cleaner' => 'Simple Data Cleaner'] as $slug => $label) {
         $links[] = '<a href="https://findcarescotland.com/software/' . $slug . '">' . $label . '</a>';
     }
-    echo implode(' · ', $links); ?> · <a href="https://findcarescotland.com/software">All software for providers</a> · <a href="https://findcarescotland.com/">Find Care Scotland directory</a></p>
+    echo implode(' · ', $links); ?> · <a href="https://findcarescotland.com/software">All software for providers</a> · <a href="https://docs.findcarescotland.com/products/care-core.html">Documentation</a> · <a href="https://findcarescotland.com/">Find Care Scotland directory</a></p>
   <?php endif; ?>
   <p class="footlinks"><a href="/about">About</a> · <a href="/features">Features</a> · <a href="/docs">Documentation</a> · <a href="/security">Security and privacy</a> · <a href="/docs/faq">Questions</a></p>
 </div></footer>
