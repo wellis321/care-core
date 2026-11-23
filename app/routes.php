@@ -151,6 +151,8 @@ $router->add('POST', '/admin/checklists/items', [AdminController::class, 'addChe
 $router->add('POST', '/admin/checklists/items/remove', [AdminController::class, 'removeChecklistItem'], '*');
 $router->add('GET', '/admin/reconcile', [AdminController::class, 'reconcile'], 'reconcile.view');
 $router->add('POST', '/admin/reconcile/fix', [AdminController::class, 'reconcileFix'], '*');
+$router->add('GET', '/admin/signin-security', [AdminController::class, 'signInSecurity'], '*');
+$router->add('POST', '/admin/signin-security', [AdminController::class, 'saveSignInSecurity'], '*');
 $router->add('GET', '/admin/modules', [AdminController::class, 'modules'], '*');
 $router->add('POST', '/admin/modules', [AdminController::class, 'saveModules'], '*');
 

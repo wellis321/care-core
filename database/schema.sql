@@ -12,7 +12,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
+DROP TABLE IF EXISTS organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
     login_attempts, tasks, checklist_template_items, checklist_templates, key_worker_assignments, person_contacts,
     care_needs, support_episodes, team_assignments, teams, employment_changes, employments, users, persons,
     organisation_modules, organisations;
@@ -349,6 +349,15 @@ CREATE TABLE audit_log (
     KEY idx_audit_org (organisation_id, id),
     KEY idx_audit_entity (entity_type, entity_uuid),
     CONSTRAINT fk_audit_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- An organisation's own settings, one row per setting. Today: whether two-step sign-in is required (see Identity\SignInPolicy).
+CREATE TABLE organisation_settings (
+    organisation_id BIGINT UNSIGNED NOT NULL,
+    setting_key     VARCHAR(60)  NOT NULL,
+    setting_value   VARCHAR(200) NOT NULL,
+    PRIMARY KEY (organisation_id, setting_key),
+    CONSTRAINT fk_orgset_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- Two-step sign-in: an authenticator app (time-based codes). The secret is kept encrypted; recovery codes are kept only as hashes and each works once.

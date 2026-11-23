@@ -19,6 +19,7 @@
   <?php endif; ?>
 </section>
 <?php $tf = $tf ?? null; if ($tf): ?>
+<?php if (\App\Modules\Identity\SignInPolicy::mustSetUp(Auth::user())): ?><div class="alert alert-error" role="alert"><strong>Your organisation requires two-step sign-in.</strong> Set it up in the box below before you carry on. Care Core will not open anything else until you have.</div><?php endif; ?>
 <section class="section card" id="two-step" style="max-width:36rem">
   <h2>Two-step sign-in</h2>
   <?php if (!$tf['available']): ?>

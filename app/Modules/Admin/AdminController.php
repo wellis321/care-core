@@ -250,4 +250,25 @@ final class AdminController extends Controller
         $this->ok('Saved.');
         return $this->redirect('/admin/modules');
     }
+
+    public function signInSecurity(Request $r, array $p = []): Response
+    {
+        $org = $this->orgId();
+        $on = (int) DB::value('SELECT COUNT(*) FROM user_security s JOIN users u ON u.id = s.user_id WHERE u.organisation_id = ? AND s.totp_enabled_at IS NOT NULL', [$org]);
+        $all = (int) DB::value("SELECT COUNT(*) FROM users WHERE organisation_id = ? AND status <> 'disabled' AND password_hash IS NOT NULL", [$org]);
+        return $this->view('admin/signin-security', ['title' => 'Sign-in security', 'level' => \App\Modules\Identity\SignInPolicy::level($org), 'on' => $on, 'all' => $all]);
+    }
+
+    public function saveSignInSecurity(Request $r, array $p = []): Response
+    {
+        try {
+            $level = (string) $r->input('level');
+            \App\Modules\Identity\SignInPolicy::set($this->orgId(), $level);
+            Audit::record($this->orgId(), $this->actor(), 'signin.policy', 'organisation', null, 'Set two-step sign-in to: ' . \App\Modules\Identity\SignInPolicy::LEVELS[$level]);
+            $this->ok('Saved.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/admin/signin-security');
+    }
 }

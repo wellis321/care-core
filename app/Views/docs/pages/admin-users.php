@@ -23,6 +23,9 @@
 <h2>New invitation: a forgotten password or a lost link</h2>
 <p>Choose <strong>New invitation</strong> against any login that is not disabled. Care Core issues a fresh one-time link (shown once, valid for 7 days) and returns the login to <em>invited</em>: <strong>the old password stops working immediately</strong>, and so does any session still open. Pass the link to the person; opening it lets them choose a new password. This is how a forgotten password is dealt with. Each use is written to the activity log.</p>
 
+<h2>Requiring two-step sign-in</h2>
+<p>Under <strong>Admin › Sign-in security</strong> you can require two-step sign-in for administrators, for administrators and managers, or for everyone who signs in with a password. It applies to you too, straight away, so have your phone to hand. People who sign in with Microsoft follow your Microsoft settings, and the shared demonstration accounts are exempt. The change is recorded in the activity log.</p>
+
 <h2>Reset two-step: a lost phone</h2>
 <p>If someone has lost their phone and their recovery codes, choose <strong>Reset two-step</strong> against their login (shown only when it is on). It removes the second step; they sign in with their password and can set it up again from <strong>Your account</strong>. It is recorded in the activity log. Make sure you know who is asking: a reset is the way round the second step.</p>
 

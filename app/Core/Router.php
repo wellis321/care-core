@@ -26,6 +26,11 @@ final class Router
             if ($route['auth'] && !Auth::user()) {
                 return Response::redirect('/login' . ($r->method === 'GET' && $r->path !== '/' ? '?next=' . rawurlencode($r->path) : ''));
             }
+            if ($route['auth'] && !in_array($r->path, \App\Modules\Identity\SignInPolicy::ALLOWED, true) && ($u = Auth::user()) && \App\Modules\Identity\SignInPolicy::mustSetUp($u)) {
+                // Your organisation requires two-step sign-in and this person has not set it up yet: take them to do that first.
+                \App\Core\Session::flash('error', 'Your organisation requires two-step sign-in. Set it up below to carry on.');
+                return Response::redirect('/account#two-step');
+            }
             if ($route['auth']) {
                 if ($route['module'] && !Modules::enabled(Auth::orgId(), $route['module'])) {
                     return self::error(404, 'Not found', 'That part of Care Core is not switched on for your organisation.');

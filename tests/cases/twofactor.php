@@ -96,3 +96,37 @@ test('twofactor: the password step alone does not sign anyone in when it is on',
     Auth::attempt($w['email'], 'a long enough password', '10.0.0.4');
     eq((int) ($_SESSION['user_id'] ?? 0), (int) $w['id'], 'without it, sign-in is as before');
 });
+
+test('twofactor: requiring it is off by default, can be set for admins, managers or everyone, and only a known option is accepted', function () {
+    $org = Fx::org();
+    eq(App\Modules\Identity\SignInPolicy::level($org), 'off');
+    App\Modules\Identity\SignInPolicy::set($org, 'managers');
+    eq(App\Modules\Identity\SignInPolicy::level($org), 'managers');
+    throws(fn() => App\Modules\Identity\SignInPolicy::set($org, 'sometimes'), 'Choose one');
+    $other = Fx::org();
+    eq(App\Modules\Identity\SignInPolicy::level($other), 'off', 'one organisation does not affect another');
+});
+
+test('twofactor: who has to set it up: by role, only with a password, not demo accounts, and not once it is on', function () {
+    $org = Fx::org();
+    $mk = function (string $role, ?string $pw = 'a long enough password') use ($org) {
+        $u = UserRepo::create($org, null, $role . bin2hex(random_bytes(3)) . '@example.test', $role, Fx::actor(), $pw === null, $pw);
+        return DB::one('SELECT * FROM users WHERE id = ?', [$u['id']]);
+    };
+    $admin = $mk('admin'); $manager = $mk('manager'); $staff = $mk('staff');
+    $must = fn(array $u) => App\Modules\Identity\SignInPolicy::mustSetUp($u);
+    ok(!$must($admin) && !$must($staff), 'nobody has to while it is off');
+    App\Modules\Identity\SignInPolicy::set($org, 'admins');
+    ok($must($admin) && !$must($manager) && !$must($staff), 'administrators only');
+    App\Modules\Identity\SignInPolicy::set($org, 'managers');
+    ok($must($admin) && $must($manager) && !$must($staff), 'administrators and managers');
+    App\Modules\Identity\SignInPolicy::set($org, 'everyone');
+    ok($must($staff), 'everyone');
+    $sso = $mk('admin', null);
+    ok(!$must($sso), 'someone with no password (Microsoft sign-in) is left to Microsoft');
+    $demo = $admin; $demo['email'] = 'admin@demo.lochview.test';
+    ok(!$must($demo), 'a shared demonstration account is exempt');
+    $secret = TwoFactor::begin((int) $admin['id']);
+    TwoFactor::enable($org, $admin, Totp::code($secret), Fx::actor());
+    ok(!$must($admin), 'once it is switched on, they are free to go on');
+});

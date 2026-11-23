@@ -15,6 +15,7 @@
 <li>An app code works once. Wrong codes count towards the same 15-minute limit as wrong passwords.</li>
 <li>You can make new recovery codes, or switch it off, from your account page. Both need your password.</li>
 <li>If you lose your phone <em>and</em> your codes, an administrator chooses <strong>Reset two-step</strong> against your login (Admin › Logins). The reset is recorded in the activity log. An administrator who is locked out can run <code>php scripts/reset-two-factor.php email</code> on the server.</li>
+<li>An administrator can <strong>require</strong> it for administrators, for administrators and managers, or for everyone who signs in with a password, at <strong>Admin › Sign-in security</strong>. Someone it applies to is taken to set it up the next time they use Care Core, and cannot open anything else until they have.</li>
 <li>It does not apply to <strong>Sign in with Microsoft</strong>: your Microsoft settings decide that. It cannot be used on the shared demonstration accounts.</li>
 </ul>
 
