@@ -8,6 +8,8 @@
 <tr><td><code>scripts/reinvite.php email</code></td><td>Prints a new one-time invitation link for a login: for a locked-out administrator.</td></tr>
 <tr><td><code>scripts/export-old-systems.php</code></td><td>Reads an older Staff, People or Team service database (read only) and writes an import file.</td></tr>
 <tr><td><code>scripts/import.php</code></td><td>Checks (or, with <code>--commit</code>, performs) an import. See <a href="/docs/import">Importing data</a>.</td></tr>
+<tr><td><code>scripts/backup.php [--keep=14] [--to=DIR]</code></td><td>Backs up the database and <code>storage/uploads/</code> to <code>storage/backups/</code>, with checksums and a manifest.</td></tr>
+<tr><td><code>scripts/restore-check.php FILE --into=SCRATCH_DB</code></td><td>Proves a backup restores: loads it into a scratch database and compares every table's rows and the files with the manifest. Never touches the live database.</td></tr>
 <tr><td><code>scripts/deliver-events.php</code></td><td>Sends queued webhooks.</td></tr>
 <tr><td><code>scripts/reconcile.php [--fix]</code></td><td>Consistency check.</td></tr>
 <tr><td><code>scripts/demo-reset.php</code></td><td>Rebuilds the demo (demo installations only).</td></tr>
@@ -28,8 +30,10 @@
 
 <h2>Backups</h2>
 <ul>
-<li>Back up the <strong>database</strong> daily and keep several generations. Test restoring one.</li>
-<li>Back up <code>storage/uploads/</code> with it: photos and signatures live there.</li>
+<li>Run <code>php scripts/backup.php</code> daily from cron (for example <code>sh -c 'cd /path/to/care-core &amp;&amp; php scripts/backup.php --keep=14'</code>). It writes the database and the uploaded files to <code>storage/backups/</code>, which is blocked from the web, and keeps the last 14.</li>
+<li><strong>Copy the backups off the server.</strong> A backup on the same server is lost with the server. Care Core does not do this for you.</li>
+<li>Prove a backup restores: create an empty scratch database and run <code>php scripts/restore-check.php storage/backups/FILE.sql.gz --into=SCRATCH_DB</code> (the scratch name must contain “restore” or “test”).</li>
+<li>The backup includes <code>storage/uploads/</code>, where photos and signatures live.</li>
 <li>Keep a copy of <code>.env</code> and especially <code>APP_KEY</code> <strong>somewhere separate from the database backups</strong>. Without the key, the encrypted National Insurance and bank details cannot be read.</li>
 </ul>
 

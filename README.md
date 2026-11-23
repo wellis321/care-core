@@ -113,3 +113,7 @@ Also set `APP_KEY` (32 random bytes, base64). It encrypts National Insurance and
 Email sending (invitations and password resets are links shown once to an administrator, and approvals are not emailed), editing a compliance record in place (add and
 remove only), documents and certificates (files), a leave calendar and booking, MFA for password sign-in, subject access
 export and retention tools, future-dated moves, import from the three older apps.
+
+## Backups
+
+`php scripts/backup.php` backs up the database and `storage/uploads/` to `storage/backups/` (checksums and a manifest, last 14 kept); `php scripts/restore-check.php FILE --into=SCRATCH_DB` proves one restores. Schedule the first from cron, and copy the files off the server. See `/docs/operations`.
