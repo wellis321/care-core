@@ -273,8 +273,8 @@ if ($linkToken !== '') {
 // The EngageTrack demo has its OWN key (DEMO_ENGAGE_TOKEN), because it may also WRITE training (learning records) to this organisation; the shared demo key above cannot.
 $engToken = trim((string) Config::get('DEMO_ENGAGE_TOKEN', ''));
 if ($engToken !== '' && preg_match('/^(cc_[0-9a-f]{8})_[0-9a-f]{48}$/', $engToken, $m)) {
-    DB::insert('api_keys', ['uuid' => Uuid::v4(), 'organisation_id' => $org, 'name' => 'EngageTrack demo (reads people and teams, reads and writes training)', 'key_prefix' => $m[1], 'key_hash' => hash('sha256', $engToken),
-        'scopes' => 'people.read,staff.read,teams.read,compliance.read,compliance.write', 'allowed_ips' => null, 'rate_limit_per_minute' => 1200, 'expires_at' => null, 'created_by_user_id' => null]);
+    DB::insert('api_keys', ['uuid' => Uuid::v4(), 'organisation_id' => $org, 'name' => 'EngageTrack demo (reads people, teams and who is supported, reads and writes training)', 'key_prefix' => $m[1], 'key_hash' => hash('sha256', $engToken),
+        'scopes' => 'people.read,staff.read,teams.read,care.read,compliance.read,compliance.write', 'allowed_ips' => null, 'rate_limit_per_minute' => 1200, 'expires_at' => null, 'created_by_user_id' => null]);
     echo "Created the EngageTrack demo API key.\n";
 }
 // The seeded history is not news: no endpoint registered after the reset (the Digital ID demo does so a minute later) is sent it.
