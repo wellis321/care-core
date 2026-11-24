@@ -48,14 +48,14 @@
 <div class="grid cols-2 section">
   <section>
     <div class="section__head"><h2>Starting soon</h2></div>
-    <div class="tablewrap"><table class="list"><tbody>
+    <div class="tablewrap"><table class="list" role="presentation"><tbody>
       <?php foreach ($joiners as $j): ?><tr><td><a href="/people/<?= $e($j['uuid']) ?>"><?= $e($j['first_name'] . ' ' . $j['last_name']) ?></a><br><span class="muted small"><?= $e($j['job_title']) ?></span></td><td class="right nowrap"><?= View::date($j['start_date']) ?></td></tr><?php endforeach; ?>
       <?php if (!$joiners): ?><tr class="empty-row"><td>Nobody is due to start in the next 30 days.</td></tr><?php endif; ?>
     </tbody></table></div>
   </section>
   <section>
     <div class="section__head"><h2>Leaving soon</h2></div>
-    <div class="tablewrap"><table class="list"><tbody>
+    <div class="tablewrap"><table class="list" role="presentation"><tbody>
       <?php foreach ($leavers as $l): ?><tr><td><a href="/people/<?= $e($l['uuid']) ?>"><?= $e($l['first_name'] . ' ' . $l['last_name']) ?></a><br><span class="muted small"><?= $e($l['job_title']) ?></span></td><td class="right nowrap">Last day <?= View::date($l['end_date']) ?></td></tr><?php endforeach; ?>
       <?php if (!$leavers): ?><tr class="empty-row"><td>Nobody is due to leave in the next 30 days.</td></tr><?php endif; ?>
     </tbody></table></div>
@@ -65,7 +65,7 @@
 <div class="grid cols-2 section">
   <section>
     <div class="section__head"><h2>Tasks due first</h2><a href="/tasks">All tasks</a></div>
-    <div class="tablewrap"><table class="list"><tbody>
+    <div class="tablewrap"><table class="list" role="presentation"><tbody>
       <?php foreach ($tasks as $t): ?><tr><td><?= $e($t['title']) ?><br><span class="muted small"><a href="/people/<?= $e($t['person_uuid']) ?>"><?= $e($t['first_name'] . ' ' . $t['last_name']) ?></a></span></td><td class="right nowrap"><?= $t['due_date'] ? View::date($t['due_date']) : '—' ?></td></tr><?php endforeach; ?>
       <?php if (!$tasks): ?><tr class="empty-row"><td>No open tasks.</td></tr><?php endif; ?>
     </tbody></table></div>
