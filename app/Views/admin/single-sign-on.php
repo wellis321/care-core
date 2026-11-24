@@ -11,8 +11,8 @@
         <td><code><?= $e($c['client_id']) ?></code></td>
         <td class="small"><?= nl2br($e($c['redirect_uris'])) ?></td>
         <td class="nowrap"><?= View::date($c['last_used_at'] ? substr($c['last_used_at'], 0, 10) : null, 'never') ?></td>
-        <td class="right"><form method="post" action="/admin/single-sign-on/toggle" class="row-actions"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $c['id'] ?>"><input type="hidden" name="on" value="<?= $c['active'] ? '0' : '1' ?>"><button class="btn btn--small"><?= $c['active'] ? 'Switch off' : 'Switch on' ?></button></form>
-          <form method="post" action="/admin/single-sign-on/secret" class="row-actions"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $c['id'] ?>"><button class="btn btn--small">New secret</button></form></td>
+        <td class="right"><div class="row-actions"><form method="post" action="/admin/single-sign-on/toggle"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $c['id'] ?>"><input type="hidden" name="on" value="<?= $c['active'] ? '0' : '1' ?>"><button class="btn btn--small"><?= $c['active'] ? 'Switch off' : 'Switch on' ?></button></form>
+          <form method="post" action="/admin/single-sign-on/secret"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $c['id'] ?>"><button class="btn btn--small">New secret</button></form></div></td>
       </tr><?php endforeach; ?>
       <?php if (!$clients): ?><tr class="empty-row"><td colspan="5">No products registered yet.</td></tr><?php endif; ?>
     </tbody></table>
