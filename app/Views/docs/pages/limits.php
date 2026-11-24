@@ -11,7 +11,6 @@
 <tr><td><strong>Future-dated moves</strong></td><td>A change of role or team must take effect today or earlier. <em>Planned.</em></td></tr>
 <tr><td><strong>Leave booking, rotas, payroll</strong></td><td>Leave balances are stored as records but there is no booking, calendar or pro-rata calculation. Rotas and payroll are out of scope.</td></tr>
 <tr><td><strong>Care planning</strong></td><td>Care needs and contacts are operational facts. There are no care plans, daily notes, medication records or incident reports.</td></tr>
-<tr><td><strong>Multi-factor authentication</strong></td><td>Not for password sign-in. Use Microsoft sign-in to apply your tenant’s multi-factor rules.</td></tr>
 <tr><td><strong>Groups and role mapping from Entra</strong></td><td>Roles are set in Care Core, not derived from Entra groups. <em>Planned.</em></td></tr>
 <tr><td><strong>Retention and subject access tools</strong></td><td>No automatic archiving or deletion, and no “export everything about this person” button. <em>Planned.</em></td></tr>
 <tr><td><strong>Reporting</strong></td><td>Beyond the dashboard, the due-soon list and the activity log, there are no report builders or exports.</td></tr>
