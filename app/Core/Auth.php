@@ -46,12 +46,14 @@ final class Auth
     }
 
     /** Start the session for someone who has passed every step. The count of wrong tries is cleared only now, so a password guess followed by wrong codes still counts. */
-    public static function complete(array $user): void
+    public static function complete(array $user, bool $secondStep = false): void
     {
         Database::run('DELETE FROM login_attempts WHERE email = ?', [strtolower((string) $user['email'])]);
         Database::update('users', ['last_login_at' => gmdate('Y-m-d H:i:s')], ['id' => $user['id']]);
         session_regenerate_id(true);
         Session::set('user_id', (int) $user['id']);
+        Session::set('auth_time', time());
+        Session::set('auth_amr', $secondStep ? 'pwd,otp' : 'pwd');   // read by single sign-in so other products know how strongly this person signed in
         self::$user = null;
     }
 
@@ -60,6 +62,8 @@ final class Auth
     {
         session_regenerate_id(true);
         Session::set('user_id', (int) $user['id']);
+        Session::set('auth_time', time());
+        Session::set('auth_amr', 'ext');
         self::$user = null;
     }
 

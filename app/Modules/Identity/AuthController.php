@@ -78,7 +78,7 @@ final class AuthController extends Controller
             return $this->view('auth/twofactor', ['title' => 'Second step', 'error' => 'That code is not right. Use the current code from your app, or a recovery code.'], 401);
         }
         Session::set('pending_2fa', null);
-        Auth::complete($user);
+        Auth::complete($user, true);
         return $this->redirect((string) $wait['next']);
     }
 

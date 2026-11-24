@@ -271,4 +271,48 @@ final class AdminController extends Controller
         }
         return $this->redirect('/admin/signin-security');
     }
+
+    public function singleSignOn(Request $r, array $p = []): Response
+    {
+        return $this->view('admin/single-sign-on', [
+            'title' => 'Single sign-in',
+            'clients' => DB::all('SELECT * FROM sso_clients WHERE organisation_id = ? ORDER BY name', [$this->orgId()]),
+            'issuer' => \App\Modules\Identity\OidcProvider::issuer(),
+        ]);
+    }
+
+    public function addSsoClient(Request $r, array $p = []): Response
+    {
+        try {
+            $res = \App\Modules\Identity\OidcProvider::registerClient($this->orgId(), $r->input('name'), preg_split('/\s+/', (string) $r->input('redirect_uris')) ?: [], $this->actor());
+            $this->ok('Product registered.');
+            $this->reveal('Sign-in details for ' . $r->input('name'), 'Client secret', $res['secret'], 'Client ID: ' . $res['client_id'] . '. Copy the secret now into the product’s settings; Care Core keeps only a scrambled copy and cannot show it again.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/admin/single-sign-on#new-secret');
+    }
+
+    public function rotateSsoSecret(Request $r, array $p = []): Response
+    {
+        try {
+            $secret = \App\Modules\Identity\OidcProvider::rotateSecret($this->orgId(), (int) $r->input('id'), $this->actor());
+            $this->ok('New secret created. The old one no longer works.');
+            $this->reveal('New client secret', 'Client secret', $secret, 'Copy it now into the product’s settings. It cannot be shown again.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/admin/single-sign-on#new-secret');
+    }
+
+    public function toggleSsoClient(Request $r, array $p = []): Response
+    {
+        try {
+            \App\Modules\Identity\OidcProvider::setActive($this->orgId(), (int) $r->input('id'), $r->input('on') === '1', $this->actor());
+            $this->ok('Saved.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/admin/single-sign-on');
+    }
 }

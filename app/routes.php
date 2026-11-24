@@ -9,6 +9,7 @@ use App\Modules\Docs\DocsController;
 use App\Modules\Identity\AuthController;
 use App\Modules\Import\ImportController;
 use App\Modules\Identity\SsoController;
+use App\Modules\Identity\SsoProviderController;
 use App\Modules\Recruitment\RecruitmentController;
 use App\Modules\Referrals\ReferralController;
 use App\Modules\People\DashboardController;
@@ -30,6 +31,11 @@ $router->add('GET', '/docs/{slug}', [DocsController::class, 'page'], null, null,
 $router->add('GET', '/login', [AuthController::class, 'loginForm'], null, null, false, false);
 $router->add('GET', '/login/entra', [SsoController::class, 'start'], null, null, false, false);
 $router->add('GET', '/login/entra/callback', [SsoController::class, 'callback'], null, null, false, false);
+// Care Core as the sign-in for the other products (OpenID Connect provider)
+$router->add('GET', '/.well-known/openid-configuration', [SsoProviderController::class, 'discovery'], null, null, false, false);
+$router->add('GET', '/oidc/jwks', [SsoProviderController::class, 'jwks'], null, null, false, false);
+$router->add('GET', '/oidc/authorize', [SsoProviderController::class, 'authorize'], null, null, false, false);
+$router->add('POST', '/oidc/token', [SsoProviderController::class, 'token'], null, null, false, false);
 $router->add('POST', '/login', [AuthController::class, 'login'], null, null, true, false);
 $router->add('GET', '/login/2fa', [AuthController::class, 'twoFactorForm'], null, null, false, false);
 $router->add('POST', '/login/2fa', [AuthController::class, 'twoFactorCheck'], null, null, true, false);
@@ -153,6 +159,10 @@ $router->add('GET', '/admin/reconcile', [AdminController::class, 'reconcile'], '
 $router->add('POST', '/admin/reconcile/fix', [AdminController::class, 'reconcileFix'], '*');
 $router->add('GET', '/admin/signin-security', [AdminController::class, 'signInSecurity'], '*');
 $router->add('POST', '/admin/signin-security', [AdminController::class, 'saveSignInSecurity'], '*');
+$router->add('GET', '/admin/single-sign-on', [AdminController::class, 'singleSignOn'], '*');
+$router->add('POST', '/admin/single-sign-on', [AdminController::class, 'addSsoClient'], '*');
+$router->add('POST', '/admin/single-sign-on/secret', [AdminController::class, 'rotateSsoSecret'], '*');
+$router->add('POST', '/admin/single-sign-on/toggle', [AdminController::class, 'toggleSsoClient'], '*');
 $router->add('GET', '/admin/modules', [AdminController::class, 'modules'], '*');
 $router->add('POST', '/admin/modules', [AdminController::class, 'saveModules'], '*');
 
