@@ -34,7 +34,7 @@
       <div class="actions"><button class="btn btn-secondary" type="submit">Switch off two-step sign-in</button></div></form>
   <?php elseif ($tf['secret']): ?>
     <p>1. Open an authenticator app on your phone (such as Microsoft Authenticator or Google Authenticator), choose to add an account, and scan this code:</p>
-    <div data-qr="<?= $e($tf['uri']) ?>" hidden style="background:#fff;padding:.25rem;border:1px solid var(--line,#d9d6cf);border-radius:6px;line-height:0"></div>
+    <div data-qr="<?= $e($tf['uri']) ?>" hidden></div>
     <details style="margin:.75rem 0"><summary>Cannot scan it? Type the key in instead</summary>
       <p style="font-family:monospace;font-size:1.15rem;letter-spacing:.08em"><strong><?= $e(trim(chunk_split($tf['secret'], 4, ' '))) ?></strong></p>
       <p class="muted small">On the phone that has the app, <a href="<?= $e($tf['uri']) ?>">this link</a> opens it directly.</p></details>
