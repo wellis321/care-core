@@ -334,6 +334,13 @@ if ($engToken !== '' && preg_match('/^(cc_[0-9a-f]{8})_[0-9a-f]{48}$/', $engToke
         'scopes' => 'people.read,staff.read,teams.read,care.read,compliance.read,compliance.write', 'allowed_ips' => null, 'rate_limit_per_minute' => 1200, 'expires_at' => null, 'created_by_user_id' => null]);
     echo "Created the EngageTrack demo API key.\n";
 }
+// The Learning Core demo has its OWN key (DEMO_LEARN_TOKEN): it reads people, staff and teams and WRITES a finished course as a learning record, which the shared demo key cannot.
+$learnToken = trim((string) Config::get('DEMO_LEARN_TOKEN', ''));
+if ($learnToken !== '' && preg_match('/^(cc_[0-9a-f]{8})_[0-9a-f]{48}$/', $learnToken, $m)) {
+    DB::insert('api_keys', ['uuid' => Uuid::v4(), 'organisation_id' => $org, 'name' => 'Learning Core demo (reads people, staff and teams, writes learning records)', 'key_prefix' => $m[1], 'key_hash' => hash('sha256', $learnToken),
+        'scopes' => 'people.read,staff.read,teams.read,compliance.read,compliance.write', 'allowed_ips' => null, 'rate_limit_per_minute' => 1200, 'expires_at' => null, 'created_by_user_id' => null]);
+    echo "Created the Learning Core demo API key.\n";
+}
 // Sign in with Care Core on the demonstrations: every product demo is registered here as a client, with credentials worked out from DEMO_SSO_SECRET (the same value is in each
 // demo's own .env, so each can work out its own secret). Care Core's tables are rebuilt every night, so this is repeated every night.
 $ssoMaster = trim((string) Config::get('DEMO_SSO_SECRET', ''));
@@ -341,18 +348,18 @@ if (strlen($ssoMaster) >= 32) {
     $domain = trim((string) Config::get('DEMO_SSO_DOMAIN', 'findcarescotland.com'));
     $products = ['incidents' => ['Incident Core', 'login/care-core/callback'], 'improve' => ['Improvement Core', 'login/care-core/callback'], 'engage' => ['EngageTrack', 'login/care-core/callback'],
                  'care' => ['Care Plans', 'login/care-core/callback'], 'policies' => ['Policy Core', 'login/care-core/callback'], 'id' => ['Digital ID', 'care-core-login.php'],
-                 'contracts' => ['Contracts', 'care-core-login.php'], 'strategic' => ['Strategic Plans', 'login/care-core/callback']];
+                 'contracts' => ['Contracts', 'care-core-login.php'], 'strategic' => ['Strategic Plans', 'login/care-core/callback'], 'learn' => ['Learning Core', 'login/care-core/callback']];
     foreach ($products as $slug => [$name, $path]) {
         DB::insert('sso_clients', ['organisation_id' => $org, 'client_id' => 'cc_demo_' . $slug, 'name' => $name . ' demonstration', 'secret_hash' => hash('sha256', hash_hmac('sha256', $slug, $ssoMaster)),
             'redirect_uris' => 'https://' . $slug . '.' . $domain . '/' . $path]);
     }
     echo 'Registered ' . count($products) . " product demonstrations for single sign-in.\n";
-    // "My work": the Incident, Improvement, Policy, EngageTrack and Care Plans demos answer for each person. Their keys are worked out from the same shared value (the products make the matching key themselves).
-    foreach (['incidents' => ['Incident Core', 'ick_'], 'improve' => ['Improvement Core', 'imk_'], 'policies' => ['Policy Core', 'pck_'], 'engage' => ['EngageTrack', 'etk_'], 'care' => ['Care Plans', 'cpk_']] as $slug => [$name, $pre]) {
+    // "My work": the Incident, Improvement, Policy, EngageTrack, Care Plans and Learning Core demos answer for each person. Their keys are worked out from the same shared value (the products make the matching key themselves).
+    foreach (['incidents' => ['Incident Core', 'ick_'], 'improve' => ['Improvement Core', 'imk_'], 'policies' => ['Policy Core', 'pck_'], 'engage' => ['EngageTrack', 'etk_'], 'care' => ['Care Plans', 'cpk_'], 'learn' => ['Learning Core', 'lck_']] as $slug => [$name, $pre]) {
         DB::insert('work_sources', ['organisation_id' => $org, 'name' => $name, 'base_url' => 'https://' . $slug . '.' . $domain,
             'key_sealed' => (string) \App\Core\Crypto::encrypt($pre . substr(hash_hmac('sha256', 'my-work:' . $slug, $ssoMaster), 0, 48))]);
     }
-    echo "Connected 5 product demonstrations to My work.\n";
+    echo "Connected 6 product demonstrations to My work.\n";
 }
 // The seeded history is not news: no endpoint registered after the reset (the Digital ID demo does so a minute later) is sent it.
 DB::run('UPDATE outbox_events SET fanned_out_at = UTC_TIMESTAMP() WHERE fanned_out_at IS NULL');
