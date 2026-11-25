@@ -88,14 +88,15 @@ final class AuthController extends Controller
         if (!\App\Core\Config::demo()) {
             return \App\Core\Router::error(404, 'Page not found', 'We could not find that page.');
         }
-        $fail = fn(string $m): Response => $this->view('auth/login', ['title' => 'Sign in', 'next' => '', 'email' => '', 'error' => $m], 400);
+        $fail = fn(string $m): Response => $this->view('auth/login', ['title' => 'Sign in', 'next' => $this->safeNext($r->input('next'), ''), 'email' => '', 'error' => $m], 400);
         if (!DemoEntry::allowed($r->ip)) return $fail('That is a lot of attempts. Please wait a little and try again.');
         $human = ($r->post[DemoEntry::HONEYPOT] ?? '') === '' && !DemoEntry::looksAutomated($r->header('user-agent')) && (Auth::user() !== null || DemoEntry::tokenOk($r->input('ft')));
         $u = $human ? DemoEntry::userFor($r->input('role')) : null;
         if (!$u) return $fail('That did not work. Please wait a moment after the page loads and press the button again, or use one of the demo accounts below.');
         DB::update('users', ['last_login_at' => gmdate('Y-m-d H:i:s')], ['id' => $u['id']]);
         Auth::signInAs($u);
-        return $this->redirect('/');
+        $next = $this->safeNext($r->input('next'), '/');
+        return $this->redirect(str_starts_with($next, '/oidc/authorize?') ? $next : '/');   // a product asking who they are: carry on to it
     }
 
     public function logout(Request $r, array $p = []): Response

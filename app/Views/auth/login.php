@@ -4,7 +4,7 @@
   <?php if ($error): ?><div class="alert alert-error" role="alert"><?= View::e($error) ?></div><?php endif; ?>
   <?php if (Config::demo()): ?>
   <form method="post" action="/demo/enter" class="demo-enter" aria-labelledby="demo-enter-h">
-    <?= Csrf::field() ?><?= \App\Modules\Identity\DemoEntry::fields() ?>
+    <?= Csrf::field() ?><?= \App\Modules\Identity\DemoEntry::fields() ?><?php if (!empty($next)): ?><input type="hidden" name="next" value="<?= View::e($next) ?>"><?php endif; ?>
     <h2 id="demo-enter-h">Explore the demonstration in one click</h2>
     <p class="muted small">No sign-up and nothing to type. It is full of invented people, and it resets every night.</p>
     <div class="demo-enter__btns">
