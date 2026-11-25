@@ -3,6 +3,13 @@ $statuses = ['' => 'All', 'open' => 'Open', 'draft' => 'Draft', 'filled' => 'Fil
 <div class="pagehead"><div><p class="eyebrow">Staff</p><h1>Recruitment</h1><p class="muted">Vacancies, candidates and hiring. Hiring starts someone through the ordinary joiner process, so their record, team and onboarding come from here.</p></div>
   <div class="actions"><a class="btn btn-secondary" href="/recruitment/roles">Job roles</a></div></div>
 <?php if ($error): ?><div class="alert alert-error" role="alert"><?= $e($error) ?></div><?php endif; ?>
+<?php if (!empty($newApplications)): ?><div class="alert alert-info"><?= (int) $newApplications ?> application<?= (int) $newApplications === 1 ? '' : 's' ?> from your careers page <?= (int) $newApplications === 1 ? 'is' : 'are' ?> waiting to be looked at.</div><?php endif; ?>
+<?php if (!empty($interviews)): ?>
+<section class="card section"><h2>Interviews coming up</h2>
+  <ul class="plainlist"><?php foreach ($interviews as $iv): ?>
+    <li><strong><?= $e(date('D j M, H:i', strtotime((string) $iv['starts_at']))) ?></strong> · <a href="/recruitment/applications/<?= $e($iv['application_uuid']) ?>"><?= $e($iv['first_name'] . ' ' . $iv['last_name']) ?></a> for <?= $e($iv['vacancy_title']) ?> · <?= $e($iv['location']) ?> <span class="muted small">(<?= ['none' => 'no answer yet', 'confirmed' => 'confirmed', 'cannot_attend' => 'cannot come'][$iv['candidate_response']] ?>)</span></li>
+  <?php endforeach; ?></ul></section>
+<?php endif; ?>
 <nav class="tabs" aria-label="Vacancy status">
   <?php foreach ($statuses as $k => $label): ?><a href="/recruitment<?= $k ? '?status=' . $e($k) : '' ?>"<?= $status === $k ? ' aria-current="page"' : '' ?>><?= $e($label) ?></a><?php endforeach; ?>
 </nav>

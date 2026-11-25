@@ -29,6 +29,9 @@ final class VacancyRepo
             Check::oneOf(($d['contract_type'] ?? '') ?: 'permanent', Lifecycle::CONTRACTS, 'a contract type'),
             Check::date($d['closing_date'] ?? null, 'Closing date'),
             Check::maxLen($d['notes'] ?? null, 5000, 'Notes'),
+            Check::maxLen($d['public_summary'] ?? null, 5000, 'The job summary'),
+            Check::maxLen($d['salary_text'] ?? null, 100, 'Pay'),
+            Check::maxLen($d['location_text'] ?? null, 150, 'Where the job is'),
             (($d['hours_per_week'] ?? '') === '' || $d['hours_per_week'] === null || (is_numeric($d['hours_per_week']) && (float) $d['hours_per_week'] > 0 && (float) $d['hours_per_week'] <= 168)) ? null : 'Hours a week must be a number between 0 and 168.',
         ]);
     }
@@ -79,7 +82,7 @@ final class VacancyRepo
         if (in_array($v['status'], ['filled', 'closed'], true)) {
             throw new DomainException('A ' . $v['status'] . ' vacancy cannot be changed. Reopen it first.');
         }
-        $merged = array_intersect_key($d, array_flip(['title', 'team_id', 'line_manager_person_id', 'posts', 'contract_type', 'hours_per_week', 'closing_date', 'notes'])) + array_intersect_key($v, array_flip(['title', 'team_id', 'line_manager_person_id', 'posts', 'contract_type', 'hours_per_week', 'closing_date', 'notes']));
+        $merged = array_intersect_key($d, array_flip(['title', 'team_id', 'line_manager_person_id', 'posts', 'contract_type', 'hours_per_week', 'closing_date', 'notes', 'advertise', 'public_summary', 'salary_text', 'location_text'])) + array_intersect_key($v, array_flip(['title', 'team_id', 'line_manager_person_id', 'posts', 'contract_type', 'hours_per_week', 'closing_date', 'notes', 'advertise', 'public_summary', 'salary_text', 'location_text']));
         if ($p = self::problems($merged)) {
             throw DomainException::of($p);
         }
@@ -112,6 +115,14 @@ final class VacancyRepo
                     break;
                 case 'notes':
                     $set['notes'] = trim((string) $val) ?: null;
+                    break;
+                case 'advertise':
+                    $set['advertise'] = ($val === true || $val === 1 || $val === '1') ? 1 : 0;
+                    break;
+                case 'public_summary':
+                case 'salary_text':
+                case 'location_text':
+                    $set[$k] = trim((string) $val) ?: null;
                     break;
             }
         }

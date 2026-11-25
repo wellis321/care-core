@@ -17,6 +17,7 @@ use App\Modules\Care\CareRepo;
 use App\Modules\Identity\UserRepo;
 use App\Modules\People\PersonRepo;
 use App\Modules\Recruitment\ApplicationRepo;
+use App\Modules\Recruitment\InterviewRepo;
 use App\Modules\Recruitment\RoleRepo;
 use App\Modules\Recruitment\VacancyRepo;
 use App\Modules\Referrals\ReferralRepo;
@@ -178,6 +179,10 @@ ApplicationRepo::acceptOffer($org, $cands['Lennox']['id'], $day(-1), $actor);
 foreach (DB::all('SELECT id FROM application_checks WHERE application_id = ? AND title IN (\'PVG scheme membership\', \'Right to work\')', [$cands['Lennox']['id']]) as $c) {
     ApplicationRepo::setCheck($org, $cands['Lennox']['id'], (int) $c['id'], $day(-1), null, $actor);
 }
+// The careers page (/careers/{slug}) shows the Support Worker vacancy, and one interview is booked with a private candidate link.
+VacancyRepo::update($org, $vacSw['id'], ['advertise' => '1', 'location_text' => 'Inverness', 'salary_text' => 'From £12.60 an hour', 'public_summary' => "We are a small supported living service. You will help people to live the way they choose: getting up, cooking, getting out and about.\nTraining is paid and we will support you towards your SVQ."], $actor);
+ApplicationRepo::create($org, $vacSw['id'], ['first_name' => 'Morven', 'last_name' => 'Cameron', 'email' => 'morven.cameron@example.test', 'source' => 'Careers page', 'notes' => 'I have cared for my gran for three years and would like to do it as a job.'], $actor);
+InterviewRepo::schedule($org, $cands['Brodie']['id'], ['starts_at' => $day(3) . 'T10:30', 'duration_minutes' => 45, 'location' => 'Our office, 14 Academy Street, Inverness', 'panel' => 'The registered manager and a senior support worker', 'instructions' => 'Photo ID'], $actor);
 ApplicationRepo::create($org, $vacSw['id'], ['first_name' => 'Pat', 'last_name' => 'Henderson', 'email' => 'pat.henderson@example.test'], $actor);
 ApplicationRepo::setStage($org, (int) DB::value('SELECT id FROM applications WHERE last_name = ?', ['Henderson']), 'rejected', ['reason' => 'Not able to work the required shifts'], $actor);
 

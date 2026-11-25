@@ -65,6 +65,19 @@ $by = []; foreach ($applications as $a) { $by[$a['stage']][] = $a; } ?>
   <section class="card section"><h2>Vacancy details</h2><dl class="facts"><dt>Team</dt><dd><?= $e(\App\Core\Database::value('SELECT name FROM teams WHERE id = ?', [$v['team_id']]) ?? '') ?: '—' ?></dd><dt>Closed</dt><dd><?= View::date($v['closed_on']) ?></dd></dl></section>
   <?php endif; ?>
   <?php if ($editable): ?>
+  <section class="card section"><h2>Careers page</h2>
+    <form method="post" action="/recruitment/vacancies/<?= $e($v['uuid']) ?>/careers">
+      <?= Csrf::field() ?>
+      <div class="form-group"><label class="check"><input type="checkbox" name="advertise" value="1"<?= (int) $v['advertise'] ? ' checked' : '' ?>> Show on our careers page</label>
+        <span class="hint">Only while the vacancy is open and before its closing date. <?php if ($v['status'] === 'open' && (int) $v['advertise']): ?><a href="/careers/<?= $e($org['slug']) ?>/<?= $e($v['uuid']) ?>">See it</a> · Careers page: <a href="/careers/<?= $e($org['slug']) ?>">/careers/<?= $e($org['slug']) ?></a><?php endif; ?></span></div>
+      <div class="form-group"><label for="v_loc">Where the job is</label><input id="v_loc" name="location_text" type="text" maxlength="150" value="<?= $e($v['location_text'] ?? '') ?>"></div>
+      <div class="form-group"><label for="v_sal">Pay</label><input id="v_sal" name="salary_text" type="text" maxlength="100" value="<?= $e($v['salary_text'] ?? '') ?>" placeholder="For example £12.60 an hour"></div>
+      <div class="form-group"><label for="v_sum">About the job</label><textarea id="v_sum" name="public_summary" rows="5"><?= $e($v['public_summary'] ?? '') ?></textarea><span class="hint">Shown with the role’s description and person specification.</span></div>
+      <button class="btn btn-secondary" type="submit">Save</button>
+    </form>
+  </section>
+  <?php endif; ?>
+  <?php if ($editable): ?>
   <section class="card section"><h2>Close this vacancy</h2>
     <form method="post" action="/recruitment/vacancies/<?= $e($v['uuid']) ?>/close">
       <?= Csrf::field() ?>

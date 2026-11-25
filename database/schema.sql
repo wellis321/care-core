@@ -12,7 +12,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS work_sources, sso_codes, sso_clients, sso_keys, organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
+DROP TABLE IF EXISTS interviews, work_sources, sso_codes, sso_clients, sso_keys, organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
     login_attempts, tasks, checklist_template_items, checklist_templates, key_worker_assignments, person_contacts,
     care_needs, support_episodes, team_assignments, teams, employment_changes, employments, users, persons,
     organisation_modules, organisations;
@@ -722,6 +722,10 @@ CREATE TABLE vacancies (
     status                 ENUM('draft','open','filled','closed') NOT NULL DEFAULT 'draft',
     opened_on              DATE         NULL,
     closing_date           DATE         NULL,
+    advertise              TINYINT(1)   NOT NULL DEFAULT 0,
+    public_summary         TEXT         NULL,
+    salary_text            VARCHAR(100) NULL,
+    location_text          VARCHAR(150) NULL,
     closed_on              DATE         NULL,
     notes                  TEXT         NULL,
     created_at             DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -881,4 +885,30 @@ CREATE TABLE work_sources (
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     KEY idx_work_org (organisation_id, active),
     CONSTRAINT fk_work_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Interviews booked with candidates (see migration 0013).
+CREATE TABLE interviews (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid               CHAR(36)     NOT NULL,
+    organisation_id    BIGINT UNSIGNED NOT NULL,
+    application_id     BIGINT UNSIGNED NOT NULL,
+    starts_at          DATETIME     NOT NULL,
+    duration_minutes   SMALLINT UNSIGNED NOT NULL DEFAULT 45,
+    location           VARCHAR(200) NOT NULL,
+    panel              VARCHAR(300) NULL,
+    instructions       VARCHAR(1000) NULL,
+    status             ENUM('scheduled','completed','cancelled','no_show') NOT NULL DEFAULT 'scheduled',
+    candidate_response ENUM('none','confirmed','cannot_attend') NOT NULL DEFAULT 'none',
+    response_note      VARCHAR(500) NULL,
+    responded_at       DATETIME     NULL,
+    public_token       CHAR(32)     NOT NULL,
+    created_by_user_id BIGINT UNSIGNED NULL,
+    created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_interview_uuid (uuid),
+    UNIQUE KEY uq_interview_token (public_token),
+    KEY idx_interview_app (application_id, starts_at),
+    KEY idx_interview_org (organisation_id, status, starts_at),
+    CONSTRAINT fk_int_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_int_app FOREIGN KEY (application_id)  REFERENCES applications (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

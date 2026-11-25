@@ -10,6 +10,7 @@ use App\Modules\Identity\AuthController;
 use App\Modules\Import\ImportController;
 use App\Modules\Identity\SsoController;
 use App\Modules\Identity\SsoProviderController;
+use App\Modules\Recruitment\CareersController;
 use App\Modules\Recruitment\RecruitmentController;
 use App\Modules\Referrals\ReferralController;
 use App\Modules\People\DashboardController;
@@ -27,6 +28,13 @@ $router->add('GET', '/features', [DocsController::class, 'features'], null, null
 $router->add('GET', '/security', [DocsController::class, 'trust'], null, null, false, false);
 $router->add('GET', '/docs', [DocsController::class, 'index'], null, null, false, false);
 $router->add('GET', '/docs/{slug}', [DocsController::class, 'page'], null, null, false, false);
+
+// Careers page and a candidate's private interview link (no sign-in; the form is guarded by a trap field and a signed stamp, not a session)
+$router->add('GET', '/careers/{slug}', [CareersController::class, 'index'], null, null, false, false);
+$router->add('GET', '/careers/{slug}/{uuid}', [CareersController::class, 'vacancy'], null, null, false, false);
+$router->add('POST', '/careers/{slug}/{uuid}/apply', [CareersController::class, 'apply'], null, null, false, false);
+$router->add('GET', '/interview/{token}', [CareersController::class, 'interview'], null, null, false, false);
+$router->add('POST', '/interview/{token}', [CareersController::class, 'respond'], null, null, false, false);
 
 // Public
 $router->add('GET', '/login', [AuthController::class, 'loginForm'], null, null, false, false);
@@ -100,11 +108,14 @@ $router->add('GET', '/recruitment', [RecruitmentController::class, 'index'], 're
 $router->add('POST', '/recruitment/vacancies', [RecruitmentController::class, 'createVacancy'], 'recruitment.manage', 'recruitment');
 $router->add('GET', '/recruitment/vacancies/{uuid}', [RecruitmentController::class, 'vacancy'], 'recruitment.manage', 'recruitment');
 $router->add('POST', '/recruitment/vacancies/{uuid}', [RecruitmentController::class, 'updateVacancy'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/vacancies/{uuid}/careers', [RecruitmentController::class, 'careersSettings'], 'recruitment.manage', 'recruitment');
 $router->add('POST', '/recruitment/vacancies/{uuid}/open', [RecruitmentController::class, 'openVacancy'], 'recruitment.manage', 'recruitment');
 $router->add('POST', '/recruitment/vacancies/{uuid}/close', [RecruitmentController::class, 'closeVacancy'], 'recruitment.manage', 'recruitment');
 $router->add('POST', '/recruitment/vacancies/{uuid}/candidates', [RecruitmentController::class, 'addCandidate'], 'recruitment.manage', 'recruitment');
 $router->add('GET', '/recruitment/applications/{uuid}', [RecruitmentController::class, 'application'], 'recruitment.manage', 'recruitment');
 $router->add('POST', '/recruitment/applications/{uuid}', [RecruitmentController::class, 'updateApplication'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/applications/{uuid}/interviews', [RecruitmentController::class, 'bookInterview'], 'recruitment.manage', 'recruitment');
+$router->add('POST', '/recruitment/interviews/{uuid}', [RecruitmentController::class, 'changeInterview'], 'recruitment.manage', 'recruitment');
 $router->add('POST', '/recruitment/applications/{uuid}/stage', [RecruitmentController::class, 'stage'], 'recruitment.manage', 'recruitment');
 $router->add('POST', '/recruitment/applications/{uuid}/accept', [RecruitmentController::class, 'acceptOffer'], 'recruitment.manage', 'recruitment');
 $router->add('POST', '/recruitment/applications/{uuid}/check', [RecruitmentController::class, 'check'], 'recruitment.manage', 'recruitment');

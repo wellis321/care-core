@@ -60,6 +60,54 @@ $can = $moves[$a['stage']] ?? []; $hired = $a['stage'] === 'hired'; ?>
     <?php else: ?><p class="muted">This role has no checks.</p><?php endif; ?>
   </section>
 
+  <?php if (in_array($a['stage'], ['shortlisted', 'interview'], true) || $interviews): ?>
+  <section class="card section" id="interviews">
+    <h2>Interviews</h2>
+    <?php foreach ($interviews as $iv): $link = \App\Core\Config::appUrl() . '/interview/' . $iv['public_token'];
+      $reply = ['none' => 'No answer yet', 'confirmed' => 'Candidate confirmed', 'cannot_attend' => 'Candidate cannot come']; ?>
+    <div class="section">
+      <p><strong><?= $e(date('D j M Y, H:i', strtotime((string) $iv['starts_at']))) ?></strong> · <?= (int) $iv['duration_minutes'] ?> min · <?= $e($iv['location']) ?> <span class="chip"><?= $e(ucfirst(str_replace('_', ' ', $iv['status']))) ?></span></p>
+      <?php if ($iv['panel']): ?><p class="muted small">Panel: <?= $e($iv['panel']) ?></p><?php endif; ?>
+      <?php if ($iv['status'] === 'scheduled'): ?>
+        <p class="small"><?= $e($reply[$iv['candidate_response']]) ?><?= $iv['response_note'] ? ': “' . $e($iv['response_note']) . '”' : '' ?></p>
+        <details><summary>Invitation to copy</summary>
+          <label class="sr" for="inv_<?= $e($iv['uuid']) ?>">Invitation text</label>
+          <textarea id="inv_<?= $e($iv['uuid']) ?>" rows="12" readonly><?= $e(\App\Modules\Recruitment\InterviewRepo::invitation($iv, $a, $v, $org['name'], $link)) ?></textarea>
+          <p class="hint">Care Core does not send email. Paste this into your own message.</p></details>
+        <details><summary>Move or close</summary>
+          <form class="form" method="post" action="/recruitment/interviews/<?= $e($iv['uuid']) ?>"><?= Csrf::field() ?><input type="hidden" name="do" value="move">
+            <div class="formgrid">
+              <div class="form-group"><label for="m_at_<?= $e($iv['uuid']) ?>">Date and time</label><input id="m_at_<?= $e($iv['uuid']) ?>" name="starts_at" type="datetime-local" required value="<?= $e(date('Y-m-d\TH:i', strtotime((string) $iv['starts_at']))) ?>"></div>
+              <div class="form-group"><label for="m_len_<?= $e($iv['uuid']) ?>">Minutes</label><input id="m_len_<?= $e($iv['uuid']) ?>" name="duration_minutes" type="number" min="10" max="480" value="<?= (int) $iv['duration_minutes'] ?>"></div>
+              <div class="form-group"><label for="m_loc_<?= $e($iv['uuid']) ?>">Where</label><input id="m_loc_<?= $e($iv['uuid']) ?>" name="location" type="text" required value="<?= $e($iv['location']) ?>"></div>
+              <div class="form-group"><label for="m_pan_<?= $e($iv['uuid']) ?>">Who will interview</label><input id="m_pan_<?= $e($iv['uuid']) ?>" name="panel" type="text" value="<?= $e($iv['panel'] ?? '') ?>"></div>
+              <div class="form-group"><label for="m_ins_<?= $e($iv['uuid']) ?>">What to bring</label><input id="m_ins_<?= $e($iv['uuid']) ?>" name="instructions" type="text" value="<?= $e($iv['instructions'] ?? '') ?>"></div>
+            </div><button class="btn btn-secondary" type="submit">Move it</button>
+          </form>
+          <form method="post" action="/recruitment/interviews/<?= $e($iv['uuid']) ?>" class="actions"><?= Csrf::field() ?>
+            <button class="btn btn-secondary" type="submit" name="do" value="completed">It took place</button>
+            <button class="btn btn-secondary" type="submit" name="do" value="no_show">They did not come</button>
+            <button class="btn btn-secondary" type="submit" name="do" value="cancelled">Cancel it</button></form>
+        </details>
+      <?php endif; ?>
+    </div>
+    <?php endforeach; ?>
+    <?php if (in_array($a['stage'], ['shortlisted', 'interview'], true)): ?>
+    <h3>Book an interview</h3>
+    <form class="form" method="post" action="/recruitment/applications/<?= $e($a['uuid']) ?>/interviews"><?= Csrf::field() ?>
+      <div class="formgrid">
+        <div class="form-group"><label for="b_at">Date and time</label><input id="b_at" name="starts_at" type="datetime-local" required></div>
+        <div class="form-group"><label for="b_len">Minutes</label><input id="b_len" name="duration_minutes" type="number" min="10" max="480" value="45"></div>
+        <div class="form-group"><label for="b_loc">Where</label><input id="b_loc" name="location" type="text" required maxlength="200" placeholder="Address, room or video link"></div>
+        <div class="form-group"><label for="b_pan">Who will interview</label><input id="b_pan" name="panel" type="text" maxlength="300"></div>
+        <div class="form-group"><label for="b_ins">What to bring</label><input id="b_ins" name="instructions" type="text" maxlength="1000" placeholder="For example photo ID"></div>
+      </div>
+      <button class="btn btn-primary" type="submit">Book interview</button>
+    </form>
+    <?php endif; ?>
+  </section>
+  <?php endif; ?>
+
   <?php if ($a['stage'] === 'offer' && $a['offer_accepted_on']): ?>
   <section class="card section">
     <h2>Hire</h2>

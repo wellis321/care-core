@@ -26,7 +26,7 @@ final class RecruitmentController extends Controller
         $status = in_array($r->input('status'), ['draft', 'open', 'filled', 'closed'], true) ? $r->input('status') : '';
         return $this->view('recruitment/index', [
             'title' => 'Recruitment', 'vacancies' => VacancyRepo::all($org, $status), 'status' => $status,
-            'roles' => RoleRepo::all($org, true), 'teams' => TeamRepo::all($org), 'managers' => $this->managers(), 'contracts' => Lifecycle::CONTRACTS, 'error' => null, 'old' => $r->query,
+            'roles' => RoleRepo::all($org, true), 'teams' => TeamRepo::all($org), 'managers' => $this->managers(), 'contracts' => Lifecycle::CONTRACTS, 'error' => null, 'old' => $r->query, 'interviews' => InterviewRepo::upcoming($org, 10), 'newApplications' => (int) DB::value("SELECT COUNT(*) FROM applications WHERE organisation_id = ? AND stage = 'applied' AND source = 'Careers page'", [$org]),
         ]);
     }
 
@@ -37,7 +37,7 @@ final class RecruitmentController extends Controller
         try {
             $v = VacancyRepo::create($org, $d, $this->actor());
         } catch (DomainException $e) {
-            return $this->view('recruitment/index', ['title' => 'Recruitment', 'vacancies' => VacancyRepo::all($org), 'status' => '', 'roles' => RoleRepo::all($org, true), 'teams' => TeamRepo::all($org), 'managers' => $this->managers(), 'contracts' => Lifecycle::CONTRACTS, 'error' => $e->getMessage(), 'old' => $d], 422);
+            return $this->view('recruitment/index', ['title' => 'Recruitment', 'vacancies' => VacancyRepo::all($org), 'status' => '', 'roles' => RoleRepo::all($org, true), 'teams' => TeamRepo::all($org), 'managers' => $this->managers(), 'contracts' => Lifecycle::CONTRACTS, 'error' => $e->getMessage(), 'old' => $d, 'interviews' => InterviewRepo::upcoming($org, 10), 'newApplications' => 0], 422);
         }
         $this->ok('Vacancy ' . $v['reference'] . ' created as a draft. Open it when you are ready for candidates.');
         return $this->redirect('/recruitment/vacancies/' . $v['uuid']);
@@ -52,7 +52,7 @@ final class RecruitmentController extends Controller
         }
         $role = RoleRepo::byId($org, (int) $v['role_id']);
         return $this->view('recruitment/vacancy', [
-            'title' => $v['reference'] . ' ' . $v['title'], 'v' => $v, 'role' => $role, 'applications' => ApplicationRepo::forVacancy((int) $v['id']), 'hired' => VacancyRepo::hired((int) $v['id']),
+            'title' => $v['reference'] . ' ' . $v['title'], 'v' => $v, 'role' => $role, 'org' => DB::one('SELECT * FROM organisations WHERE id = ?', [$org]), 'applications' => ApplicationRepo::forVacancy((int) $v['id']), 'hired' => VacancyRepo::hired((int) $v['id']),
             'teams' => TeamRepo::all($org), 'managers' => $this->managers(), 'contracts' => Lifecycle::CONTRACTS, 'stages' => ApplicationRepo::STAGES, 'error' => null, 'old' => [],
         ]);
     }
@@ -70,6 +70,59 @@ final class RecruitmentController extends Controller
             $this->fail($e->getMessage());
         }
         return $this->redirect('/recruitment/vacancies/' . $v['uuid']);
+    }
+
+    /** Careers-page settings for a vacancy: whether it is advertised, and what the public sees beyond the role. */
+    public function careersSettings(Request $r, array $p): Response
+    {
+        $v = VacancyRepo::byUuid($this->orgId(), $p['uuid']);
+        if (!$v) {
+            return Router::error(404, ...self::NOT_FOUND);
+        }
+        try {
+            VacancyRepo::update($this->orgId(), (int) $v['id'], ['advertise' => $r->has('advertise') ? '1' : '0'] + $this->input($r, ['public_summary', 'salary_text', 'location_text']), $this->actor());
+            $this->ok($r->has('advertise') ? 'Saved. It shows on your careers page while the vacancy is open.' : 'Saved. It is not shown on your careers page.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/recruitment/vacancies/' . $v['uuid']);
+    }
+
+    public function bookInterview(Request $r, array $p): Response
+    {
+        $a = ApplicationRepo::byUuid($this->orgId(), $p['uuid']);
+        if (!$a) {
+            return Router::error(404, ...self::NOT_FOUND);
+        }
+        try {
+            InterviewRepo::schedule($this->orgId(), (int) $a['id'], $this->input($r, ['starts_at', 'duration_minutes', 'location', 'panel', 'instructions']), $this->actor());
+            $this->ok('Interview booked. Copy the invitation below and send it to the candidate.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/recruitment/applications/' . $a['uuid']);
+    }
+
+    /** Move, cancel or close an interview. */
+    public function changeInterview(Request $r, array $p): Response
+    {
+        $i = InterviewRepo::byUuid($this->orgId(), $p['uuid']);
+        $a = $i ? ApplicationRepo::byId($this->orgId(), (int) $i['application_id']) : null;
+        if (!$i || !$a) {
+            return Router::error(404, ...self::NOT_FOUND);
+        }
+        try {
+            if ($r->input('do') === 'move') {
+                InterviewRepo::reschedule($this->orgId(), $p['uuid'], $this->input($r, ['starts_at', 'duration_minutes', 'location', 'panel', 'instructions']), $this->actor());
+                $this->ok('Interview moved. Tell the candidate: their earlier answer has been cleared.');
+            } else {
+                InterviewRepo::close($this->orgId(), $p['uuid'], $r->input('do'), $this->actor());
+                $this->ok('Interview updated.');
+            }
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/recruitment/applications/' . $a['uuid']);
     }
 
     public function openVacancy(Request $r, array $p): Response
@@ -294,7 +347,7 @@ final class RecruitmentController extends Controller
             'title' => $a['first_name'] . ' ' . $a['last_name'], 'a' => $a, 'v' => $v, 'checks' => ApplicationRepo::checks((int) $a['id']), 'outstanding' => ApplicationRepo::outstanding((int) $a['id']),
             'person' => $a['person_id'] ? DB::one('SELECT uuid, first_name, last_name FROM persons WHERE id = ?', [$a['person_id']]) : null,
             'teams' => TeamRepo::all($org), 'managers' => $this->managers(), 'contracts' => Lifecycle::CONTRACTS, 'error' => $error, 'old' => $old,
-            'next' => ApplicationRepo::STAGES, 'today' => Clock::today(),
+            'next' => ApplicationRepo::STAGES, 'today' => Clock::today(), 'interviews' => InterviewRepo::forApplication((int) $a['id']), 'org' => DB::one('SELECT * FROM organisations WHERE id = ?', [$org]),
         ], $status);
     }
 
