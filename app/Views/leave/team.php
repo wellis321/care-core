@@ -5,6 +5,17 @@ $months = [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'Ma
 $first = $month['first']; ?>
 <div class="pagehead"><div><p class="eyebrow">Staff</p><h1>Team leave</h1><p class="muted">Decide requests, see who is away, and record leave. <a href="/leave">Your own leave</a> · <a href="/documents">Documents to review</a></p></div></div>
 
+<?php if (!empty($swapsToDecide)): ?>
+<section class="card section"><h2>Leave swaps waiting for a decision <span class="muted small">(<?= count($swapsToDecide) ?>)</span></h2>
+<p class="muted small">Both people agreed. Approving makes the two leave records change dates; each keeps the same number of days.</p>
+<?php foreach ($swapsToDecide as $w): $own = in_array($myPid, [(int) $w['from_person_id'], (int) $w['to_person_id']], true); ?>
+<div class="section"><p><strong><?= $e($w['f_first'] . ' ' . $w['f_last']) ?></strong> (<?= View::date($w['f_start']) ?> to <?= View::date($w['f_end']) ?>) and <strong><?= $e($w['t_first'] . ' ' . $w['t_last']) ?></strong> (<?= View::date($w['t_start']) ?> to <?= View::date($w['t_end']) ?>) swap dates · <?= $e($fmt($w['f_days'])) ?> days each</p>
+<?php if ($w['note']): ?><p class="muted small">“<?= $e($w['note']) ?>”</p><?php endif; ?>
+<?php if ($own): ?><p class="muted small">This involves you. Another manager has to decide it.</p><?php else: ?>
+<form class="form" method="post" action="/leave/swap/<?= $e($w['uuid']) ?>/decide"><?= Csrf::field() ?><div class="form-group"><label for="sn_<?= $e($w['uuid']) ?>">Note (needed if refusing)</label><input id="sn_<?= $e($w['uuid']) ?>" name="note" type="text" maxlength="500"></div>
+<button class="btn btn-primary" type="submit" name="decision" value="approve">Approve</button> <button class="btn btn-secondary" type="submit" name="decision" value="refuse">Refuse</button></form><?php endif; ?></div>
+<?php endforeach; ?></section>
+<?php endif; ?>
 <section class="card section" id="requests">
   <h2>Waiting for a decision <span class="muted small">(<?= count($pending) ?>)</span></h2>
   <?php if (!$pending): ?><p class="muted">Nothing waiting.</p><?php endif; ?>

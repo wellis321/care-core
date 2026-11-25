@@ -24,6 +24,7 @@ final class LeaveController extends Controller
         return $this->view('leave/index', [
             'title' => 'Leave', 'pid' => $pid, 'kinds' => LeaveRepo::KINDS, 'requestable' => LeaveRepo::REQUESTABLE, 'old' => [], 'today' => Clock::today(),
             'balance' => $pid ? LeaveRepo::balance($org, $pid) : null, 'list' => $pid ? LeaveRepo::forPerson($pid) : [], 'isManager' => Auth::can('staff.manage'),
+            'swaps' => $pid ? LeaveSwap::forPerson($org, $pid) : [], 'canSwap' => $pid ? count(LeaveSwap::swappable($org, $pid)) > 0 : false,
         ]);
     }
 
@@ -91,7 +92,7 @@ final class LeaveController extends Controller
             'title' => 'Team leave', 'pending' => LeaveRepo::pending($org), 'off' => LeaveRepo::offOn($org, Clock::today()), 'sickOpen' => LeaveRepo::openSickness($org), 'awaitingRtw' => LeaveRepo::awaitingReturnToWork($org),
             'month' => $month, 'rows' => $rows, 'teams' => TeamRepo::all($org), 'teamId' => $teamId, 'today' => Clock::today(), 'kinds' => LeaveRepo::KINDS,
             'prev' => (new \DateTimeImmutable($m))->modify('-1 month')->format('Y-m'), 'next' => (new \DateTimeImmutable($m))->modify('+1 month')->format('Y-m'),
-            'yearMonth' => LeaveRepo::yearStartMonth($org), 'myPid' => $this->myPersonId(),
+            'swapsToDecide' => LeaveSwap::toDecide($org), 'yearMonth' => LeaveRepo::yearStartMonth($org), 'myPid' => $this->myPersonId(),
         ]);
     }
 
@@ -154,6 +155,71 @@ final class LeaveController extends Controller
         try {
             LeaveRepo::returnToWorkHeld($this->orgId(), $p['uuid'], $r->input('on') ?: Clock::today(), $this->actor());
             $this->ok('Recorded.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/leave/team');
+    }
+
+
+    // ── Swapping annual leave ──────────────────────────────────────────────
+
+    /** Choose one of your approved annual leave spells and a colleague's to swap with. */
+    public function swapForm(Request $r, array $p = []): Response
+    {
+        $pid = $this->myPersonId(); $org = $this->orgId();
+        if (!$pid) {
+            $this->fail('Your login is not linked to a person, so there is nothing to swap.');
+            return $this->redirect('/leave');
+        }
+        $with = DB::one('SELECT id, uuid, first_name, last_name FROM persons WHERE uuid = ? AND organisation_id = ? AND id <> ?', [$r->input('with'), $org, $pid]);
+        $mine = LeaveSwap::swappable($org, $pid);
+        return $this->view('leave/swap', ['title' => 'Swap annual leave', 'mine' => $mine, 'colleagues' => LeaveSwap::colleagues($org, $pid), 'with' => $with ?: null, 'theirs' => $with ? LeaveSwap::swappable($org, (int) $with['id']) : []]);
+    }
+
+    public function swapPropose(Request $r, array $p = []): Response
+    {
+        $pid = $this->myPersonId();
+        try {
+            if (!$pid) throw new DomainException('Your login is not linked to a person.');
+            LeaveSwap::propose($this->orgId(), $pid, $r->input('mine'), $r->input('theirs'), $r->input('note'), $this->actor());
+            $this->ok('Sent. Your colleague will be asked, then a manager decides. Your leave dates stay as they are until then.');
+            return $this->redirect('/leave');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+            return $this->redirect('/leave/swap');
+        }
+    }
+
+    public function swapAnswer(Request $r, array $p): Response
+    {
+        try {
+            $yes = $r->input('answer') === 'yes';
+            LeaveSwap::answer($this->orgId(), (int) $this->myPersonId(), $p['uuid'], $yes, $this->actor());
+            $this->ok($yes ? 'Thank you. A manager will decide.' : 'Declined.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/leave');
+    }
+
+    public function swapCancel(Request $r, array $p): Response
+    {
+        try {
+            LeaveSwap::cancel($this->orgId(), (int) $this->myPersonId(), $p['uuid'], $this->actor());
+            $this->ok('Withdrawn.');
+        } catch (DomainException $e) {
+            $this->fail($e->getMessage());
+        }
+        return $this->redirect('/leave');
+    }
+
+    public function swapDecide(Request $r, array $p): Response
+    {
+        try {
+            $approve = $r->input('decision') === 'approve';
+            LeaveSwap::decide($this->orgId(), $p['uuid'], $approve, $r->input('note'), (int) Auth::user()['id'], $this->myPersonId(), $this->actor());
+            $this->ok($approve ? 'Approved. The two leave records now have each other\'s dates.' : 'Refused.');
         } catch (DomainException $e) {
             $this->fail($e->getMessage());
         }

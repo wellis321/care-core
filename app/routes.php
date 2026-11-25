@@ -114,6 +114,11 @@ $router->add('POST', '/leave', [LeaveController::class, 'request'], null, 'staff
 $router->add('POST', '/leave/sick', [LeaveController::class, 'sick'], null, 'staff');
 $router->add('POST', '/leave/{uuid}/cancel', [LeaveController::class, 'cancel'], null, 'staff');
 $router->add('POST', '/leave/{uuid}/back', [LeaveController::class, 'back'], null, 'staff');
+$router->add('GET', '/leave/swap', [LeaveController::class, 'swapForm'], null, 'staff');
+$router->add('POST', '/leave/swap', [LeaveController::class, 'swapPropose'], null, 'staff');
+$router->add('POST', '/leave/swap/{uuid}/answer', [LeaveController::class, 'swapAnswer'], null, 'staff');
+$router->add('POST', '/leave/swap/{uuid}/cancel', [LeaveController::class, 'swapCancel'], null, 'staff');
+$router->add('POST', '/leave/swap/{uuid}/decide', [LeaveController::class, 'swapDecide'], 'staff.manage', 'staff');
 $router->add('GET', '/leave/team', [LeaveController::class, 'team'], 'staff.manage', 'staff');
 $router->add('POST', '/leave/record', [LeaveController::class, 'record'], 'staff.manage', 'staff');
 $router->add('POST', '/leave/allowance', [LeaveController::class, 'allowance'], 'staff.manage', 'staff');

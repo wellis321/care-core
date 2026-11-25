@@ -32,6 +32,14 @@ $fmt = static fn($n) => rtrim(rtrim(number_format((float) $n, 1), '0'), '.'); ?>
     </table></div>
     <?php else: ?><p class="muted">Nothing yet.</p><?php endif; ?>
   </section>
+  <?php if ($swaps): ?><section class="card section" id="swaps"><h2>Leave swaps</h2>
+  <?php foreach ($swaps as $w): $toMe = (int) $w['to_person_id'] === (int) $pid; ?>
+    <div class="section"><p><?php if ($toMe): ?><strong><?= $e($w['f_first'] . ' ' . $w['f_last']) ?></strong> asks to swap their <?= View::date($w['f_start']) ?> to <?= View::date($w['f_end']) ?> for your <?= View::date($w['t_start']) ?> to <?= View::date($w['t_end']) ?><?php else: ?>You asked <strong><?= $e($w['t_first'] . ' ' . $w['t_last']) ?></strong> to swap your <?= View::date($w['f_start']) ?> to <?= View::date($w['f_end']) ?> for their <?= View::date($w['t_start']) ?> to <?= View::date($w['t_end']) ?><?php endif; ?>
+    · <span class="chip"><?= $w['status'] === 'accepted' ? 'Waiting for a manager' : 'Waiting for an answer' ?></span></p>
+    <?php if ($w['note']): ?><p class="muted small">“<?= $e($w['note']) ?>”</p><?php endif; ?>
+    <?php if ($toMe && $w['status'] === 'requested'): ?><form method="post" action="/leave/swap/<?= $e($w['uuid']) ?>/answer" class="row-actions"><?= Csrf::field() ?><button class="btn btn-primary" name="answer" value="yes" type="submit">Yes, swap</button> <button class="btn btn-secondary" name="answer" value="no" type="submit">No</button></form><?php endif; ?>
+    <?php if (!$toMe): ?><form method="post" action="/leave/swap/<?= $e($w['uuid']) ?>/cancel" class="row-actions"><?= Csrf::field() ?><button class="btn btn-secondary" type="submit">Withdraw</button></form><?php endif; ?></div>
+  <?php endforeach; ?></section><?php endif; ?>
 </div>
 <aside>
   <section class="card section">
@@ -47,6 +55,7 @@ $fmt = static fn($n) => rtrim(rtrim(number_format((float) $n, 1), '0'), '.'); ?>
   </section>
   <section class="card section">
     <h2>Ask for leave</h2>
+    <?php if ($canSwap): ?><p class="small"><a href="/leave/swap">Swap annual leave with a colleague instead</a></p><?php endif; ?>
     <form class="form" method="post" action="/leave"><?= Csrf::field() ?>
       <div class="form-group"><label for="kind">What for</label><select id="kind" name="kind"><?php foreach ($requestable as $k): ?><option value="<?= $e($k) ?>"><?= $e($kinds[$k]) ?></option><?php endforeach; ?></select></div>
       <div class="form-group"><label for="starts_on">First day</label><input id="starts_on" name="starts_on" type="date" required min="<?= $e($today) ?>"></div>

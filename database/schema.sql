@@ -12,7 +12,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS staff_documents, absences, leave_allowances, interviews, work_sources, sso_codes, sso_clients, sso_keys, organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
+DROP TABLE IF EXISTS leave_swaps, staff_documents, absences, leave_allowances, interviews, work_sources, sso_codes, sso_clients, sso_keys, organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
     login_attempts, tasks, checklist_template_items, checklist_templates, key_worker_assignments, person_contacts,
     care_needs, support_episodes, team_assignments, teams, employment_changes, employments, users, persons,
     organisation_modules, organisations;
@@ -951,6 +951,30 @@ CREATE TABLE absences (
     KEY idx_absence_org (organisation_id, status, starts_on),
     CONSTRAINT fk_abs_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
     CONSTRAINT fk_abs_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Swapping approved annual leave between two colleagues. Each keeps the number of days they were allowed; only the dates change places.
+-- The colleague agrees first, then a manager (never either of them) decides. Nothing is deleted.
+CREATE TABLE leave_swaps (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid               CHAR(36)     NOT NULL,
+    organisation_id    BIGINT UNSIGNED NOT NULL,
+    from_absence_id    BIGINT UNSIGNED NOT NULL,
+    to_absence_id      BIGINT UNSIGNED NOT NULL,
+    from_person_id     BIGINT UNSIGNED NOT NULL,
+    to_person_id       BIGINT UNSIGNED NOT NULL,
+    status             ENUM('requested','accepted','declined','approved','refused','cancelled') NOT NULL DEFAULT 'requested',
+    note               VARCHAR(300) NULL,
+    decision_note      VARCHAR(500) NULL,
+    decided_by_user_id BIGINT UNSIGNED NULL,
+    decided_at         DATETIME     NULL,
+    created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_leave_swap_uuid (uuid),
+    KEY idx_leave_swap_org (organisation_id, status),
+    KEY idx_leave_swap_from (from_person_id), KEY idx_leave_swap_to (to_person_id),
+    CONSTRAINT fk_lsw_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_lsw_fa  FOREIGN KEY (from_absence_id) REFERENCES absences (id) ON DELETE CASCADE,
+    CONSTRAINT fk_lsw_ta  FOREIGN KEY (to_absence_id)   REFERENCES absences (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- Staff documents (see migration 0015).

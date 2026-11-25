@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\Core\Clock;
 use App\Core\Database as DB;
 use App\Modules\Leave\LeaveRepo;
+use App\Modules\Leave\LeaveSwap;
 
 /** Next Monday on or after a date, so a test does not depend on the day it runs. */
 function monday(int $plusDays = 7): string
@@ -168,4 +169,49 @@ test('leave: managers recording leave puts it straight to approved; the month vi
     eq(count(LeaveRepo::offOn($org, '2026-01-12')), 0, 'a request is not yet leave');
     eq(count(LeaveRepo::pending($org)), 1);
     Clock::freeze(null);
+});
+
+test('leave swap: two colleagues exchange approved annual leave, a manager decides, allowances do not change', function () {
+    $org = Fx::org();
+    $a = Fx::staff($org, 'Ann', 'Alpha'); $b = Fx::staff($org, 'Bob', 'Beta'); $mgr = Fx::staff($org, 'Mia', 'Manager');
+    $m1 = monday(70); $m2 = monday(105);
+    $mk = function (array $s, string $mon, int $len = 4) use ($org) {
+        $x = LeaveRepo::create($org, $s['person_id'], ['kind' => 'annual', 'starts_on' => $mon, 'ends_on' => Clock::addDays($mon, $len)], Fx::actor());
+        LeaveRepo::decide($org, $x['uuid'], true, '', null, 1, null, Fx::actor());
+        return $x['uuid'];
+    };
+    $ua = $mk($a, $m1); $ub = $mk($b, $m2); $ub3 = $mk($b, monday(140), 2);
+    ok(count(LeaveSwap::swappable($org, $a['person_id'])) === 1 && in_array($b['person_id'], array_map('intval', array_column(LeaveSwap::colleagues($org, $a['person_id']), 'id')), true), 'approved future annual leave can be swapped, and colleagues with some are listed');
+    throws(fn() => LeaveSwap::propose($org, $a['person_id'], $ub, $ua, '', Fx::actor()), 'own');
+    throws(fn() => LeaveSwap::propose($org, $a['person_id'], $ua, $ua, '', Fx::actor()), 'colleague');
+    throws(fn() => LeaveSwap::propose($org, $a['person_id'], $ua, $ub3, '', Fx::actor()), 'same number');
+    $before = LeaveRepo::balance($org, $a['person_id']);
+    $sw = LeaveSwap::propose($org, $a['person_id'], $ua, $ub, 'Wedding', Fx::actor());
+    throws(fn() => LeaveSwap::propose($org, $b['person_id'], $ub, $ua, '', Fx::actor()), 'already part');
+    ok(count(LeaveSwap::swappable($org, $a['person_id'])) === 0, 'leave in an open request cannot be offered again');
+    throws(fn() => LeaveSwap::decide($org, $sw, true, '', 1, $mgr['person_id'], Fx::actor()), 'not answered');
+    throws(fn() => LeaveSwap::answer($org, $mgr['person_id'], $sw, true, Fx::actor()), 'not for you');
+    LeaveSwap::answer($org, $b['person_id'], $sw, true, Fx::actor());
+    ok(LeaveRepo::byUuid($org, $ua)['starts_on'] === $m1, 'nothing moves until a manager decides');
+    throws(fn() => LeaveSwap::decide($org, $sw, true, '', 1, $a['person_id'], Fx::actor()), 'own');
+    throws(fn() => LeaveSwap::decide($org, $sw, false, '', 1, $mgr['person_id'], Fx::actor()), 'why');
+    LeaveSwap::decide($org, $sw, true, 'Fine', 1, $mgr['person_id'], Fx::actor());
+    ok(LeaveRepo::byUuid($org, $ua)['starts_on'] === $m2 && LeaveRepo::byUuid($org, $ub)['starts_on'] === $m1 && LeaveSwap::byUuid($org, $sw)['status'] === 'approved', 'on approval the two records take each other\'s dates');
+    ok(LeaveRepo::balance($org, $a['person_id'])['booked'] === $before['booked'], 'the allowance is untouched');
+    ok((int) DB::value("SELECT COUNT(*) FROM outbox_events WHERE type = 'absence.decided' AND payload LIKE ?", ['%' . $m2 . '%']) >= 1, 'other systems are told the new dates');
+    throws(fn() => LeaveSwap::decide($org, $sw, true, '', 1, $mgr['person_id'], Fx::actor()), 'already');
+    // refuse, decline, withdraw
+    $s2 = LeaveSwap::propose($org, $a['person_id'], $ua, $ub3 === '' ? $ub : $ub, '', Fx::actor());
+    LeaveSwap::answer($org, $b['person_id'], $s2, true, Fx::actor());
+    LeaveSwap::decide($org, $s2, false, 'Cover needed', 1, $mgr['person_id'], Fx::actor());
+    ok(LeaveSwap::byUuid($org, $s2)['status'] === 'refused' && LeaveRepo::byUuid($org, $ua)['starts_on'] === $m2, 'a refused swap changes nothing');
+    $s3 = LeaveSwap::propose($org, $a['person_id'], $ua, $ub, '', Fx::actor()); LeaveSwap::answer($org, $b['person_id'], $s3, false, Fx::actor());
+    ok(LeaveSwap::byUuid($org, $s3)['status'] === 'declined', 'a colleague can say no');
+    $s4 = LeaveSwap::propose($org, $a['person_id'], $ua, $ub, '', Fx::actor()); throws(fn() => LeaveSwap::cancel($org, $b['person_id'], $s4, Fx::actor()), 'not your');
+    LeaveSwap::cancel($org, $a['person_id'], $s4, Fx::actor());
+    ok(LeaveSwap::byUuid($org, $s4)['status'] === 'cancelled' && LeaveSwap::byUuid(Fx::org(), $s4) === null, 'it can be withdrawn, and another organisation cannot see it');
+    // a clash with other leave stops it
+    $c = Fx::staff($org, 'Cat', 'Gamma'); $uc = $mk($c, monday(200));
+    LeaveRepo::create($org, $a['person_id'], ['kind' => 'unpaid', 'starts_on' => monday(200), 'ends_on' => Clock::addDays(monday(200), 1)], Fx::actor(), true);
+    throws(fn() => LeaveSwap::propose($org, $c['person_id'], $uc, $ua, '', Fx::actor()), 'clash');
 });
