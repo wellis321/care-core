@@ -7,6 +7,7 @@ use App\Modules\Admin\AdminController;
 use App\Modules\Care\CareController;
 use App\Modules\Docs\DocsController;
 use App\Modules\Documents\DocumentController;
+use App\Modules\Evidence\EvidenceController;
 use App\Modules\Identity\AuthController;
 use App\Modules\Import\ImportController;
 use App\Modules\Identity\SsoController;
@@ -88,6 +89,9 @@ $router->add('POST', '/people/{uuid}/record/section', [StaffRecordController::cl
 $router->add('POST', '/people/{uuid}/record/file', [StaffRecordController::class, 'saveFile'], 'staff.manage', 'staff');
 $router->add('POST', '/people/{uuid}/compliance/{kind}', [StaffRecordController::class, 'addCompliance'], 'staff.manage', 'staff');
 $router->add('POST', '/people/{uuid}/compliance/{kind}/remove', [StaffRecordController::class, 'removeCompliance'], 'staff.manage', 'staff');
+
+// Staff evidence pack: what is recorded about staff, as at a date
+$router->add('GET', '/evidence', [EvidenceController::class, 'index'], 'staff.manage', 'staff');
 
 // Staff documents (private files), the review list, and the subject access export
 $router->add('POST', '/people/{uuid}/documents', [DocumentController::class, 'add'], 'staff.manage', 'staff');

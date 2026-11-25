@@ -69,6 +69,7 @@ $reveal = Session::takeReveal();
       <?php if (Modules::enabled($org, 'staff') && (Auth::user()['person_id'] || Auth::can('staff.manage'))): ?><a href="<?= Auth::user()['person_id'] ? '/leave' : '/leave/team' ?>"<?= $active('/leave') ?>>Leave</a><?php endif; ?>
       <?php if (Auth::user()['person_id']): ?><a href="/me"<?= $active('/me') ?>>My profile</a><?php endif; ?>
       <?php $waiting = \App\Modules\Staff\ProfileChanges::queueFor($user); if ($waiting || Auth::can('staff.manage')): ?><a href="/approvals"<?= $active('/approvals') ?>>Approvals<?php if ($waiting): ?><span class="badge" aria-label="<?= count($waiting) ?> waiting"><?= count($waiting) ?></span><?php endif; ?></a><?php endif; ?>
+      <?php if (Modules::enabled($org, 'staff') && Auth::can('staff.manage')): ?><a href="/evidence"<?= $active('/evidence') ?>>Evidence</a><?php endif; ?>
       <?php if (Auth::can('audit.view')): ?><a href="/activity"<?= $active('/activity') ?>>Activity</a><?php endif; ?>
       <?php if (Auth::can('*')): ?><a href="/admin"<?= $active('/admin') ?>>Admin</a><?php endif; ?>
       <a href="/docs"<?= $active('/docs') ?>>Help</a>

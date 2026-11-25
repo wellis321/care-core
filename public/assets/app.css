@@ -268,3 +268,4 @@ form.inline { display: inline-flex; gap: 0.5rem; align-items: center; margin-lef
 .cal .ask { background: #fff; font-weight: 700; border-style: dashed; color: var(--ink-soft, #2f484b); }
 .cal .off.sick { background: var(--thistle-tint, #f1ecf8); color: var(--thistle-deep, #3f2766); }
 .cal .today { outline: 2px solid var(--brand-deep, #0a4440); outline-offset: -2px; }
+@media print { .topbar, .topnav, .no-print, footer { display: none !important; } .card { box-shadow: none; border: 0; } .evidence-person { break-inside: avoid; } }

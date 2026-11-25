@@ -106,7 +106,7 @@ final class InterviewRepo
             ], ['id' => $i['id']]);
             DB::update('applications', ['interview_date' => substr($when, 0, 10)], ['id' => $i['application_id']]);
             $a = ApplicationRepo::byId($orgId, (int) $i['application_id']);
-            Audit::record($orgId, $actor, 'interview.rescheduled', 'application', $a['uuid'] ?? null, 'Interview moved to ' . substr($when, 0, 16), ['interview' => $uuid]);
+            Audit::record($orgId, $actor, 'interview.rescheduled', 'application', $a['uuid'] ?? null, 'Interview moved to ' . substr($when, 0, 16), ['interview' => $i['uuid']]);
         });
     }
 

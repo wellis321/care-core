@@ -26,6 +26,7 @@ final class Docs
                 'movers'       => ['Changing role, hours or team', 'The mover process and its history.'],
                 'leavers'      => ['Recording someone leaving', 'The leaver process, with a preview of what will happen.'],
                 'leave'        => ['Leave and absence', 'Asking for leave, sickness, allowances and the team calendar.'],
+                'evidence-pack' => ['Staff evidence pack', 'Registrations, supervision, appraisal and mandatory training as recorded, for an inspection or review.'],
                 'staff-documents' => ['Staff documents and subject access', 'Private files on the staff record, expiry dates, retention and a subject access export.'],
                 'staff-record' => ['The staff record', 'Personal details, pay and tax, TUPE, working time, visas, apprenticeships and leave.'],
                 'compliance'   => ['Registrations, supervision and learning', 'The records an inspector asks for, and what is due soon.'],
