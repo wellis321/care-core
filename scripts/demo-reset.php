@@ -290,12 +290,12 @@ if (strlen($ssoMaster) >= 32) {
             'redirect_uris' => 'https://' . $slug . '.' . $domain . '/' . $path]);
     }
     echo 'Registered ' . count($products) . " product demonstrations for single sign-in.\n";
-    // "My work": the Incident Core and Improvement Core demos answer for each person. Their keys are worked out from the same shared value (the products make the matching key themselves).
-    foreach (['incidents' => ['Incident Core', 'ick_'], 'improve' => ['Improvement Core', 'imk_']] as $slug => [$name, $pre]) {
+    // "My work": the Incident, Improvement, Policy, EngageTrack and Care Plans demos answer for each person. Their keys are worked out from the same shared value (the products make the matching key themselves).
+    foreach (['incidents' => ['Incident Core', 'ick_'], 'improve' => ['Improvement Core', 'imk_'], 'policies' => ['Policy Core', 'pck_'], 'engage' => ['EngageTrack', 'etk_'], 'care' => ['Care Plans', 'cpk_']] as $slug => [$name, $pre]) {
         DB::insert('work_sources', ['organisation_id' => $org, 'name' => $name, 'base_url' => 'https://' . $slug . '.' . $domain,
             'key_sealed' => (string) \App\Core\Crypto::encrypt($pre . substr(hash_hmac('sha256', 'my-work:' . $slug, $ssoMaster), 0, 48))]);
     }
-    echo "Connected 2 product demonstrations to My work.\n";
+    echo "Connected 5 product demonstrations to My work.\n";
 }
 // The seeded history is not news: no endpoint registered after the reset (the Digital ID demo does so a minute later) is sent it.
 DB::run('UPDATE outbox_events SET fanned_out_at = UTC_TIMESTAMP() WHERE fanned_out_at IS NULL');
