@@ -7,6 +7,7 @@
 <tr><td><code>person.created</code></td><td>the person</td><td>(empty)</td><td>A person is created.</td></tr>
 <tr><td><code>person.updated</code></td><td>the person</td><td><code>fields</code>: names of the fields changed (for example <code>["address_line1","phone"]</code>). Absent when basic details were edited.</td><td>Basic details edited; staff record changed; a self-service change approved or applied; a photo or signature changed.</td></tr>
 <tr><td><code>user.created</code></td><td>the person (or none)</td><td><code>user</code>: the login’s UUID</td><td>A login is created.</td></tr>
+<tr><td><code>user.disabled</code></td><td>the person (or none)</td><td><code>user</code>: the login’s UUID</td><td>A login is switched off by an administrator. Products that signed the person in through Care Core switch them off at once.</td></tr>
 </tbody></table></div>
 
 <h2>Employment</h2>

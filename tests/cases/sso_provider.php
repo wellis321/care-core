@@ -150,3 +150,37 @@ test('sso: the private signing key is stored encrypted, and a new key keeps old 
     P::newKey();
     ok(count(P::jwks()['keys']) === $before + 1);
 });
+
+test('sso: a product can ask whether someone it signed in is still allowed in, and only about its own organisation', function () {
+    [$org, $reg, $client, $user] = sso_setup();
+    $ask = fn(array $over = []) => P::introspect($over + ['sub' => $user['uuid'], 'client_id' => $reg['client_id'], 'client_secret' => $reg['secret']], null, null);
+    eq($ask(), ['active' => true, 'ends_on' => null]);
+    DB::update('users', ['access_ends_on' => gmdate('Y-m-d', time() + 86400 * 5)], ['id' => $user['id']]);
+    eq($ask()['active'], true);
+    DB::update('users', ['access_ends_on' => gmdate('Y-m-d', time() - 86400 * 2)], ['id' => $user['id']]);
+    eq($ask()['active'], false);
+    DB::update('users', ['access_ends_on' => null], ['id' => $user['id']]);
+    UserRepo::disable($org, (int) $user['id'], Fx::actor());
+    eq($ask()['active'], false);
+    eq($ask(['sub' => '00000000-0000-4000-8000-000000000000'])['active'], false);
+    $other = Fx::org();
+    $u2 = UserRepo::create($other, null, 'in' . bin2hex(random_bytes(4)) . '@example.test', 'manager', Fx::actor(), false, 'a long enough password');
+    eq($ask(['sub' => DB::value('SELECT uuid FROM users WHERE id = ?', [$u2['id']])])['active'], false);
+    throws(fn() => $ask(['client_secret' => 'nope']), 'invalid_client');
+    throws(fn() => $ask(['sub' => 'not-a-uuid']), 'invalid_request');
+    P::setActive($org, (int) $client['id'], false, Fx::actor());
+    throws(fn() => $ask(), 'invalid_client');
+});
+
+test('sso: switching a login off tells the other products at once', function () {
+    $org = Fx::org();
+    $u = UserRepo::create($org, null, 'off' . bin2hex(random_bytes(4)) . '@example.test', 'manager', Fx::actor(), false, 'a long enough password');
+    DB::run('DELETE FROM outbox_events WHERE organisation_id = ? AND type = ?', [$org, 'user.disabled']);
+    UserRepo::disable($org, (int) $u['id'], Fx::actor());
+    $e = DB::one('SELECT * FROM outbox_events WHERE organisation_id = ? AND type = ?', [$org, 'user.disabled']);
+    ok($e !== null && json_decode($e['payload'], true)['data']['user'] === $u['uuid'], 'a user.disabled event names the login');
+});
+
+test('sso: discovery names the introspection endpoint', function () {
+    ok(str_ends_with(P::discovery()['introspection_endpoint'], '/oidc/introspect'));
+});

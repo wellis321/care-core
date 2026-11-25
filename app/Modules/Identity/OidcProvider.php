@@ -37,7 +37,7 @@ final class OidcProvider
     {
         $i = self::issuer();
         return [
-            'issuer' => $i, 'authorization_endpoint' => $i . '/oidc/authorize', 'token_endpoint' => $i . '/oidc/token', 'jwks_uri' => $i . '/oidc/jwks',
+            'issuer' => $i, 'authorization_endpoint' => $i . '/oidc/authorize', 'token_endpoint' => $i . '/oidc/token', 'introspection_endpoint' => $i . '/oidc/introspect', 'jwks_uri' => $i . '/oidc/jwks',
             'response_types_supported' => ['code'], 'grant_types_supported' => ['authorization_code'], 'subject_types_supported' => ['public'],
             'id_token_signing_alg_values_supported' => ['RS256'], 'code_challenge_methods_supported' => ['S256'],
             'token_endpoint_auth_methods_supported' => ['client_secret_post', 'client_secret_basic'], 'scopes_supported' => ['openid', 'profile', 'email'],
@@ -203,6 +203,41 @@ final class OidcProvider
 
     // ---- token ----
 
+    /** @param array<string,string> $post @return array<string,mixed> the registered product, or throws DomainException('invalid_client') */
+    private static function authenticateClient(array $post, ?string $basicId, ?string $basicSecret): array
+    {
+        $clientId = $basicId ?? (string) ($post['client_id'] ?? '');
+        $secret = $basicSecret ?? (string) ($post['client_secret'] ?? '');
+        $c = DB::one('SELECT * FROM sso_clients WHERE client_id = ? AND active = 1', [$clientId]);
+        if (!$c || $secret === '' || !hash_equals((string) $c['secret_hash'], hash('sha256', $secret))) {
+            throw new DomainException('invalid_client');
+        }
+        return $c;
+    }
+
+    /**
+     * Is this person still allowed in? A product asks every few minutes while someone has a session it started through Care Core, so a leaver (or a login switched off) is
+     * cut off within minutes everywhere, not only when their session ends. Answers only about people of the product's own organisation, and only to a product that
+     * proves who it is. Unknown or other-organisation people are simply "not active".
+     *
+     * @param array<string,string> $post sub = the person's login id as given in their ID token
+     * @return array{active:bool,ends_on:?string}
+     */
+    public static function introspect(array $post, ?string $basicId, ?string $basicSecret): array
+    {
+        $c = self::authenticateClient($post, $basicId, $basicSecret);
+        $sub = (string) ($post['sub'] ?? '');
+        if (!preg_match('/^[0-9a-f-]{36}$/i', $sub)) {
+            throw new DomainException('invalid_request');
+        }
+        $u = DB::one('SELECT * FROM users WHERE uuid = ? AND organisation_id = ?', [$sub, $c['organisation_id']]);
+        DB::update('sso_clients', ['last_used_at' => gmdate('Y-m-d H:i:s')], ['id' => $c['id']]);
+        if (!$u) {
+            return ['active' => false, 'ends_on' => null];
+        }
+        return ['active' => UserRepo::canSignIn($u), 'ends_on' => $u['access_ends_on'] ?: null];
+    }
+
     /**
      * Swap a code for an ID token. Throws DomainException whose message is an OAuth error name (invalid_client, invalid_grant, invalid_request).
      *
@@ -211,12 +246,7 @@ final class OidcProvider
      */
     public static function exchange(array $post, ?string $basicId, ?string $basicSecret): array
     {
-        $clientId = $basicId ?? (string) ($post['client_id'] ?? '');
-        $secret = $basicSecret ?? (string) ($post['client_secret'] ?? '');
-        $c = DB::one('SELECT * FROM sso_clients WHERE client_id = ? AND active = 1', [$clientId]);
-        if (!$c || $secret === '' || !hash_equals((string) $c['secret_hash'], hash('sha256', $secret))) {
-            throw new DomainException('invalid_client');
-        }
+        $c = self::authenticateClient($post, $basicId, $basicSecret);
         if (($post['grant_type'] ?? '') !== 'authorization_code' || empty($post['code']) || empty($post['redirect_uri']) || empty($post['code_verifier'])) {
             throw new DomainException('invalid_request');
         }

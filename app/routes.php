@@ -36,6 +36,7 @@ $router->add('GET', '/.well-known/openid-configuration', [SsoProviderController:
 $router->add('GET', '/oidc/jwks', [SsoProviderController::class, 'jwks'], null, null, false, false);
 $router->add('GET', '/oidc/authorize', [SsoProviderController::class, 'authorize'], null, null, false, false);
 $router->add('POST', '/oidc/token', [SsoProviderController::class, 'token'], null, null, false, false);
+$router->add('POST', '/oidc/introspect', [SsoProviderController::class, 'introspect'], null, null, false, false);
 $router->add('POST', '/login', [AuthController::class, 'login'], null, null, true, false);
 $router->add('GET', '/login/2fa', [AuthController::class, 'twoFactorForm'], null, null, false, false);
 $router->add('POST', '/login/2fa', [AuthController::class, 'twoFactorCheck'], null, null, true, false);

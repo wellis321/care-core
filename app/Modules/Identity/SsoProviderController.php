@@ -89,6 +89,23 @@ final class SsoProviderController extends Controller
         return $resp;
     }
 
+    /** A product asks whether someone it signed in through Care Core is still allowed in. */
+    public function introspect(Request $r, array $p = []): Response
+    {
+        $id = $secret = null;
+        if (preg_match('/^Basic\s+(.+)$/i', (string) $r->header('authorization'), $m) && ($dec = base64_decode($m[1], true)) !== false && str_contains($dec, ':')) {
+            [$id, $secret] = array_map('rawurldecode', explode(':', $dec, 2));
+        }
+        $post = array_map(static fn($v) => is_array($v) ? '' : (string) $v, $r->post);
+        try {
+            $resp = Response::json(OidcProvider::introspect($post, $id, $secret));
+        } catch (DomainException $e) {
+            $resp = Response::json(['error' => $e->getMessage()], $e->getMessage() === 'invalid_client' ? 401 : 400);
+        }
+        $resp->headers['Cache-Control'] = 'no-store';
+        return $resp;
+    }
+
     /** @param array<string,string> $q @param array<string,string> $params */
     private function sendBack(array $q, array $params): Response
     {

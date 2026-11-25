@@ -147,13 +147,15 @@ final class UserRepo
 
     public static function disable(int $orgId, int $userId, Actor $actor): void
     {
-        $u = DB::one('SELECT id, uuid, email FROM users WHERE id = ? AND organisation_id = ?', [$userId, $orgId]) ?? throw new DomainException('Login not found.');
+        $u = DB::one('SELECT u.id, u.uuid, u.email, p.uuid AS person_uuid FROM users u LEFT JOIN persons p ON p.id = u.person_id WHERE u.id = ? AND u.organisation_id = ?', [$userId, $orgId]) ?? throw new DomainException('Login not found.');
         if (self::isDemoAccount($u['email'])) {
             throw new DomainException(self::DEMO_LOCKED);
         }
         DB::transaction(function () use ($orgId, $u, $actor) {
             DB::update('users', ['status' => 'disabled', 'access_ends_on' => Clock::today()], ['id' => $u['id']]);
             Audit::record($orgId, $actor, 'user.disabled', 'user', $u['uuid'], 'Disabled the login for ' . $u['email']);
+            // Tell the other products now, so they switch the person off at once instead of waiting for a session to end.
+            Events::emit($orgId, 'user.disabled', $u['person_uuid'] ?: null, ['user' => $u['uuid']]);
         });
     }
 
