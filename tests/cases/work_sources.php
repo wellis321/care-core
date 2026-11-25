@@ -44,3 +44,21 @@ test('my work: connecting a product checks the address and key, and seals the ke
     W::remove($org, (int) $row['id'], Fx::actor());
     eq(count(W::all($org)), 0);
 });
+
+test('search: only safe results from a product are kept', function () {
+    $base = 'https://policies.example.test';
+    $r = W::parseResults(json_encode(['results' => [
+        ['title' => 'Medication policy', 'kind' => 'Policy', 'detail' => 'MED-01', 'url' => '/policies/medication'],
+        ['title' => 'Bad link', 'url' => '//evil.example/x'],
+        ['title' => 'Other site', 'url' => 'https://evil.example/x'],
+        ['title' => ''],
+    ]]), $base);
+    eq(count($r), 3);
+    eq($r[0]['url'], $base . '/policies/medication');
+    eq($r[0]['detail'], 'MED-01');
+    eq($r[1]['url'], null);
+    eq($r[2]['url'], null);
+    throws(fn() => W::parseResults('{"items":[]}', $base), 'unexpected');
+    $many = array_map(fn($i) => ['title' => 'Hit ' . $i], range(1, 40));
+    eq(count(W::parseResults(json_encode(['results' => $many]), $base)), 10, 'at most ten results per product');
+});

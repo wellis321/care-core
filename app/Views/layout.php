@@ -60,6 +60,7 @@ $reveal = Session::takeReveal();
     <nav class="topnav" aria-label="Main">
       <a href="/"<?= $active('/') ?>>Dashboard</a>
       <?php if (Auth::can('tasks.view')): ?><a href="/my-work"<?= $active('/my-work') ?>>My work</a><?php endif; ?>
+      <a href="/search"<?= $active('/search') ?>>Search</a>
       <?php if (Auth::can('people.view') || Auth::can('people.view_staff')): ?><a href="/people"<?= $active('/people') ?>>People</a><?php endif; ?>
       <?php if (Modules::enabled($org, 'teams') && Auth::can('teams.view')): ?><a href="/teams"<?= $active('/teams') ?>>Teams</a><?php endif; ?>
       <?php if (Modules::enabled($org, 'recruitment') && Auth::can('recruitment.manage')): ?><a href="/recruitment"<?= $active('/recruitment') ?>>Recruitment</a><?php endif; ?>

@@ -19,6 +19,7 @@ final class WorkSources
 {
     public const TIMEOUT_SECONDS = 4;
     public const MAX_ITEMS = 25;
+    public const MAX_RESULTS = 10;
     private const CACHE_SECONDS = 60;
 
     /** @return list<array<string,mixed>> */
@@ -93,25 +94,47 @@ final class WorkSources
     }
 
     /**
-     * Ask every active product at once. The answer is kept in the person's session for a minute so reloading the page is cheap.
-     * @param array{uuid:string,email:string,person_uuid:?string} $who
-     * @return list<array{name:string,url:string,items:list<array<string,mixed>>,error:?string}>
+     * Turn a product's search answer into results we are willing to show (same rules as items: plain text, links only to the product's own address).
+     * @return list<array{title:string,kind:string,detail:string,url:?string}>
      */
-    public static function fetchFor(int $orgId, array $who, bool $fresh = false): array
+    public static function parseResults(string $body, string $baseUrl): array
     {
-        $key = 'work_' . $orgId;
-        $c = $_SESSION[$key] ?? null;
-        if (!$fresh && is_array($c) && ($c['at'] ?? 0) > time() - self::CACHE_SECONDS) {
-            return $c['rows'];
+        $j = json_decode($body, true);
+        if (!is_array($j) || !isset($j['results']) || !is_array($j['results'])) {
+            throw new DomainException('unexpected answer');
         }
+        $out = [];
+        foreach ($j['results'] as $it) {
+            if (!is_array($it) || !is_string($it['title'] ?? null) || trim($it['title']) === '') {
+                continue;
+            }
+            $path = $it['url'] ?? null;
+            $out[] = ['title' => mb_substr(trim($it['title']), 0, 200), 'kind' => mb_substr(is_string($it['kind'] ?? null) ? trim($it['kind']) : '', 0, 40),
+                'detail' => mb_substr(is_string($it['detail'] ?? null) ? trim($it['detail']) : '', 0, 160),
+                'url' => is_string($path) && preg_match('~^/(?!/)[^\s\\\\]*$~', $path) ? $baseUrl . $path : null];
+            if (count($out) >= self::MAX_RESULTS) {
+                break;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Ask every active product the same question at once (a path on each product, with the person and the extra fields), 4 seconds at most each.
+     * @param array{uuid:string,email:string,person_uuid:?string} $who
+     * @param array<string,string> $extra
+     * @return list<array{name:string,url:string,body:string,error:?string}> one row per product; error is set when it did not answer properly
+     */
+    public static function ask(int $orgId, string $path, array $who, array $extra = []): array
+    {
         $sources = DB::all('SELECT * FROM work_sources WHERE organisation_id = ? AND active = 1 ORDER BY name', [$orgId]);
         $mh = curl_multi_init();
         $handles = [];
         foreach ($sources as $s) {
             $plain = Crypto::decrypt($s['key_sealed']);
-            $ch = curl_init($s['base_url'] . '/api/v1/my-work?' . http_build_query(['person' => (string) ($who['person_uuid'] ?? ''), 'email' => (string) $who['email']]));
+            $ch = curl_init($s['base_url'] . $path . '?' . http_build_query(['person' => (string) ($who['person_uuid'] ?? ''), 'email' => (string) $who['email']] + $extra));
             curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => self::TIMEOUT_SECONDS, CURLOPT_CONNECTTIMEOUT => 3, CURLOPT_FOLLOWLOCATION => false,
-                CURLOPT_PROTOCOLS => CURLPROTO_HTTPS | CURLPROTO_HTTP, CURLOPT_HTTPHEADER => ['Accept: application/json', 'Authorization: Bearer ' . (string) $plain], CURLOPT_USERAGENT => 'CareCore-MyWork/1']);
+                CURLOPT_PROTOCOLS => CURLPROTO_HTTPS | CURLPROTO_HTTP, CURLOPT_HTTPHEADER => ['Accept: application/json', 'Authorization: Bearer ' . (string) $plain], CURLOPT_USERAGENT => 'CareCore-Hub/1']);
             curl_multi_add_handle($mh, $ch);
             $handles[(int) $s['id']] = [$ch, $s];
         }
@@ -126,24 +149,68 @@ final class WorkSources
             $body = (string) curl_multi_getcontent($ch);
             $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
             $err = null;
-            $items = [];
             if ($code === 401 || $code === 403) {
                 $err = 'The key was refused. Make a new one in the product.';
             } elseif ($code !== 200) {
                 $err = 'Did not answer.';
-            } else {
+            }
+            curl_multi_remove_handle($mh, $ch);
+            $rows[] = ['id' => $id, 'name' => $s['name'], 'url' => $s['base_url'], 'body' => $body, 'error' => $err];
+        }
+        curl_multi_close($mh);
+        return $rows;
+    }
+
+    /**
+     * What is waiting for a person in every product. Kept in the person's session for a minute so reloading the page is cheap.
+     * @param array{uuid:string,email:string,person_uuid:?string} $who
+     * @return list<array{name:string,url:string,items:list<array<string,mixed>>,error:?string}>
+     */
+    public static function fetchFor(int $orgId, array $who, bool $fresh = false): array
+    {
+        $key = 'work_' . $orgId;
+        $c = $_SESSION[$key] ?? null;
+        if (!$fresh && is_array($c) && ($c['at'] ?? 0) > time() - self::CACHE_SECONDS) {
+            return $c['rows'];
+        }
+        $rows = [];
+        foreach (self::ask($orgId, '/api/v1/my-work', $who) as $r) {
+            $items = [];
+            $err = $r['error'];
+            if ($err === null) {
                 try {
-                    $items = self::parse($body, $s['base_url']);
+                    $items = self::parse($r['body'], $r['url']);
                 } catch (DomainException $e) {
                     $err = 'Gave an answer we could not read.';
                 }
             }
-            curl_multi_remove_handle($mh, $ch);
-            DB::run('UPDATE work_sources SET last_ok_at = IF(?, UTC_TIMESTAMP(), last_ok_at), last_error = ? WHERE id = ?', [$err === null ? 1 : 0, $err, $id]);
-            $rows[] = ['name' => $s['name'], 'url' => $s['base_url'], 'items' => $items, 'error' => $err];
+            DB::run('UPDATE work_sources SET last_ok_at = IF(?, UTC_TIMESTAMP(), last_ok_at), last_error = ? WHERE id = ?', [$err === null ? 1 : 0, $err, $r['id']]);
+            $rows[] = ['name' => $r['name'], 'url' => $r['url'], 'items' => $items, 'error' => $err];
         }
-        curl_multi_close($mh);
         $_SESSION[$key] = ['at' => time(), 'rows' => $rows];
+        return $rows;
+    }
+
+    /**
+     * Search every connected product for what this person is allowed to see there. Not cached: a search is a question about now.
+     * @param array{uuid:string,email:string,person_uuid:?string} $who
+     * @return list<array{name:string,url:string,results:list<array<string,mixed>>,error:?string}>
+     */
+    public static function searchFor(int $orgId, array $who, string $q): array
+    {
+        $rows = [];
+        foreach (self::ask($orgId, '/api/v1/search', $who, ['q' => $q]) as $r) {
+            $res = [];
+            $err = $r['error'];
+            if ($err === null) {
+                try {
+                    $res = self::parseResults($r['body'], $r['url']);
+                } catch (DomainException $e) {
+                    $err = 'Gave an answer we could not read.';
+                }
+            }
+            $rows[] = ['name' => $r['name'], 'url' => $r['url'], 'results' => $res, 'error' => $err];
+        }
         return $rows;
     }
 }
