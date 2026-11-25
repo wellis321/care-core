@@ -3,6 +3,8 @@
 <p>Everyone with a login linked to a person sees <strong>Leave</strong>. Managers and administrators also have <strong>Team leave</strong>. It is part of the Staff module (<a href="/docs/admin-modules">Modules</a>).</p>
 
 <h2>Asking for leave</h2>
+<h2>Swapping annual leave with a colleague</h2>
+<p>Choose <strong>Swap annual leave with a colleague</strong> on the Leave page. You pick one of your approved annual leave spells that has not started and one of a colleague's. The two must be the same number of working days, so nobody's allowance changes, and neither person may have other leave on the dates they would take. The colleague agrees, then a manager who is neither of the two decides. On approval the two leave records exchange dates, and Care Core tells other systems (for example Rota Core) the new dates. Nothing changes before then, and a swap that is refused, declined or withdrawn changes nothing.</p>
 <p>Under <strong>Leave</strong>, choose what for (annual leave, other paid leave or unpaid leave), the first and last day, and whether either end is a half day. The request goes to the managers. You can cancel it while it waits, and cancel approved leave that has not started yet. Once leave has started, only a manager can cancel it.</p>
 <ul>
 <li><strong>Days</strong> are working days, Monday to Friday, with half days counting as half. <strong>Bank holidays are not taken off</strong>: Care Core does not guess a calendar. The manager who approves can type the right number of days.</li>
