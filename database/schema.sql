@@ -12,7 +12,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS sso_codes, sso_clients, sso_keys, organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
+DROP TABLE IF EXISTS work_sources, sso_codes, sso_clients, sso_keys, organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
     login_attempts, tasks, checklist_template_items, checklist_templates, key_worker_assignments, person_contacts,
     care_needs, support_episodes, team_assignments, teams, employment_changes, employments, users, persons,
     organisation_modules, organisations;
@@ -866,4 +866,19 @@ CREATE TABLE sso_keys (
     public_pem  TEXT       NOT NULL,
     active      TINYINT(1) NOT NULL DEFAULT 1,
     created_at  DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- "My work": the products Care Core asks for what is waiting for a person (migration 0012).
+CREATE TABLE work_sources (
+    id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    organisation_id BIGINT UNSIGNED NOT NULL,
+    name            VARCHAR(100) NOT NULL,
+    base_url        VARCHAR(300) NOT NULL,
+    key_sealed      TEXT         NOT NULL,
+    active          TINYINT(1)   NOT NULL DEFAULT 1,
+    last_ok_at      DATETIME     NULL,
+    last_error      VARCHAR(200) NULL,
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_work_org (organisation_id, active),
+    CONSTRAINT fk_work_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

@@ -19,6 +19,7 @@ use App\Modules\Staff\StaffController;
 use App\Modules\Staff\StaffRecordController;
 use App\Modules\Staff\TaskController;
 use App\Modules\Teams\TeamController;
+use App\Modules\Work\WorkController;
 
 // Public information and documentation (no sign-in)
 $router->add('GET', '/about', [DocsController::class, 'about'], null, null, false, false);
@@ -89,6 +90,7 @@ $router->add('POST', '/approvals/{uuid}', [SelfServiceController::class, 'decide
 $router->add('GET', '/files/{kind}/{uuid}', [SelfServiceController::class, 'file']);
 
 // Tasks
+$router->add('GET', '/my-work', [WorkController::class, 'index'], 'tasks.view');
 $router->add('GET', '/tasks', [TaskController::class, 'index'], 'tasks.view');
 $router->add('POST', '/tasks/{uuid}', [TaskController::class, 'update'], 'tasks.view');
 
@@ -164,6 +166,10 @@ $router->add('GET', '/admin/single-sign-on', [AdminController::class, 'singleSig
 $router->add('POST', '/admin/single-sign-on', [AdminController::class, 'addSsoClient'], '*');
 $router->add('POST', '/admin/single-sign-on/secret', [AdminController::class, 'rotateSsoSecret'], '*');
 $router->add('POST', '/admin/single-sign-on/toggle', [AdminController::class, 'toggleSsoClient'], '*');
+$router->add('GET', '/admin/my-work', [WorkController::class, 'sources'], '*');
+$router->add('POST', '/admin/my-work', [WorkController::class, 'addSource'], '*');
+$router->add('POST', '/admin/my-work/remove', [WorkController::class, 'removeSource'], '*');
+$router->add('POST', '/admin/my-work/toggle', [WorkController::class, 'toggleSource'], '*');
 $router->add('GET', '/admin/modules', [AdminController::class, 'modules'], '*');
 $router->add('POST', '/admin/modules', [AdminController::class, 'saveModules'], '*');
 
