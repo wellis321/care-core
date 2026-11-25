@@ -41,6 +41,9 @@
 <tr><td><code>application.stage_changed</code></td><td>the application</td><td><code>from</code>, <code>to</code>, <code>vacancy</code></td><td>An application moves between stages.</td></tr>
 <tr><td><code>interview.scheduled</code></td><td>the interview</td><td><code>application</code>, <code>starts_at</code></td><td>An interview is booked for a candidate.</td></tr>
 <tr><td><code>interview.response</code></td><td>the interview</td><td><code>response</code></td><td>The candidate confirmed or said they cannot come, from their private link.</td></tr>
+<tr><td><code>absence.requested</code></td><td>the absence</td><td><code>person</code>, <code>starts_on</code>, <code>ends_on</code>, <code>status</code></td><td>Someone asks for leave. The kind of leave is left out on purpose: other systems learn that a person is away, not why.</td></tr>
+<tr><td><code>absence.decided</code></td><td>the absence</td><td><code>person</code>, <code>starts_on</code>, <code>ends_on</code>, <code>status</code></td><td>Leave is approved or declined, leave is recorded for someone, or sickness is recorded or ends.</td></tr>
+<tr><td><code>absence.cancelled</code></td><td>the absence</td><td><code>person</code>, <code>starts_on</code>, <code>ends_on</code></td><td>Leave or absence is cancelled.</td></tr>
 <tr><td><code>application.hired</code></td><td>the application</td><td><code>vacancy</code>, <code>role</code>, <code>person</code>, <code>employment</code>, <code>start_date</code></td><td>A candidate is hired. <code>person.created</code> (for someone new) and <code>employment.started</code> follow in the same step, so systems that only watch employment need do nothing extra.</td></tr>
 </tbody></table></div>
 <p>Candidates are not people until they are hired, so nothing about an unsuccessful candidate is announced beyond the application events, which carry no personal details.</p>

@@ -86,7 +86,7 @@ test('events: delivered as signed webhooks, retried when the receiver fails, and
         DB::insert('webhook_endpoints', ['organisation_id' => $org, 'url' => "http://127.0.0.1:$port/hook?fail=1", 'secret' => 'other', 'event_types' => 'employment.started']);
         DB::insert('webhook_endpoints', ['organisation_id' => $org, 'url' => 'http://169.254.169.254/latest', 'secret' => 'x', 'event_types' => '*']);
         $s = Fx::staff($org, 'Hook', 'Test');
-        $r = EventDelivery::run();
+        $r = EventDelivery::run(100000);   // earlier tests leave many events in the outbox; the default batch is oldest-first
         ok($r['queued'] >= 3, 'queued ' . $r['queued']);
         $rows = array_map('json_decode', file($log, FILE_IGNORE_NEW_LINES));
         ok(count($rows) >= 2, 'receiver got requests');

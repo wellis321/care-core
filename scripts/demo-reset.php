@@ -16,6 +16,7 @@ use App\Core\Uuid;
 use App\Modules\Care\CareRepo;
 use App\Modules\Identity\UserRepo;
 use App\Modules\People\PersonRepo;
+use App\Modules\Leave\LeaveRepo;
 use App\Modules\Recruitment\ApplicationRepo;
 use App\Modules\Recruitment\InterviewRepo;
 use App\Modules\Recruitment\RoleRepo;
@@ -246,6 +247,26 @@ if ($callumUser) {
     [$c] = StaffRecord::cleanProfile(['address_line1' => '4 Millburn Road', 'address_postcode' => 'IV2 3PS', 'phone' => '07700 900555']);
     ProfileChanges::submit($org, (int) $staff[2]['person_id'], (int) $callumUser['id'], $c, Actor::system('demo'));
 }
+
+
+// ── Leave and absence: allowances, leave booked, a request for Isla to decide, sickness still open and one awaiting a return-to-work conversation ──
+$weekday = static function (int $offset, int $step = 1) use ($day): string {   // the nearest weekday to today + offset, searching forward (or back when step is -1)
+    $d = new DateTimeImmutable($day($offset));
+    while ((int) $d->format('N') > 5) {
+        $d = $d->modify(($step < 0 ? '-' : '+') . '1 day');
+    }
+    return $d->format('Y-m-d');
+};
+foreach ($staff as $i => $s) {
+    LeaveRepo::setAllowance($org, $s['person_id'], $day(0), (string) [28, 28, 28, 28, 28, 28, 28, 14, 12, 15, 28, 10][$i], $i >= 7 ? 'Part time: pro rata' : null, $actor);
+}
+LeaveRepo::create($org, $staff[2]['person_id'], ['kind' => 'annual', 'starts_on' => $weekday(-30, -1), 'ends_on' => $weekday(-27, -1), 'reason' => 'Long weekend'], $actor, true);
+LeaveRepo::create($org, $staff[2]['person_id'], ['kind' => 'annual', 'starts_on' => $weekday(40), 'ends_on' => $weekday(46), 'reason' => 'Family holiday'], $actor);                       // waiting for Isla
+LeaveRepo::create($org, $staff[4]['person_id'], ['kind' => 'annual', 'starts_on' => $weekday(20), 'ends_on' => $weekday(22), 'reason' => ''], $actor);                                  // waiting
+LeaveRepo::create($org, $staff[5]['person_id'], ['kind' => 'annual', 'starts_on' => $weekday(0, -1), 'ends_on' => $weekday(3), 'reason' => ''], $actor, true);                           // away now
+LeaveRepo::create($org, $staff[3]['person_id'], ['kind' => 'sickness', 'starts_on' => $weekday(-2, -1), 'ends_on' => '', 'reason' => 'Stomach bug'], $actor, true);                     // still off
+$back = LeaveRepo::create($org, $staff[9]['person_id'], ['kind' => 'sickness', 'starts_on' => $weekday(-12, -1), 'ends_on' => '', 'reason' => 'Back pain'], $actor, true);
+LeaveRepo::endSickness($org, $back['uuid'], $weekday(-8, -1), $actor);                                                                                                                      // back, conversation not yet held
 
 // History is complete: only recent and upcoming work is still open.
 DB::run("UPDATE tasks SET status = 'done', completed_at = UTC_TIMESTAMP() WHERE status = 'open' AND due_date < DATE_SUB(CURDATE(), INTERVAL 14 DAY)");

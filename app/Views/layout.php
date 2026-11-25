@@ -66,6 +66,7 @@ $reveal = Session::takeReveal();
       <?php if (Modules::enabled($org, 'recruitment') && Auth::can('recruitment.manage')): ?><a href="/recruitment"<?= $active('/recruitment') ?>>Recruitment</a><?php endif; ?>
       <?php if (Modules::enabled($org, 'referrals') && Auth::can('referrals.manage')): ?><a href="/referrals"<?= $active('/referrals') ?>>Referrals</a><?php endif; ?>
       <?php if (Auth::can('tasks.view')): ?><a href="/tasks"<?= $active('/tasks') ?>>Tasks</a><?php endif; ?>
+      <?php if (Modules::enabled($org, 'staff') && (Auth::user()['person_id'] || Auth::can('staff.manage'))): ?><a href="<?= Auth::user()['person_id'] ? '/leave' : '/leave/team' ?>"<?= $active('/leave') ?>>Leave</a><?php endif; ?>
       <?php if (Auth::user()['person_id']): ?><a href="/me"<?= $active('/me') ?>>My profile</a><?php endif; ?>
       <?php $waiting = \App\Modules\Staff\ProfileChanges::queueFor($user); if ($waiting || Auth::can('staff.manage')): ?><a href="/approvals"<?= $active('/approvals') ?>>Approvals<?php if ($waiting): ?><span class="badge" aria-label="<?= count($waiting) ?> waiting"><?= count($waiting) ?></span><?php endif; ?></a><?php endif; ?>
       <?php if (Auth::can('audit.view')): ?><a href="/activity"<?= $active('/activity') ?>>Activity</a><?php endif; ?>

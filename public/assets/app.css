@@ -258,3 +258,13 @@ form.inline { display: inline-flex; gap: 0.5rem; align-items: center; margin-lef
 .tour { margin: 0 0 1.5rem; padding: .25rem 1.1rem 1rem; background: #fff; border: 2px solid var(--ink, #0d2b2e); }
 .tour > summary { cursor: pointer; padding: .8rem 0; min-height: 44px; }
 .tour ol { margin: 0; padding-left: 1.3rem; display: grid; gap: .6rem; max-width: 52rem; }
+
+/* Leave calendar: one row per person, one column per day. A letter, never colour alone. */
+.cal { border-collapse: collapse; font-size: 0.8rem; }
+.cal th, .cal td { border: 1px solid var(--rule, #dcd8cd); padding: 0.15rem 0.2rem; text-align: center; min-width: 1.6rem; }
+.cal th:first-child, .cal td:first-child { text-align: left; white-space: nowrap; padding: 0.2rem 0.5rem; position: sticky; left: 0; background: #fff; }
+.cal .we { background: #f3f1ea; }
+.cal .off { background: var(--brand-tint, #e6f1ef); font-weight: 700; color: var(--brand-deep, #0a4440); }
+.cal .ask { background: #fff; font-weight: 700; border-style: dashed; color: var(--ink-soft, #2f484b); }
+.cal .off.sick { background: var(--thistle-tint, #f1ecf8); color: var(--thistle-deep, #3f2766); }
+.cal .today { outline: 2px solid var(--brand-deep, #0a4440); outline-offset: -2px; }

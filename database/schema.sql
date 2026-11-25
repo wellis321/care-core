@@ -12,7 +12,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS interviews, work_sources, sso_codes, sso_clients, sso_keys, organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
+DROP TABLE IF EXISTS absences, leave_allowances, interviews, work_sources, sso_codes, sso_clients, sso_keys, organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
     login_attempts, tasks, checklist_template_items, checklist_templates, key_worker_assignments, person_contacts,
     care_needs, support_episodes, team_assignments, teams, employment_changes, employments, users, persons,
     organisation_modules, organisations;
@@ -911,4 +911,44 @@ CREATE TABLE interviews (
     KEY idx_interview_org (organisation_id, status, starts_at),
     CONSTRAINT fk_int_org FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
     CONSTRAINT fk_int_app FOREIGN KEY (application_id)  REFERENCES applications (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Leave and absence (see migration 0014).
+CREATE TABLE leave_allowances (
+    id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    organisation_id BIGINT UNSIGNED NOT NULL,
+    person_id       BIGINT UNSIGNED NOT NULL,
+    year_start      DATE         NOT NULL,
+    days            DECIMAL(5,1) NOT NULL,
+    note            VARCHAR(200) NULL,
+    UNIQUE KEY uq_allow (person_id, year_start),
+    KEY idx_allow_org (organisation_id, year_start),
+    CONSTRAINT fk_allow_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_allow_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE absences (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid               CHAR(36)     NOT NULL,
+    organisation_id    BIGINT UNSIGNED NOT NULL,
+    person_id          BIGINT UNSIGNED NOT NULL,
+    kind               ENUM('annual','sickness','other_paid','unpaid') NOT NULL,
+    starts_on          DATE         NOT NULL,
+    ends_on            DATE         NULL,
+    start_half         TINYINT(1)   NOT NULL DEFAULT 0,
+    end_half           TINYINT(1)   NOT NULL DEFAULT 0,
+    days               DECIMAL(5,1) NULL,
+    status             ENUM('requested','approved','declined','cancelled') NOT NULL DEFAULT 'requested',
+    reason             VARCHAR(500) NULL,
+    decision_note      VARCHAR(500) NULL,
+    decided_by_user_id BIGINT UNSIGNED NULL,
+    decided_at         DATETIME     NULL,
+    requested_by_user_id BIGINT UNSIGNED NULL,
+    rtw_done_on        DATE         NULL,
+    created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_absence_uuid (uuid),
+    KEY idx_absence_person (person_id, starts_on),
+    KEY idx_absence_org (organisation_id, status, starts_on),
+    CONSTRAINT fk_abs_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_abs_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
 ) ENGINE=InnoDB;

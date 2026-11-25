@@ -10,6 +10,7 @@ use App\Modules\Identity\AuthController;
 use App\Modules\Import\ImportController;
 use App\Modules\Identity\SsoController;
 use App\Modules\Identity\SsoProviderController;
+use App\Modules\Leave\LeaveController;
 use App\Modules\Recruitment\CareersController;
 use App\Modules\Recruitment\RecruitmentController;
 use App\Modules\Referrals\ReferralController;
@@ -96,6 +97,19 @@ $router->add('POST', '/me/changes/withdraw', [SelfServiceController::class, 'wit
 $router->add('GET', '/approvals', [SelfServiceController::class, 'approvals']);
 $router->add('POST', '/approvals/{uuid}', [SelfServiceController::class, 'decide']);
 $router->add('GET', '/files/{kind}/{uuid}', [SelfServiceController::class, 'file']);
+
+// Leave and absence: your own page for everyone, team page and decisions for managers
+$router->add('GET', '/leave', [LeaveController::class, 'mine'], null, 'staff');
+$router->add('POST', '/leave', [LeaveController::class, 'request'], null, 'staff');
+$router->add('POST', '/leave/sick', [LeaveController::class, 'sick'], null, 'staff');
+$router->add('POST', '/leave/{uuid}/cancel', [LeaveController::class, 'cancel'], null, 'staff');
+$router->add('POST', '/leave/{uuid}/back', [LeaveController::class, 'back'], null, 'staff');
+$router->add('GET', '/leave/team', [LeaveController::class, 'team'], 'staff.manage', 'staff');
+$router->add('POST', '/leave/record', [LeaveController::class, 'record'], 'staff.manage', 'staff');
+$router->add('POST', '/leave/allowance', [LeaveController::class, 'allowance'], 'staff.manage', 'staff');
+$router->add('POST', '/leave/settings', [LeaveController::class, 'settings'], 'staff.manage', 'staff');
+$router->add('POST', '/leave/{uuid}/decide', [LeaveController::class, 'decide'], 'staff.manage', 'staff');
+$router->add('POST', '/leave/{uuid}/rtw', [LeaveController::class, 'rtw'], 'staff.manage', 'staff');
 
 // Tasks
 $router->add('GET', '/search', [WorkController::class, 'search']);
