@@ -348,18 +348,18 @@ if (strlen($ssoMaster) >= 32) {
     $domain = trim((string) Config::get('DEMO_SSO_DOMAIN', 'findcarescotland.com'));
     $products = ['incidents' => ['Incident Core', 'login/care-core/callback'], 'improve' => ['Improvement Core', 'login/care-core/callback'], 'engage' => ['EngageTrack', 'login/care-core/callback'],
                  'care' => ['Care Plans', 'login/care-core/callback'], 'policies' => ['Policy Core', 'login/care-core/callback'], 'id' => ['Digital ID', 'care-core-login.php'],
-                 'contracts' => ['Contracts', 'care-core-login.php'], 'strategic' => ['Strategic Plans', 'login/care-core/callback'], 'learn' => ['Learning Core', 'login/care-core/callback']];
+                 'contracts' => ['Contracts', 'care-core-login.php'], 'strategic' => ['Strategic Plans', 'login/care-core/callback'], 'learn' => ['Learning Core', 'login/care-core/callback'], 'rota' => ['Rota Core', 'login/care-core/callback']];
     foreach ($products as $slug => [$name, $path]) {
         DB::insert('sso_clients', ['organisation_id' => $org, 'client_id' => 'cc_demo_' . $slug, 'name' => $name . ' demonstration', 'secret_hash' => hash('sha256', hash_hmac('sha256', $slug, $ssoMaster)),
             'redirect_uris' => 'https://' . $slug . '.' . $domain . '/' . $path]);
     }
     echo 'Registered ' . count($products) . " product demonstrations for single sign-in.\n";
-    // "My work": the Incident, Improvement, Policy, EngageTrack, Care Plans and Learning Core demos answer for each person. Their keys are worked out from the same shared value (the products make the matching key themselves).
-    foreach (['incidents' => ['Incident Core', 'ick_'], 'improve' => ['Improvement Core', 'imk_'], 'policies' => ['Policy Core', 'pck_'], 'engage' => ['EngageTrack', 'etk_'], 'care' => ['Care Plans', 'cpk_'], 'learn' => ['Learning Core', 'lck_']] as $slug => [$name, $pre]) {
+    // "My work": the Incident, Improvement, Policy, EngageTrack, Care Plans, Learning Core and Rota Core demos answer for each person. Their keys are worked out from the same shared value (the products make the matching key themselves).
+    foreach (['incidents' => ['Incident Core', 'ick_'], 'improve' => ['Improvement Core', 'imk_'], 'policies' => ['Policy Core', 'pck_'], 'engage' => ['EngageTrack', 'etk_'], 'care' => ['Care Plans', 'cpk_'], 'learn' => ['Learning Core', 'lck_'], 'rota' => ['Rota Core', 'rck_']] as $slug => [$name, $pre]) {
         DB::insert('work_sources', ['organisation_id' => $org, 'name' => $name, 'base_url' => 'https://' . $slug . '.' . $domain,
             'key_sealed' => (string) \App\Core\Crypto::encrypt($pre . substr(hash_hmac('sha256', 'my-work:' . $slug, $ssoMaster), 0, 48))]);
     }
-    echo "Connected 6 product demonstrations to My work.\n";
+    echo "Connected 7 product demonstrations to My work.\n";
 }
 // The seeded history is not news: no endpoint registered after the reset (the Digital ID demo does so a minute later) is sent it.
 DB::run('UPDATE outbox_events SET fanned_out_at = UTC_TIMESTAMP() WHERE fanned_out_at IS NULL');
