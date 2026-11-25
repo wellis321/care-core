@@ -16,6 +16,7 @@ use App\Core\Uuid;
 use App\Modules\Care\CareRepo;
 use App\Modules\Identity\UserRepo;
 use App\Modules\People\PersonRepo;
+use App\Modules\Documents\DocumentRepo;
 use App\Modules\Leave\LeaveRepo;
 use App\Modules\Recruitment\ApplicationRepo;
 use App\Modules\Recruitment\InterviewRepo;
@@ -267,6 +268,36 @@ LeaveRepo::create($org, $staff[5]['person_id'], ['kind' => 'annual', 'starts_on'
 LeaveRepo::create($org, $staff[3]['person_id'], ['kind' => 'sickness', 'starts_on' => $weekday(-2, -1), 'ends_on' => '', 'reason' => 'Stomach bug'], $actor, true);                     // still off
 $back = LeaveRepo::create($org, $staff[9]['person_id'], ['kind' => 'sickness', 'starts_on' => $weekday(-12, -1), 'ends_on' => '', 'reason' => 'Back pain'], $actor, true);
 LeaveRepo::endSickness($org, $back['uuid'], $weekday(-8, -1), $actor);                                                                                                                      // back, conversation not yet held
+
+
+// ── Staff documents: a few small sample PDFs (made here, saying they are samples), one shared with the person ──
+foreach (glob(DocumentRepo::root() . '/' . $org . '/documents/*') ?: [] as $old) {
+    @unlink($old);   // the database was rebuilt, so files from the last demo are orphans
+}
+$samplePdf = static function (string $text): string {
+    $stream = "BT /F1 18 Tf 72 700 Td ($text) Tj ET";
+    $objs = ['<</Type/Catalog/Pages 2 0 R>>', '<</Type/Pages/Kids[3 0 R]/Count 1>>', '<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>',
+        '<</Length ' . strlen($stream) . ">>\nstream\n$stream\nendstream", '<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>'];
+    $out = "%PDF-1.4\n";
+    $offsets = [];
+    foreach ($objs as $i => $o) {
+        $offsets[] = strlen($out);
+        $out .= ($i + 1) . " 0 obj\n$o\nendobj\n";
+    }
+    $x = strlen($out);
+    $out .= "xref\n0 " . (count($objs) + 1) . "\n0000000000 65535 f \n";
+    foreach ($offsets as $o) {
+        $out .= sprintf("%010d 00000 n \n", $o);
+    }
+    return $out . "trailer<</Size " . (count($objs) + 1) . "/Root 1 0 R>>\nstartxref\n$x\n%%EOF\n";
+};
+foreach ([[2, 'Employment contract', 'contract', null, true], [2, 'Right to work check', 'right_to_work', null, false], [3, 'First aid at work certificate', 'qualification', $day(25), false], [4, 'Moving and handling certificate', 'training', $day(-10), false]] as [$who, $title, $cat, $exp, $shared]) {
+    $tmp = tempnam(sys_get_temp_dir(), 'demo');
+    file_put_contents($tmp, $samplePdf('Sample document: ' . $title . ' (demonstration only)'));
+    DocumentRepo::add($org, $staff[$who]['person_id'], ['name' => strtolower(str_replace(' ', '-', $title)) . '.pdf', 'tmp_name' => $tmp, 'error' => UPLOAD_ERR_OK, '_test' => true], ['title' => $title, 'category' => $cat, 'expires_on' => $exp, 'shared' => $shared, 'notes' => 'A sample file for the demonstration.'], $actor);
+    @unlink($tmp);
+}
+DocumentRepo::setRetentionYears($org, '6', $actor);
 
 // History is complete: only recent and upcoming work is still open.
 DB::run("UPDATE tasks SET status = 'done', completed_at = UTC_TIMESTAMP() WHERE status = 'open' AND due_date < DATE_SUB(CURDATE(), INTERVAL 14 DAY)");

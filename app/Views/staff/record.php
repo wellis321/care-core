@@ -48,6 +48,30 @@ $ucw = static fn(string $s) => ucwords(str_replace('_', ' ', $s));
 </form></div></details>
 <?php endforeach; else: ?><p class="muted">Employment terms (TUPE, working time, visa, apprenticeship, leave) appear here once there is an employment.</p><?php endif; ?>
 
+<details class="fold" id="documents"<?= $op('documents') ?>><summary>Documents (<?= count($documents) ?>)</summary><div class="fold__body">
+<?php if ($documents): ?><div class="tablewrap"><table class="list"><thead><tr><th>Document</th><th>Kind</th><th>Expires</th><th>Shared</th><th><span class="sr">Actions</span></th></tr></thead><tbody>
+<?php foreach ($documents as $d): $exp = $d['expires_on']; ?><tr>
+  <td><a href="/documents/<?= $e($d['uuid']) ?>/download"><?= $e($d['title']) ?></a><br><span class="muted small"><?= $e($d['original_name']) ?> · <?= $e(number_format($d['size_bytes'] / 1024, 0)) ?> KB · added <?= View::date(substr($d['created_at'], 0, 10)) ?></span></td>
+  <td><?= $e(\App\Modules\Documents\DocumentRepo::CATEGORIES[$d['category']]) ?></td>
+  <td><?= $exp ? View::date($exp) . ($exp < date('Y-m-d') ? ' <span class="chip chip--bad">Expired</span>' : '') : '—' ?></td>
+  <td><form method="post" action="/documents/<?= $e($d['uuid']) ?>/share" class="row-actions"><?= Csrf::field() ?><label class="check"><input type="checkbox" name="shared" value="1"<?= $d['shared_with_person'] ? ' checked' : '' ?>> They can see it</label> <button class="btn btn-secondary" type="submit">Save</button></form></td>
+  <td class="right"><form method="post" action="/documents/<?= $e($d['uuid']) ?>/remove" class="row-actions" onsubmit="return confirm('Remove this document for good?');"><?= Csrf::field() ?><button class="btn btn-secondary" type="submit">Remove</button></form></td>
+</tr><?php endforeach; ?></tbody></table></div><?php else: ?><p class="muted">No documents yet.</p><?php endif; ?>
+<h2>Add a document</h2>
+<form class="form" method="post" action="<?= $e($base) ?>/documents" enctype="multipart/form-data"><?= Csrf::field() ?>
+  <div class="formgrid">
+    <div class="form-group"><label for="doc_file">File (PDF, Word, PNG or JPEG, up to 10 MB)</label><input id="doc_file" type="file" name="file" accept=".pdf,.docx,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" required></div>
+    <div class="form-group"><label for="doc_title">Title</label><input id="doc_title" name="title" type="text" maxlength="150"></div>
+    <div class="form-group"><label for="doc_cat">Kind</label><select id="doc_cat" name="category"><?php foreach (\App\Modules\Documents\DocumentRepo::CATEGORIES as $k => $l): ?><option value="<?= $e($k) ?>"><?= $e($l) ?></option><?php endforeach; ?></select></div>
+    <div class="form-group"><label for="doc_exp">Expires (optional)</label><input id="doc_exp" name="expires_on" type="date"></div>
+    <div class="form-group"><label for="doc_notes">Notes (optional)</label><input id="doc_notes" name="notes" type="text" maxlength="500"></div>
+    <div class="form-group"><label class="check"><input type="checkbox" name="shared" value="1"> Let them see it under My profile</label></div>
+  </div>
+  <button class="btn btn-primary" type="submit">Save document</button>
+</form>
+<p class="muted small">Files are kept privately and downloaded only by people who manage staff. Care Core does not read them. <a href="<?= $e($base) ?>/subject-access">Download everything held about <?= $e($person['first_name']) ?></a> (for a subject access request).</p>
+</div></details>
+
 <?php foreach (Compliance::KINDS as $kind => $k): $rows = $lists[$kind]; $fe = $formErrors[$kind] ?? []; ?>
 <details class="fold" id="<?= $e($kind) ?>"<?= $op($kind) ?>><summary><?= $e($k['title']) ?> (<?= count($rows) ?>)</summary><div class="fold__body">
 <?php if ($rows): ?><div class="tablewrap"><table class="list"><thead><tr>

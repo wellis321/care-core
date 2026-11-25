@@ -2,7 +2,7 @@
 <div class="pagehead">
   <div><p class="eyebrow">Directory</p><h1>People</h1><p class="muted">One record for everyone: staff, people we support and leavers.</p></div>
   <div class="actions">
-    <?php if (\App\Core\Auth::can('staff.manage') && \App\Core\Modules::enabled(\App\Core\Auth::orgId(), 'staff')): ?><a class="btn btn-primary" href="/staff/join">New starter</a><?php endif; ?>
+    <?php if (\App\Core\Auth::can('staff.manage') && \App\Core\Modules::enabled(\App\Core\Auth::orgId(), 'staff')): ?><a class="btn btn-primary" href="/staff/join">New starter</a> <a class="btn btn-secondary" href="/documents">Documents to review</a><?php endif; ?>
     <?php if ($care && \App\Core\Auth::can('care.manage')): ?><a class="btn btn-secondary" href="/care/new">Add a person we support</a><?php endif; ?>
   </div>
 </div>

@@ -32,6 +32,13 @@ final class Response
         return new self(200, $body, ['Content-Type' => $mime, 'Cache-Control' => 'private, max-age=300', 'X-Content-Type-Options' => 'nosniff', 'Content-Disposition' => 'inline']);
     }
 
+    /** A private document, always saved to disk by the browser and never shown inline or sniffed. */
+    public static function download(string $body, string $mime, string $filename): self
+    {
+        $safe = preg_replace('/[^A-Za-z0-9._ -]/', '_', $filename) ?: 'document';
+        return new self(200, $body, ['Content-Type' => $mime, 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff', 'Content-Disposition' => 'attachment; filename="' . $safe . '"']);
+    }
+
     public function send(): void
     {
         $body = $this->body;

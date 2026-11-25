@@ -32,6 +32,14 @@ $areas = [
     'Nobody can be hired until the offer is accepted and every required check is done',
     'Hiring starts them through the ordinary joiner process: their record, team, onboarding and the events your other systems listen to',
     'Unsuccessful candidates never become people, and their details can be removed',
+    'A public careers page and apply form, with no account and no tracking, protected against robots',
+    'Interviews booked with a private link the candidate uses to say whether they can come',
+  ]],
+  'Leave and documents' => ['leave', [
+    'Leave requests decided by a manager (never your own), sickness with a return-to-work prompt, and annual leave allowances',
+    'A team calendar of who is away, in letters as well as colour',
+    'Private staff documents with expiry dates, optional sharing with the person, and a review list',
+    'A retention review list and a one-file subject access export',
   ]],
   'The staff record' => ['staff-record', [
     'Address, emergency contact, National Insurance and bank details (encrypted), photo and signature',

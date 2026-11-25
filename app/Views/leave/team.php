@@ -3,7 +3,7 @@ $fmt = static fn($n) => rtrim(rtrim(number_format((float) $n, 1), '0'), '.');
 $letter = ['annual' => 'A', 'sickness' => 'S', 'other_paid' => 'O', 'unpaid' => 'U'];
 $months = [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'];
 $first = $month['first']; ?>
-<div class="pagehead"><div><p class="eyebrow">Staff</p><h1>Team leave</h1><p class="muted">Decide requests, see who is away, and record leave. <a href="/leave">Your own leave</a></p></div></div>
+<div class="pagehead"><div><p class="eyebrow">Staff</p><h1>Team leave</h1><p class="muted">Decide requests, see who is away, and record leave. <a href="/leave">Your own leave</a> · <a href="/documents">Documents to review</a></p></div></div>
 
 <section class="card section" id="requests">
   <h2>Waiting for a decision <span class="muted small">(<?= count($pending) ?>)</span></h2>

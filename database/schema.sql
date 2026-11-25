@@ -12,7 +12,7 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS absences, leave_allowances, interviews, work_sources, sso_codes, sso_clients, sso_keys, organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
+DROP TABLE IF EXISTS staff_documents, absences, leave_allowances, interviews, work_sources, sso_codes, sso_clients, sso_keys, organisation_settings, recovery_codes, user_security, referral_skills, referrals, application_checks, applications, vacancies, job_role_requirements, job_roles, import_runs, import_refs, api_idempotency, api_rate, api_keys, learning_records, appraisals, supervisions, registrations, profile_changes, employment_details, person_profiles, schema_migrations, webhook_deliveries, webhook_endpoints, outbox_events, audit_log, scim_tokens,
     login_attempts, tasks, checklist_template_items, checklist_templates, key_worker_assignments, person_contacts,
     care_needs, support_episodes, team_assignments, teams, employment_changes, employments, users, persons,
     organisation_modules, organisations;
@@ -951,4 +951,28 @@ CREATE TABLE absences (
     KEY idx_absence_org (organisation_id, status, starts_on),
     CONSTRAINT fk_abs_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
     CONSTRAINT fk_abs_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Staff documents (see migration 0015).
+CREATE TABLE staff_documents (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    uuid               CHAR(36)     NOT NULL,
+    organisation_id    BIGINT UNSIGNED NOT NULL,
+    person_id          BIGINT UNSIGNED NOT NULL,
+    title              VARCHAR(150) NOT NULL,
+    category           ENUM('contract','identity','right_to_work','qualification','reference','training','other') NOT NULL DEFAULT 'other',
+    file_path          VARCHAR(200) NOT NULL,
+    original_name      VARCHAR(200) NOT NULL,
+    mime               VARCHAR(100) NOT NULL,
+    size_bytes         INT UNSIGNED NOT NULL,
+    expires_on         DATE         NULL,
+    shared_with_person TINYINT(1)   NOT NULL DEFAULT 0,
+    notes              VARCHAR(500) NULL,
+    added_by_user_id   BIGINT UNSIGNED NULL,
+    created_at         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_doc_uuid (uuid),
+    KEY idx_doc_person (person_id, created_at),
+    KEY idx_doc_expiry (organisation_id, expires_on),
+    CONSTRAINT fk_doc_org    FOREIGN KEY (organisation_id) REFERENCES organisations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_doc_person FOREIGN KEY (person_id)       REFERENCES persons (id)       ON DELETE CASCADE
 ) ENGINE=InnoDB;

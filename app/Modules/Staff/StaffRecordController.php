@@ -146,7 +146,7 @@ final class StaffRecordController extends Controller
         }
         return $this->view('staff/record', $extra + [
             'title' => 'Staff record · ' . PersonRepo::displayName($person), 'person' => $person, 'profile' => StaffRecord::profile($pid),
-            'employment' => $employment, 'details' => $employment ? StaffRecord::details((int) $employment['id']) : [], 'lists' => $lists,
+            'documents' => \App\Modules\Documents\DocumentRepo::forPerson($pid), 'employment' => $employment, 'details' => $employment ? StaffRecord::details((int) $employment['id']) : [], 'lists' => $lists,
             'colleagues' => DB::all('SELECT DISTINCT p.uuid, p.first_name, p.last_name FROM employments e JOIN persons p ON p.id = e.person_id WHERE e.organisation_id = ? AND p.id <> ? AND (e.end_date IS NULL OR e.end_date >= CURDATE()) ORDER BY p.last_name, p.first_name', [$org, $pid]),
             'errors' => $extra['errors'] ?? [], 'formErrors' => $extra['formErrors'] ?? [], 'old' => $extra['old'] ?? [], 'open' => $extra['open'] ?? '',
         ], $status);

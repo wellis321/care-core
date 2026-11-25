@@ -212,7 +212,7 @@ final class SelfServiceController extends Controller
             'teams' => array_filter(AssignmentRepo::forPerson($pid), static fn($t) => $t['valid_to'] === null),
             'pending' => array_values(array_filter($changes, static fn($c) => $c['status'] === 'pending')),
             'decided' => array_values(array_filter($changes, static fn($c) => in_array($c['status'], ['approved', 'rejected'], true))),
-            'lists' => $lists, 'errors' => $extra['errors'] ?? [], 'old' => $extra['old'] ?? [],
+            'lists' => $lists, 'documents' => \App\Modules\Documents\DocumentRepo::forPerson($pid, true), 'errors' => $extra['errors'] ?? [], 'old' => $extra['old'] ?? [],
         ], $status);
     }
 }

@@ -37,3 +37,24 @@
 <h2>From other systems</h2>
 <p>Everything on this page is also in the <a href="/docs/api-reference">API</a> under <strong>Recruitment</strong>, using the <code>recruitment.read</code> and <code>recruitment.write</code> scopes, for example to receive applications from an applicant-tracking system or a careers page. Hiring through the API does not create a login: use the web page, or provision logins by <a href="/docs/scim">SCIM</a> or <a href="/docs/entra-signin">Microsoft sign-in</a>. The events are listed in the <a href="/docs/event-catalogue">event catalogue</a>.</p>
 <p>Next: <a href="/docs/joiners">Starting someone</a>.</p>
+
+<h2>The careers page</h2>
+<p>Each organisation has a public careers page at <code>/careers/</code> followed by its short name. It lists the vacancies you choose to show and has an apply form. Nobody needs an account.</p>
+<ul>
+<li>On a vacancy, open <strong>Careers page</strong> and tick <strong>Show on our careers page</strong>. It shows only while the vacancy is open and before its closing date. Draft, filled and closed vacancies are never shown.</li>
+<li>What the public sees: the title, where the job is, the pay line, the closing date and your own words under <strong>About the job</strong>, followed by the role’s description and person specification. The line manager, team name and any notes stay private.</li>
+<li>An application arrives as a candidate at <strong>Applied</strong> with the source “Careers page”, with the role’s checks copied to it exactly as for a candidate you add yourself. The recruitment page tells you how many are waiting.</li>
+<li>The form has no CAPTCHA and sets no tracking. A hidden field catches robots (their application is quietly not stored), a signed timestamp has to be neither too quick nor a day old, one email address can apply once to a vacancy, and a vacancy takes at most 40 applications an hour.</li>
+<li>The page asks for a name, an email address, an optional phone number and an optional statement. It does not ask for a date of birth or anything else, and says what the details are used for.</li>
+</ul>
+<p>Care Core does not send email, so it does not email the applicant to say it arrived. The confirmation page does that.</p>
+
+<h2>Interviews</h2>
+<p>Once a candidate is shortlisted (or at interview), <strong>Book an interview</strong> on their page takes a date and time, how long, where, who will interview and what to bring. Booking one moves a shortlisted candidate to <strong>Interview</strong> and sets the interview date. A second round is another interview.</p>
+<ul>
+<li><strong>The invitation</strong>: open <em>Invitation to copy</em> for ready-written plain text, with a private link at the end. Paste it into your own email. Care Core does not send it.</li>
+<li><strong>The candidate’s link</strong> (<code>/interview/</code> and a long random code) shows them the time, place, panel and what to bring and lets them say <em>yes I can come</em> or <em>no I cannot</em>, with a short message. They need no account. Anyone with the link can see those details and answer, so it is sent only to the candidate.</li>
+<li>You see the answer on the candidate’s page and in the list of <strong>Interviews coming up</strong> on the Recruitment page.</li>
+<li><strong>Moving</strong> an interview clears the candidate’s earlier answer: tell them. <strong>Cancel</strong> before it happens; mark it <strong>took place</strong> or <strong>did not come</strong> from its day.</li>
+</ul>
+<p>Interviews raise the events <code>interview.scheduled</code> and <code>interview.response</code> (see the <a href="/docs/event-catalogue">event catalogue</a>).</p>
