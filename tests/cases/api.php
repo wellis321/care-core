@@ -732,3 +732,33 @@ test('api: a staff photo and signature can be fetched as images, only by a key t
     $spec = apiOk(api('GET', '/openapi.json', null))['paths']["/people/{id}/photo"]['get'] ?? null;
     ok(isset($spec['responses']['200']['content']['image/png']), 'documented as an image');
 });
+
+test('api: who is away lists approved leave and sickness for a rota, never the kind, never a waiting request', function () {
+    $org = Fx::org();
+    $s = Fx::staff($org, 'Ann', 'Away');
+    $t = Fx::staff($org, 'Tom', 'There');
+    $actor = Fx::actor();
+    App\Core\Clock::freeze('2026-03-02');
+    try {
+        App\Modules\Leave\LeaveRepo::create($org, $s['person_id'], ['kind' => 'annual', 'starts_on' => '2026-03-09', 'ends_on' => '2026-03-11'], $actor, true);
+        App\Modules\Leave\LeaveRepo::create($org, $t['person_id'], ['kind' => 'sickness', 'starts_on' => '2026-03-02', 'ends_on' => ''], $actor);
+        App\Modules\Leave\LeaveRepo::create($org, $s['person_id'], ['kind' => 'annual', 'starts_on' => '2026-03-16', 'ends_on' => '2026-03-16'], $actor);   // only a request
+    } finally {
+        App\Core\Clock::freeze(null);
+    }
+    $k = apiKey($org, ['staff.read']);
+    $rows = apiOk(api('GET', '/away', $k['token'], null, ['from' => '2026-03-01', 'to' => '2026-03-31']))['data'];
+    eq(count($rows), 2);
+    ok(array_search(null, array_column($rows, 'ends_on'), true) !== false, 'an open-ended sickness has no end');
+    foreach ($rows as $r) {
+        ok(!array_key_exists('kind', $r) && !array_key_exists('reason', $r), 'no kind, no reason');
+        ok(in_array($r['person_id'], [$s['person_uuid'], $t['person_uuid']], true));
+    }
+    eq(count(apiOk(api('GET', '/away', $k['token'], null, ['from' => '2026-03-20', 'to' => '2026-03-31']))['data']), 1, 'only the open sickness reaches late March');
+    eq(count(apiOk(api('GET', '/away', $k['token'], null, ['from' => '2026-03-01', 'to' => '2026-03-31', 'person_id' => $s['person_uuid']]))['data']), 1, 'one person only; the waiting request is not listed');
+    eq(api('GET', '/away', $k['token'], null, ['from' => '2026-03-01'])[0], 400);
+    eq(api('GET', '/away', $k['token'], null, ['from' => '2026-03-01', 'to' => '2026-12-31'])[0], 400);
+    eq(api('GET', '/away', apiKey($org, ['teams.read'])['token'], null, ['from' => '2026-03-01', 'to' => '2026-03-02'])[0], 403);
+    $other = apiKey(Fx::org(), ['staff.read']);
+    eq(count(apiOk(api('GET', '/away', $other['token'], null, ['from' => '2026-03-01', 'to' => '2026-03-31']))['data']), 0, 'another organisation sees nothing');
+});
