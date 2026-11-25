@@ -90,7 +90,7 @@ $router->add('POST', '/approvals/{uuid}', [SelfServiceController::class, 'decide
 $router->add('GET', '/files/{kind}/{uuid}', [SelfServiceController::class, 'file']);
 
 // Tasks
-$router->add('GET', '/search', [WorkController::class, 'search'], 'auth');
+$router->add('GET', '/search', [WorkController::class, 'search']);
 $router->add('GET', '/my-work', [WorkController::class, 'index'], 'tasks.view');
 $router->add('GET', '/tasks', [TaskController::class, 'index'], 'tasks.view');
 $router->add('POST', '/tasks/{uuid}', [TaskController::class, 'update'], 'tasks.view');
