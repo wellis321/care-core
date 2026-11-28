@@ -6,7 +6,7 @@
   <?php foreach ($sources as $s): ?><tr>
     <td><?= $e($s['name']) ?><br><?= $s['active'] ? '<span class="chip chip--staff">On</span>' : '<span class="chip chip--warn">Off</span>' ?></td>
     <td class="small"><?= $e($s['base_url']) ?></td>
-    <td class="small"><?= $s['last_ok_at'] ? View::date(substr($s['last_ok_at'], 0, 10)) : 'never' ?><?= $s['last_error'] ? '<br><span class="muted">' . $e($s['last_error']) . '</span>' : '' ?></td>
+    <td class="small"><?= $s['last_ok_at'] ? View::date($s['last_ok_at']) : 'never' ?><?= $s['last_error'] ? '<br><span class="muted">' . $e($s['last_error']) . '</span>' : '' ?></td>
     <td class="right"><div class="row-actions">
       <form method="post" action="/admin/my-work/toggle"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><input type="hidden" name="on" value="<?= $s['active'] ? '0' : '1' ?>"><button class="btn btn--small"><?= $s['active'] ? 'Switch off' : 'Switch on' ?></button></form>
       <form method="post" action="/admin/my-work/remove"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><button class="btn btn--small">Remove</button></form></div></td>

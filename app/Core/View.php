@@ -34,8 +34,21 @@ final class View
         return (string) ob_get_clean();
     }
 
+    /** "12 Mar 2026". Takes a plain date, or a saved UTC time, which is shown as the UK date it fell on. */
     public static function date(?string $d, string $empty = '—'): string
     {
-        return $d ? date('j M Y', strtotime($d)) : $empty;
+        return $d ? date('j M Y', self::stamp($d)) : $empty;
+    }
+
+    /** A saved UTC time in UK time: "12 Mar 2026 14:05". (Interview times are typed in and stored as UK time: do not use this for them.) */
+    public static function dateTime(?string $utc, string $empty = '—'): string
+    {
+        return $utc ? date('j M Y H:i', self::stamp($utc)) : $empty;
+    }
+
+    /** Saved times ("2026-06-14 23:30:00", with no zone) are UTC. Anything else is read as it says. */
+    private static function stamp(string $d): int
+    {
+        return (int) strtotime(preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2}(\.\d+)?)?$/', $d) ? $d . ' UTC' : $d);
     }
 }

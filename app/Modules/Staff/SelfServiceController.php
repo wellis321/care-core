@@ -151,7 +151,7 @@ final class SelfServiceController extends Controller
         if (in_array($u['role'], ['admin', 'manager'], true) || ($u['person_id'] && (int) $u['person_id'] === (int) $person['id'])) {
             return true;
         }
-        return $u['person_id'] && (bool) DB::value('SELECT 1 FROM employments WHERE person_id = ? AND line_manager_person_id = ? AND (end_date IS NULL OR end_date >= CURDATE()) LIMIT 1', [$person['id'], $u['person_id']]);
+        return $u['person_id'] && (bool) DB::value('SELECT 1 FROM employments WHERE person_id = ? AND line_manager_person_id = ? AND (end_date IS NULL OR end_date >= ?) LIMIT 1', [$person['id'], $u['person_id'], \App\Core\Clock::today()]);
     }
 
     private function saveImage(string $field, string $kind, string $input, ?string $method): Response

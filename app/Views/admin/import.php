@@ -19,7 +19,7 @@
     <tbody>
     <?php foreach ($runs as $r): $sum = json_decode((string) $r['summary'], true) ?: []; $n = 0; foreach (($sum['counts'] ?? []) as $c) { $n += ($c['created'] ?? 0); } ?>
       <tr>
-        <td class="nowrap"><?= $e(date('j M Y H:i', strtotime($r['created_at']))) ?></td>
+        <td class="nowrap"><?= $e(\App\Core\View::dateTime($r['created_at'])) ?></td>
         <td><?= $e($r['label'] ?: '—') ?></td>
         <td><?= $r['mode'] === 'dry_run' ? 'Check only' : 'Import' ?></td>
         <td><?= $r['mode'] === 'dry_run' ? '<span class="chip">Nothing changed</span>' : ($r['status'] === 'completed' ? '<span class="chip chip--staff">Imported</span>' : '<span class="chip chip--bad">Not imported</span>') ?></td>

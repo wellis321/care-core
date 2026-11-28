@@ -32,6 +32,8 @@ emit is in the event catalogue.
 
 ## The ideas
 
+- **UK dates, UTC times.** Dates are UK dates and saved times are UTC. Pass `Clock::today()` into a query (never `CURDATE()`), and show a saved time with `View::date()` or `View::dateTime()` (never `substr` or `date()`). Otherwise the hour after midnight in summer reads as yesterday. `tests/cases/uk_dates.php` checks this. Interview times are the exception: they are typed in and stored as UK time.
+
 1. **One person, many relationships.** A person is created once and never deleted. Being staff, being supported, being in a
    team or being someone's key worker are *relationships* with start and end dates. A rehire, a move, or someone returning to
    a team is a new row. History is never overwritten.

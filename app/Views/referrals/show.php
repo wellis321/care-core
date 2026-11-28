@@ -17,7 +17,7 @@ $old = ['person_name' => $r['person_name'], 'date_of_birth' => $r['date_of_birth
       <?php if ($r['risks']): ?><dt>Known risks</dt><dd><?= nl2br($e($r['risks'])) ?></dd><?php endif; ?>
       <?php if ($r['plan_types']): ?><dt>Plans it calls for</dt><dd><?= $e(implode(', ', array_map(fn($k) => ReferralRepo::PLAN_TYPES[$k] ?? $k, ReferralRepo::planTypes($r['plan_types'])))) ?></dd><?php endif; ?>
       <?php if ($skills): ?><dt>Specialist skills</dt><dd><?= $e(implode(', ', $skills)) ?></dd><?php endif; ?>
-      <?php if ($r['decided_at']): ?><dt>Decision</dt><dd><?= $e(ReferralRepo::STATUS[$r['status']]) ?> on <?= View::date(substr((string) $r['decided_at'], 0, 10)) ?><?= $r['decision_reason'] ? ': ' . $e($r['decision_reason']) : '' ?></dd><?php endif; ?>
+      <?php if ($r['decided_at']): ?><dt>Decision</dt><dd><?= $e(ReferralRepo::STATUS[$r['status']]) ?> on <?= View::date((string) $r['decided_at']) ?><?= $r['decision_reason'] ? ': ' . $e($r['decision_reason']) : '' ?></dd><?php endif; ?>
       <?php if ($person): ?><dt>Person</dt><dd><a href="/people/<?= $e($person['uuid']) ?>"><?= $e($person['first_name'] . ' ' . $person['last_name']) ?></a></dd><?php endif; ?>
     </dl>
   </section>

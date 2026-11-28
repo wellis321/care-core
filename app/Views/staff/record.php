@@ -51,7 +51,7 @@ $ucw = static fn(string $s) => ucwords(str_replace('_', ' ', $s));
 <details class="fold" id="documents"<?= $op('documents') ?>><summary>Documents (<?= count($documents) ?>)</summary><div class="fold__body">
 <?php if ($documents): ?><div class="tablewrap"><table class="list"><thead><tr><th>Document</th><th>Kind</th><th>Expires</th><th>Shared</th><th><span class="sr">Actions</span></th></tr></thead><tbody>
 <?php foreach ($documents as $d): $exp = $d['expires_on']; ?><tr>
-  <td><a href="/documents/<?= $e($d['uuid']) ?>/download"><?= $e($d['title']) ?></a><br><span class="muted small"><?= $e($d['original_name']) ?> · <?= $e(number_format($d['size_bytes'] / 1024, 0)) ?> KB · added <?= View::date(substr($d['created_at'], 0, 10)) ?></span></td>
+  <td><a href="/documents/<?= $e($d['uuid']) ?>/download"><?= $e($d['title']) ?></a><br><span class="muted small"><?= $e($d['original_name']) ?> · <?= $e(number_format($d['size_bytes'] / 1024, 0)) ?> KB · added <?= View::date($d['created_at']) ?></span></td>
   <td><?= $e(\App\Modules\Documents\DocumentRepo::CATEGORIES[$d['category']]) ?></td>
   <td><?= $exp ? View::date($exp) . ($exp < date('Y-m-d') ? ' <span class="chip chip--bad">Expired</span>' : '') : '—' ?></td>
   <td><form method="post" action="/documents/<?= $e($d['uuid']) ?>/share" class="row-actions"><?= Csrf::field() ?><label class="check"><input type="checkbox" name="shared" value="1"<?= $d['shared_with_person'] ? ' checked' : '' ?>> They can see it</label> <button class="btn btn-secondary" type="submit">Save</button></form></td>

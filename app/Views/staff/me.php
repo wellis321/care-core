@@ -80,7 +80,7 @@ $secretNote = static fn(string $f) => ($profile[$f] ?? '') !== '' ? 'Currently '
 
 <section class="section card" id="signature" aria-labelledby="sg">
   <h2 id="sg">Signature</h2>
-  <?php if ($profile['signature_path']): ?><img class="sigimg" src="/files/signature/<?= $e($person['uuid']) ?>" alt="Your current signature"><p class="muted small">Added <?= View::date(substr((string) $profile['signature_at'], 0, 10)) ?>.</p><?php else: ?><p class="muted">You have not added a signature yet.</p><?php endif; ?>
+  <?php if ($profile['signature_path']): ?><img class="sigimg" src="/files/signature/<?= $e($person['uuid']) ?>" alt="Your current signature"><p class="muted small">Added <?= View::date((string) $profile['signature_at']) ?>.</p><?php else: ?><p class="muted">You have not added a signature yet.</p><?php endif; ?>
   <?php if (isset($pendingBy['signature_path'])): ?><p><img class="sigimg" src="/files/pending/<?= $e($pendingBy['signature_path']['uuid']) ?>" alt="Your new signature, waiting for approval"><span class="hint">Waiting for approval</span></p><?php endif; ?>
   <form method="post" action="/me/signature" enctype="multipart/form-data" class="form sigform"><?= Csrf::field() ?>
     <input type="hidden" name="signature_data" value="">

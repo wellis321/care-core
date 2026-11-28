@@ -120,8 +120,8 @@ final class ProfileChanges
             return true;
         }
         return $user['person_id'] && (bool) DB::value(
-            'SELECT 1 FROM employments WHERE person_id = ? AND line_manager_person_id = ? AND start_date <= CURDATE() AND (end_date IS NULL OR end_date >= CURDATE()) LIMIT 1',
-            [$change['person_id'], $user['person_id']]
+            'SELECT 1 FROM employments WHERE person_id = ? AND line_manager_person_id = ? AND start_date <= ? AND (end_date IS NULL OR end_date >= ?) LIMIT 1',
+            [$change['person_id'], $user['person_id'], \App\Core\Clock::today(), \App\Core\Clock::today()]
         );
     }
 

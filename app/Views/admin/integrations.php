@@ -21,7 +21,7 @@
       <?php foreach ($apiKeys as $k): ?><tr>
         <td><?= $e($k['name']) ?><br><span class="muted small"><code><?= $e($k['key_prefix']) ?>…</code> · <?= (int) $k['rate_limit_per_minute'] ?>/min<?= $k['allowed_ips'] ? ' · ' . $e($k['allowed_ips']) : '' ?></span> <?= $k['active'] ? '' : '<span class="chip chip--bad">Revoked</span>' ?></td>
         <td class="small"><?= $e(str_replace(',', ', ', $k['scopes'])) ?></td>
-        <td class="nowrap"><?= View::date($k['last_used_at'] ? substr($k['last_used_at'], 0, 10) : null, 'never') ?></td>
+        <td class="nowrap"><?= View::date($k['last_used_at'], 'never') ?></td>
         <td class="nowrap"><?= View::date($k['expires_at'] ? substr($k['expires_at'], 0, 10) : null, 'never') ?></td>
         <td class="right"><?php if ($k['active']): ?><form method="post" action="/admin/api-keys/revoke" class="row-actions"><?= Csrf::field() ?><input type="hidden" name="id" value="<?= (int) $k['id'] ?>"><button class="btn btn-secondary" type="submit">Revoke</button></form><?php endif; ?></td>
       </tr><?php endforeach; ?>
@@ -85,7 +85,7 @@
 <section class="section">
   <div class="section__head"><h2>Recent events</h2></div>
   <div class="tablewrap"><table class="list"><thead><tr><th>Event</th><th>When</th><th>Queued for delivery</th></tr></thead><tbody>
-    <?php foreach ($events as $ev): ?><tr><td><code><?= $e($ev['type']) ?></code></td><td class="nowrap"><?= $e(date('j M Y H:i', strtotime($ev['occurred_at']))) ?></td><td><?= $ev['fanned_out_at'] ? 'Yes' : 'Not yet' ?></td></tr><?php endforeach; ?>
+    <?php foreach ($events as $ev): ?><tr><td><code><?= $e($ev['type']) ?></code></td><td class="nowrap"><?= $e(\App\Core\View::dateTime($ev['occurred_at'])) ?></td><td><?= $ev['fanned_out_at'] ? 'Yes' : 'Not yet' ?></td></tr><?php endforeach; ?>
     <?php if (!$events): ?><tr class="empty-row"><td colspan="3">No events yet.</td></tr><?php endif; ?>
   </tbody></table></div>
 </section>

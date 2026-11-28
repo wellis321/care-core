@@ -6,7 +6,7 @@
 <section class="section"><h2><a href="/people/<?= $e($c['person_uuid']) ?>"><?= $e($c['first_name'] . ' ' . $c['last_name']) ?></a></h2><div class="card">
 <?php endif; ?>
   <div class="changeset" style="padding:.6rem 0;border-top:1px solid var(--rule-soft,#ebe8df)">
-    <div><strong><?= $e($c['label']) ?></strong><br><span class="muted small">asked <?= View::date(substr($c['submitted_at'], 0, 10)) ?></span></div>
+    <div><strong><?= $e($c['label']) ?></strong><br><span class="muted small">asked <?= View::date($c['submitted_at']) ?></span></div>
     <div>
     <?php if ($c['field_type'] === 'file'): ?>
       <img class="<?= $c['field'] === 'signature_path' ? 'sigimg' : 'avatar' ?>" src="/files/pending/<?= $e($c['uuid']) ?>" alt="New <?= $e(strtolower($c['label'])) ?> for <?= $e($c['first_name']) ?>">

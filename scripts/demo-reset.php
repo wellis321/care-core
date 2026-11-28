@@ -300,7 +300,7 @@ foreach ([[2, 'Employment contract', 'contract', null, true], [2, 'Right to work
 DocumentRepo::setRetentionYears($org, '6', $actor);
 
 // History is complete: only recent and upcoming work is still open.
-DB::run("UPDATE tasks SET status = 'done', completed_at = UTC_TIMESTAMP() WHERE status = 'open' AND due_date < DATE_SUB(CURDATE(), INTERVAL 14 DAY)");
+DB::run("UPDATE tasks SET status = 'done', completed_at = UTC_TIMESTAMP() WHERE status = 'open' AND due_date < DATE_SUB(?, INTERVAL 14 DAY)", [\App\Core\Clock::today()]);
 
 // The owner's own administrator login survives the nightly reset. The server's .env holds OWNER_EMAIL and
 // OWNER_PASSWORD_HASH (a hash made on the owner's own computer: the password itself never appears anywhere here).

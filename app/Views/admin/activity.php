@@ -4,7 +4,7 @@
   <thead><tr><th>When</th><th>What</th><th>Who</th></tr></thead>
   <tbody>
   <?php foreach ($rows as $a): ?>
-    <tr><td class="nowrap"><?= $e(date('j M Y H:i', strtotime($a['created_at']))) ?></td><td><?= $a['entity_type'] === 'person' && $a['entity_uuid'] ? '<a href="/people/' . $e($a['entity_uuid']) . '">' . $e($a['summary']) . '</a>' : $e($a['summary']) ?></td><td class="muted small"><?= $e($a['actor_label']) ?></td></tr>
+    <tr><td class="nowrap"><?= $e(\App\Core\View::dateTime($a['created_at'])) ?></td><td><?= $a['entity_type'] === 'person' && $a['entity_uuid'] ? '<a href="/people/' . $e($a['entity_uuid']) . '">' . $e($a['summary']) . '</a>' : $e($a['summary']) ?></td><td class="muted small"><?= $e($a['actor_label']) ?></td></tr>
   <?php endforeach; ?>
   <?php if (!$rows): ?><tr class="empty-row"><td colspan="3">Nothing yet.</td></tr><?php endif; ?>
   </tbody>
